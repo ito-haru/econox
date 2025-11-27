@@ -1,10 +1,9 @@
 # src/econox/components/feedback.py
 """
 Feedback mechanisms for General Equilibrium (GE) interactions.
-Updates environmental variables (e.g., Prices) based on agent distributions.
+Updates environmental variables (e.g., prices) based on agent distributions.
 """
 
-from hmac import new
 import jax.numpy as jnp
 import equinox as eqx
 from typing import Any

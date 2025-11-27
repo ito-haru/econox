@@ -55,7 +55,7 @@ class LinearUtility(eqx.Module):
 
         # 2. Retrieve the feature tensor
         # Shape: (num_states, num_actions, num_features)
-        X: Float[Array, "num_states num_actions num_features"] = model.data[self.feature_key]
+        X: Float[Array, "num_states num_actions num_features"] = get_from_pytree(model.data, self.feature_key)
 
         # 3. Compute dot product
         # Contract over the feature dimension (last dimension)

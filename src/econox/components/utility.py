@@ -1,6 +1,6 @@
 # src/econox/components/utility.py
 """
-Utility functions for the Econox components.
+Utility components for the Econox framework.
 """
 
 import jax.numpy as jnp
@@ -9,6 +9,7 @@ from typing import Sequence
 from jaxtyping import Float, Array, PyTree
 
 from econox.protocols import StructuralModel
+from econox.utils import get_from_pytree
 
 class LinearUtility(eqx.Module):
     """
@@ -49,7 +50,7 @@ class LinearUtility(eqx.Module):
         # Assuming params is a dictionary-like PyTree.
         # Shape: (num_features,)
         coeffs: Float[Array, "num_features"] = jnp.stack(
-            [params[k] for k in self.param_keys]
+            [get_from_pytree(params, k) for k in self.param_keys]
         )
 
         # 2. Retrieve the feature tensor

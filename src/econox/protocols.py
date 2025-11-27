@@ -32,6 +32,20 @@ class StructuralModel(Protocol):
         """
         ...
 
+    def replace_data(self, key: str, value: Any) -> "StructuralModel":
+        """
+        Returns a new instance of the model with the specified data key updated.
+        Required for Feedback mechanisms to update the environment (e.g., prices).
+        
+        Args:
+            key: The name of the data field to update.
+            value: The new value for that field.
+            
+        Returns:
+            A new StructuralModel instance (immutable update).
+        """
+        ...
+
 @runtime_checkable
 class ParameterSpace(Protocol):
     """

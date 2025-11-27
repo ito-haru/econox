@@ -99,13 +99,5 @@ class LogLinearFeedback(eqx.Module):
         new_val: Array = jnp.exp(pred_ln_val_safe)
 
         # 5. Return New Model with Updated Data
-        # Since StructuralModel is immutable (via Protocol), we rely on a method
-        # `replace_data` if it exists, or assume a specific implementation.
-        # For the generic protocol, we assume the user's Model class has a way to update.
-        if hasattr(model, "replace_data"):
-             return model.replace_data(self.target_data_key, new_val) # type: ignore
-        
-        # Fallback: Raise error if the model doesn't support updates
-        raise NotImplementedError(
-            f"The model class {type(model).__name__} does not implement 'replace_data' method required for feedback."
-        )
+        # StructuralModel protocol guarantees `replace_data` method.
+        return model.replace_data(self.target_data_key, new_val)

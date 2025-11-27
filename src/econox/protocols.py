@@ -24,6 +24,14 @@ class StructuralModel(Protocol):
     @property
     def num_actions(self) -> int: ...
 
+    @property
+    def data(self) -> PyTree:
+        """
+        Holds environment constants (features, matrices, etc.).
+        Ideally a PyTree (dict, NamedTuple, etc.).
+        """
+        ...
+
 @runtime_checkable
 class ParameterSpace(Protocol):
     """

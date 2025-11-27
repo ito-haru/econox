@@ -4,6 +4,7 @@ General utility functions shared across the Econox package.
 """
 
 from typing import Any, TypeVar, Union
+from collections.abc import Mapping
 
 # Sentinel value to distinguish "no default provided" from "default=None"
 _MISSING = object()
@@ -31,31 +32,26 @@ def get_from_pytree(
         KeyError: If data is dict-like and key is missing (and no default).
         AttributeError: If data is object-like and attribute is missing (and no default).
     """
-    # 1. Try dict-style access first (more explicit for dicts)
-    if isinstance(data, dict):
+    # 1. Try Mapping protocol (dict, etc.)
+    # Use explicit check to avoid unintended sequence behavior
+    if isinstance(data, Mapping):
         if key in data:
             return data[key]
         if default is not _MISSING:
             return default
-        raise KeyError(f"Key '{key}' not found in data dictionary.")
+        raise KeyError(f"Key '{key}' not found in data mapping of type {type(data).__name__}.")
     
-    # 2. Try mapping protocol (__getitem__ + __contains__ or keys)
-    if hasattr(data, "__getitem__"):
-        try:
-            # Check if key exists (use __contains__ if available)
-            if hasattr(data, "__contains__"):
-                if key in data:
-                    return data[key]
-            else:
-                # Fallback: try direct access
-                return data[key]
-        except (KeyError, TypeError, IndexError):
-            # Continue to attribute access
-            pass
-    
-    # 3. Try attribute access (for NamedTuple, dataclass, etc.)
+    # 2. Try attribute access (NamedTuple, dataclass, class instance)
     if hasattr(data, key):
         return getattr(data, key)
+    
+    # 3. Try __getitem__ as a fallback (but be careful not to iterate)
+    # This covers cases that have __getitem__ but are not Mappings (rare in this context but possible)
+    if hasattr(data, "__getitem__"):
+        try:
+            return data[key]
+        except (KeyError, TypeError, IndexError):
+            pass
     
     # 4. Return default or raise error
     if default is not _MISSING:
@@ -63,5 +59,5 @@ def get_from_pytree(
         
     raise AttributeError(
         f"Could not find '{key}' in data object of type {type(data).__name__}. "
-        "Ensure the data container has this key or attribute."
+        f"Available keys/attributes could not be determined."
     )

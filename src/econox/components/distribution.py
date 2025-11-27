@@ -15,6 +15,10 @@ class GumbelDistribution(eqx.Module):
     """
     scale: float = 1.0
 
+    def __check_init__(self) -> None:
+        if self.scale <= 0:
+            raise ValueError(f"Gumbel scale must be positive, got {self.scale}")
+
     def expected_max(
         self, 
         values: Float[Array, "num_states num_actions"]

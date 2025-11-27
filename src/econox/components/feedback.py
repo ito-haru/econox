@@ -9,6 +9,7 @@ import equinox as eqx
 from typing import Any
 from jaxtyping import PyTree, Array, Float
 
+from econox.config import LOG_CLIP_MAX, LOG_CLIP_MIN, NUMERICAL_EPSILON
 from econox.protocols import StructuralModel
 from econox.utils import get_from_pytree
 
@@ -27,6 +28,11 @@ class LogLinearFeedback(eqx.Module):
     area_data_key: str
     total_pop_data_key: str
 
+    # Configuration
+    clip_min: float = LOG_CLIP_MIN
+    clip_max: float = LOG_CLIP_MAX
+    epsilon: float = NUMERICAL_EPSILON
+
     def __init__(
         self,
         target_data_key: str, 
@@ -34,7 +40,10 @@ class LogLinearFeedback(eqx.Module):
         elasticity_param_key: str,    
         intercept_param_key: str,     
         area_data_key: str = "area_size",
-        total_pop_data_key: str = "total_pop"
+        total_pop_data_key: str = "total_pop",
+        clip_min: float = LOG_CLIP_MIN,
+        clip_max: float = LOG_CLIP_MAX,
+        epsilon: float = NUMERICAL_EPSILON
     ) -> None:
         """
         Args:
@@ -44,6 +53,9 @@ class LogLinearFeedback(eqx.Module):
             intercept_param_key (str): Key in params for intercept term (e.g., "rent_intercepts").
             area_data_key (str): Key in model.data for area sizes. Default "area_size".
             total_pop_data_key (str): Key in model.data for total population. Default "total_pop".
+            clip_min (float): Minimum clipping value for log predictions. Default LOG_CLIP_MIN.
+            clip_max (float): Maximum clipping value for log predictions. Default LOG_CLIP_MAX.
+            epsilon (float): Small constant for numerical stability. Default NUMERICAL_EPSILON.
         """
         self.target_data_key = target_data_key
         self.result_metric_key = result_metric_key
@@ -88,14 +100,14 @@ class LogLinearFeedback(eqx.Module):
         # 3. Calculate Density
         # Density = (Share * Total) / Area
         abs_population = pop_share * total_pop
-        density = abs_population / jnp.maximum(area_size, 1e-8)
+        density = abs_population / jnp.maximum(area_size, self.epsilon)
         
         # 4. Compute Log-Linear Update
         # Formula: ln(Y) = alpha + beta * ln(Density)
-        # Using maximum(..., 1e-8) for numerical stability
-        ln_density: Array = jnp.log(jnp.maximum(density, 1e-8))
+        # Using maximum(..., epsilon) for numerical stability
+        ln_density: Array = jnp.log(jnp.maximum(density, self.epsilon))
         pred_ln_val: Array = intercept + elasticity * ln_density
-        pred_ln_val_safe: Array = jnp.clip(pred_ln_val, a_min=-20.0, a_max=20.0)
+        pred_ln_val_safe: Array = jnp.clip(pred_ln_val, a_min=self.clip_min, a_max=self.clip_max)
         new_val: Array = jnp.exp(pred_ln_val_safe)
 
         # 5. Return New Model with Updated Data

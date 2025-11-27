@@ -1,9 +1,12 @@
 # src/econox/protocols.py
+"""
+Protocol definitions for the Econox framework.
+"""
 
-from typing import Protocol, Any, TypeAlias, runtime_checkable
+from typing import Callable, Protocol, Any, TypeAlias, runtime_checkable
 from jaxtyping import Array, Float, PyTree
 
-Scalar: TypeAlias   = Float[Array, ""]
+Scalar: TypeAlias = Float[Array, ""]
 
 # =============================================================================
 # 1. Data Containers (Model)
@@ -47,7 +50,7 @@ class ParameterSpace(Protocol):
 class Utility(Protocol):
     """
     Utility function (Instantaneous Utility / Reward).
-    Takes parameters and data, returns a utility matrix of shape (S, A).
+    Takes parameters and data, returns a utility matrix of shape (n_states, n_actions).
     """
     def compute_flow_utility(self, params: PyTree, model: StructuralModel) -> Float[Array, "n_states n_actions"]:
         ...
@@ -86,7 +89,8 @@ class Solver(Protocol):
     Uses Utility and Distribution to solve for fixed points or optimal policies.
     """
     def solve(
-        self, 
+        self,
+        params: PyTree,
         model: StructuralModel, 
         utility: Utility, 
         dist: Distribution, 
@@ -122,5 +126,5 @@ class Optimizer(Protocol):
     Optimization algorithm (Wrapper).
     Takes a loss function and initial values, returns optimal parameters.
     """
-    def minimize(self, loss_fn: Any, init_params: Any) -> Any:
+    def minimize(self, loss_fn: Callable[[PyTree], Scalar], init_params: PyTree) -> PyTree:
         ...

@@ -3,15 +3,31 @@
 Optimization and Fixed-Point strategies using Optimistix.
 Wraps numerical solvers to provide a consistent interface for Econox components.
 """
-
+import jax
 from typing import Callable, Any
 import equinox as eqx
 import optimistix as optx
-from jaxtyping import PyTree, Scalar, Array
+from jaxtyping import Float, PyTree, Scalar, Array, Bool, Int
 
 # =============================================================================
-# 1. Minimizer (For Estimator)
+# 1. Optimization Strategies
 # =============================================================================
+
+class OptimizationResult(eqx.Module):
+    """
+    A generic container for optimization results.
+    Decouples the Estimator from the specific backend (optimistix/jaxopt).
+
+    Attributes:
+        params: The optimized parameters (PyTree).
+        loss: The final loss value (Scalar).
+        success: Whether the optimization was successful (Bool).
+        steps: Number of optimization steps taken (Int).
+    """
+    params: PyTree
+    loss: Scalar
+    success: Bool[Array, ""]
+    steps: Int[Array, ""]
 
 class Minimizer(eqx.Module):
     """
@@ -24,91 +40,111 @@ class Minimizer(eqx.Module):
         >>> # Default (BFGS, tol=1e-6)
         >>> opt = Minimizer()
         
-        >>> # Custom tolerance
-        >>> opt = Minimizer(rtol=1e-3, atol=1e-3)
-        
-        >>> # Custom method (e.g., Nelder-Mead)
-        >>> opt = Minimizer(method=optx.NelderMead())
+        >>> # Custom method (e.g., Nelder-Mead) and tolerances
+        >>> opt = Minimizer(method=optx.NelderMead(atol=1e-5, rtol=1e-5))
     """
-    rtol: float = 1e-6
-    atol: float = 1e-6
-    method: optx.AbstractMinimiser = optx.BFGS(rtol=rtol, atol=atol)
-    max_steps: int = 1000
-    throw: bool = False
+    method: optx.AbstractMinimiser = optx.BFGS(rtol=1e-6, atol=1e-6)
+    max_steps: int = eqx.field(static=True, default=1000)
+    throw: bool = eqx.field(static=True, default=False)
 
     def minimize(
         self, 
         loss_fn: Callable[[PyTree], Scalar], 
         init_params: PyTree
-    ) -> PyTree:
+    ) -> OptimizationResult:
         """
         Minimizes the loss function using the specified method and tolerances.
+
+        Parameters
+        ----------
+        loss_fn : Callable[[PyTree], Scalar]
+            The loss function to minimize. Takes parameters and returns a scalar loss.
+        init_params : PyTree
+            Initial parameter values for optimization.
+    
+        Returns
+        -------
+        OptimizationResult
+            Contains the optimized parameters, final loss, success status, and iteration count.
         """
         # Inject the wrapper's tolerances into the solver instance
         # This ensures consistent behavior even if the user swapped the method
-        solver = eqx.tree_at(
-            lambda s: (s.rtol, s.atol),
-            self.method,
-            (self.rtol, self.atol)
-        )
-
-        def wrapped_loss_fn(params, args) -> Array:
-            return loss_fn(params)
+        def wrapped_loss_fn(params, args) -> tuple[Scalar, Scalar]:
+            loss = loss_fn(params)
+            return loss, loss
         
-        sol = optx.minimise(
+        sol:optx.Solution = optx.minimise(
             fn=wrapped_loss_fn,
-            solver=solver,
+            solver=self.method,
             y0=init_params,
             max_steps=self.max_steps,
-            throw=self.throw
+            throw=self.throw,
+            has_aux=True
         )
-        
-        return sol.value
+        params: PyTree = sol.value
+        success: Bool = sol.result == optx.RESULTS.successful
+        final_loss: Float[Array, ""] = sol.aux
+        steps: Int = sol.stats["num_steps"]
+
+        result: OptimizationResult = OptimizationResult(
+            params=params,
+            loss=final_loss,
+            success=success,
+            steps=steps
+        )
+        return result
 
 
 # =============================================================================
-# 2. Fixed Point Solver (For Inner/Outer Solvers)
+# 2. Fixed Point Strategies
 # =============================================================================
+
+class FixedPointResult(eqx.Module):
+    """
+    Container for fixed-point computation results.
+    Used by internal solvers (Bellman, Equilibrium) to report convergence status.
+    """
+    value: PyTree
+    success: Bool[Array, ""]
+    steps: Int[Array, ""]
 
 class FixedPoint(eqx.Module):
     """
     Wrapper for optimistix.fixed_point.
-    Used by Solvers to find Value Functions (Bellman) or Equilibrium (GE).
     
-    Attributes:
-        method: The fixed-point algorithm (default: FixedPointIteration).
-        rtol: Relative tolerance.
-        atol: Absolute tolerance.
+    Examples:
+        >>> # Default (FixedPointIteration)
+        >>> fp = FixedPoint()
+        
+        >>> # Custom (Anderson Acceleration)
+        >>> fp = FixedPoint(method=optx.AndersonAcceleration(rtol=1e-5, atol=1e-5))
     """
-    
-    rtol: float = 1e-8
-    atol: float = 1e-8
-    method: optx.AbstractFixedPointSolver = optx.FixedPointIteration(rtol=rtol, atol=atol)
-    max_steps: int = 2000
-    throw: bool = False
+    method: optx.AbstractFixedPointSolver = optx.FixedPointIteration(rtol=1e-8, atol=1e-8)
+    max_steps: int = eqx.field(static=True, default=2000)
+    throw: bool = eqx.field(static=True, default=False)
 
     def find_fixed_point(
         self, 
         step_fn: Callable[[PyTree, Any], PyTree], 
         init_val: PyTree,
         args: Any = None
-    ) -> PyTree:
+    ) -> FixedPointResult:
         """
         Solves for y such that y = step_fn(y, args).
+        Returns a FixedPointResult containing the solution and status.
         """
-        # Inject tolerances
-        solver = eqx.tree_at(
-            lambda s: (s.rtol, s.atol),
-            self.method,
-            (self.rtol, self.atol)
-        )
-
+        
         sol = optx.fixed_point(
             fn=step_fn,
-            solver=solver,
+            solver=self.method,
             y0=init_val,
             args=args,
             max_steps=self.max_steps,
             throw=self.throw
         )
-        return sol.value
+
+        return FixedPointResult(
+            value=sol.value,
+            success=(sol.result == optx.RESULTS.successful),
+            steps=sol.stats["num_steps"]
+        )

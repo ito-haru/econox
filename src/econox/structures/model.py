@@ -131,16 +131,16 @@ class Model(eqx.Module):
         
         try:
             jax_data = {k: jnp.asarray(v) for k, v in data.items()}
-        except Exception as e:
-            raise TypeError(f"Failed to convert data to JAX arrays: {e}")
+        except (ValueError, TypeError) as e:
+            raise TypeError(f"Failed to convert data to JAX arrays: {e}") from e
         
         # Validate and convert availability
         jax_avail = None
         if availability is not None:
             try:
                 jax_avail = jnp.asarray(availability)
-            except Exception as e:
-                raise TypeError(f"Failed to convert availability to JAX array: {e}")
+            except (ValueError, TypeError) as e:  
+                raise TypeError(f"Failed to convert availability to JAX array: {e}") from e  
             
             if jax_avail.shape != (num_states, num_actions):
                 raise ValueError(
@@ -153,8 +153,8 @@ class Model(eqx.Module):
         if transitions is not None:
             try:
                 jax_trans = jnp.asarray(transitions)
-            except Exception as e:
-                raise TypeError(f"Failed to convert transitions to JAX array: {e}")
+            except (ValueError, TypeError) as e:
+                raise TypeError(f"Failed to convert transitions to JAX array: {e}") from e
 
         return cls(
             num_states=num_states,
@@ -181,6 +181,13 @@ class Model(eqx.Module):
         Returns:
             A new `Model` instance with the updated data.
         """
+        # Validate key existence
+        if key not in self.data:
+            raise KeyError(
+                f"Key '{key}' not found in model data. "
+                f"Available keys: {list(self.data.keys())}"
+            )
+    
         new_data = self.data.copy()
         new_data[key] = jnp.asarray(value)
 

@@ -14,10 +14,22 @@ ConstraintKind = Literal[
     "positive",       # (0, +inf)
     "negative",       # (-inf, 0)
     "probability",    # (0, 1)
-    "unit_interval",  # (0, 1) Alias for probability
+    "unit_interval",  # (0, 1) Alias for "probability" constraint
     "fixed",          # Fixed value
     "bounded",        # (lower, upper)
 ]
+"""
+Specifies the type of constraint applied to a parameter.
+
+Options:
+    - **free**: No constraints (-inf, +inf).
+    - **positive**: Must be positive (0, +inf). Used for variances, etc.
+    - **negative**: Must be negative (-inf, 0).
+    - **probability**: Constrained to (0, 1).
+    - **unit_interval**: Alias for "probability".
+    - **fixed**: Parameter is fixed to its initial value and not optimized.
+    - **bounded**: Constrained to a specific range [lower, upper].
+"""
 
 class ParameterSpace(eqx.Module):
     """
@@ -80,9 +92,19 @@ class ParameterSpace(eqx.Module):
                 if k not in filled_bounds:
                     raise ValueError(f"Parameter '{k}' has 'bounded' constraint but no bounds specified.")
                 
+                # Validate bounds correctness
                 lower, upper = filled_bounds[k]
-                if lower >= upper:
-                    raise ValueError(f"Bounds for '{k}' must satisfy lower < upper, got ({lower}, {upper}).")
+                if lower > upper:
+                    raise ValueError(f"Bounds for '{k}' must satisfy lower <= upper, got ({lower}, {upper}).")
+
+                # Treat as fixed if bounds are equal
+                elif lower == upper:
+                    filled_constraints[k] = "fixed"
+                
+                # Validate initial value within bounds
+                init_val = initial_params[k]
+                if not (lower <= init_val <= upper):
+                     raise ValueError(f"Initial value for '{k}' ({init_val}) is out of bounds ({lower}, {upper}).")
 
         # Validate unknown keys in constraints
         if constraints:
@@ -98,12 +120,41 @@ class ParameterSpace(eqx.Module):
 
     # ---Protocol Implementation---
     
-    def transform(self, raw_params: PyTree) -> PyTree:
+    def transform(self, raw_params: Dict[str, Any]) -> Dict[str, Any]:
         """
         Transform raw (unconstrained) parameters to model (constrained) parameters.
+
+        Args:
+            raw_params: Dictionary of unconstrained parameters. Fixed parameters 
+                       should NOT be included in this dictionary.
+
+        Returns:
+            Dictionary of constrained parameters including fixed parameters.
+
+        Raises:
+            ValueError: If required (non-fixed) parameters are missing or 
+                       unexpected parameters are present.
         """
         if not isinstance(raw_params, dict):
              raise TypeError("ParameterSpace currently expects a dictionary of parameters.")
+
+        input_keys = set(raw_params.keys())
+        all_keys = set(self.initial_params.keys())
+
+        # Check for missing required parameters
+        required_keys = {
+            k for k in all_keys 
+            if self.constraints.get(k, "free") != "fixed"
+        }
+        if not input_keys.issuperset(required_keys):
+            missing = required_keys - input_keys
+            raise ValueError(f"Missing required parameters in raw_params: {missing}")
+
+        # Check for unexpected extra parameters
+        extra = input_keys - all_keys
+        if extra:
+            raise ValueError(f"Unexpected parameters in raw_params: {extra}")
+        
 
         def _transform_leaf(value, name):
             kind = self.constraints.get(name, "free")
@@ -132,16 +183,30 @@ class ParameterSpace(eqx.Module):
                 raise ValueError(f"Unknown constraint type: {kind}")
 
         return {
-            name: _transform_leaf(value, name)
-            for name, value in raw_params.items()
+            name: _transform_leaf(raw_params.get(name), name)
+            for name in self.initial_params.keys()
         }
 
-    def inverse_transform(self, model_params: PyTree) -> PyTree:
+    def inverse_transform(self, model_params: Dict[str, Any]) -> Dict[str, Any]:
         """
         Model parameters (Constrained) -> Raw parameters (Unconstrained).
         """
         if not isinstance(model_params, dict):
-             raise TypeError("ParameterSpace currently expects a dictionary of parameters.")
+            raise TypeError("ParameterSpace currently expects a dictionary of parameters.")
+        
+        input_keys = set(model_params.keys())
+        expected_keys = set(self.initial_params.keys())
+
+        if input_keys != expected_keys:
+            missing = expected_keys - input_keys
+            extra = input_keys - expected_keys
+            error_msg = "Parameter keys mismatch."
+            if missing:
+                error_msg += f" Missing: {missing}."
+            if extra:
+                error_msg += f" Extra (unexpected): {extra}."
+            raise ValueError(error_msg)
+        # -----------------------------------
 
         def _inv_transform_leaf(value, name):
             kind = self.constraints.get(name, "free")
@@ -164,21 +229,37 @@ class ParameterSpace(eqx.Module):
                 return jax.scipy.special.logit(safe_value)
             elif kind == "bounded":
                 lower, upper = self.bounds[name]
-                normalized = (value - lower) / (upper - lower)
-                safe_norm = jnp.clip(normalized, self.eps, 1.0 - self.eps)
-                return jax.scipy.special.logit(safe_norm)
+                denom = upper - lower
+
+                # Handle potential degeneracy in bounds
+                is_degenerate = jnp.abs(denom) < self.eps
+                safe_denom = jnp.where(is_degenerate, 1.0, denom)
+
+                # Normalize and clip
+                normalized = (value - lower) / safe_denom
+                normalized_safe = jnp.clip(normalized, 1e-6, 1.0 - 1e-6)
+
+                # Apply logit transformation to the clipped normalized value
+                unconstrained = jax.scipy.special.logit(normalized_safe)
+
+                # If degenerate, return 0.0
+                return jnp.where(is_degenerate, 0.0, unconstrained)
             else:
                 raise ValueError(f"Unknown constraint type: {kind}")
                 
         return {
             name: _inv_transform_leaf(value, name)
             for name, value in model_params.items()
+            if self.constraints.get(name, "free") != "fixed" # Exclude FIXED params
         }
     
     def get_bounds(self) -> tuple[PyTree, PyTree] | None:
         """
-        Protocol: Returns parameter bounds. 
-        Currently returns None as we use transformation method (unconstrained optimization).
+        Protocol: Returns parameter bounds for the optimizer.
+        
+        Returns None because this class uses the 'Transformation Method' (Unconstrained Optimization).
+        The optimizer operates on 'raw_params' which are unbounded (-inf, +inf).
+        Constraints are enforced via the 'transform' method, not by the optimizer's bound constraints.
         """
         return None
 

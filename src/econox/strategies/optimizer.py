@@ -3,7 +3,7 @@
 Optimization and Fixed-Point strategies using Optimistix.
 Wraps numerical solvers to provide a consistent interface for Econox components.
 """
-import jax
+
 from typing import Callable, Any
 import equinox as eqx
 import optimistix as optx
@@ -31,7 +31,7 @@ class OptimizationResult(eqx.Module):
 
 class Minimizer(eqx.Module):
     """
-    Wrapper for optimistix.minimize.
+    Wrapper for optimistix.minimise.
     Implements the econox.protocols.Optimizer interface.
     
     You can customize the method and tolerances at initialization.
@@ -103,6 +103,11 @@ class FixedPointResult(eqx.Module):
     """
     Container for fixed-point computation results.
     Used by internal solvers (Bellman, Equilibrium) to report convergence status.
+
+    Attributes:
+        value: The computed fixed-point value (PyTree).
+        success: Whether the fixed-point iteration was successful (Bool).
+        steps: Number of iterations taken (Int).
     """
     value: PyTree
     success: Bool[Array, ""]
@@ -132,6 +137,15 @@ class FixedPoint(eqx.Module):
         """
         Solves for y such that y = step_fn(y, args).
         Returns a FixedPointResult containing the solution and status.
+
+        Parameters
+        ----------
+        step_fn : Callable[[PyTree, Any], PyTree]
+            The fixed-point function. Takes current value and args, returns next value.
+        init_val : PyTree
+            Initial guess for the fixed-point iteration.
+        args : Any, optional
+            Additional arguments passed to the fixed-point function.
         """
         
         sol = optx.fixed_point(

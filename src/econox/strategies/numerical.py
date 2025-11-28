@@ -49,40 +49,44 @@ class Minimizer(eqx.Module):
 
     def minimize(
         self, 
-        loss_fn: Callable[[PyTree], Scalar], 
-        init_params: PyTree
+        loss_fn: Callable[[PyTree, Any], Scalar], 
+        init_params: PyTree,
+        args: Any = None
     ) -> MinimizerResult:
         """
         Minimizes the loss function using the specified method and tolerances.
 
         Parameters
         ----------
-        loss_fn : Callable[[PyTree], Scalar]
-            The loss function to minimize. Takes parameters and returns a scalar loss.
+        loss_fn : Callable[[PyTree, Any], Scalar]
+            The loss function to minimize. Takes parameters and additional arguments, returns a scalar loss.
         init_params : PyTree
             Initial parameter values for optimization.
+        args : Any, optional
+            Additional arguments passed to the loss function (not used here).
     
         Returns
         -------
-        OptimizationResult
+        MinimizerResult
             Contains the optimized parameters, final loss, success status, and iteration count.
         """
         def wrapped_loss_fn(params, args) -> tuple[Scalar, Scalar]:
-            loss = loss_fn(params)
+            loss = loss_fn(params, args)
             return loss, loss
         
         sol: optx.Solution = optx.minimise(
             fn=wrapped_loss_fn,
             solver=self.method,
             y0=init_params,
+            args=args,
             max_steps=self.max_steps,
             throw=self.throw,
             has_aux=True
         )
         params: PyTree = sol.value
-        success: Bool = sol.result == optx.RESULTS.successful
+        success: Bool[Array, ""] = sol.result == optx.RESULTS.successful
         final_loss: Float[Array, ""] = sol.aux
-        steps: Int = sol.stats["num_steps"]
+        steps: Int[Array, ""] = sol.stats["num_steps"]
 
         result: MinimizerResult = MinimizerResult(
             params=params,
@@ -144,6 +148,11 @@ class FixedPoint(eqx.Module):
             Initial guess for the fixed-point iteration.
         args : Any, optional
             Additional arguments passed to the fixed-point function.
+        
+        Returns
+        -------
+        FixedPointResult
+            Contains the fixed-point value, success status, and iteration count.
         """
         
         sol = optx.fixed_point(

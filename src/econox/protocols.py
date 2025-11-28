@@ -3,6 +3,7 @@
 Protocol definitions for the Econox framework.
 """
 
+from __future__ import annotations
 from typing import Callable, Protocol, Any, TypeAlias, runtime_checkable
 from jaxtyping import Array, Float, PyTree
 
@@ -32,7 +33,18 @@ class StructuralModel(Protocol):
         """
         ...
 
-    def replace_data(self, key: str, value: Any) -> "StructuralModel":
+    @property
+    def transitions(self) -> PyTree | None:
+        """Transition logic or matrix (e.g., P(s'|s,a) or Adjacency)."""
+        ...
+        
+    @property
+    def availability(self) -> PyTree | None:
+        """Availability mask for actions."""
+        ...
+    # ----------------------------------------------------------------
+
+    def replace_data(self, key: str, value: Any) -> StructuralModel:
         """
         Returns a new instance of the model with the specified data key updated.
         Required for Feedback mechanisms to update the environment (e.g., prices).

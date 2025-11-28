@@ -153,12 +153,3 @@ class Objective(Protocol):
         feedback: FeedbackMechanism | None = None
     ) -> Scalar:
         ...
-
-@runtime_checkable
-class Optimizer(Protocol):
-    """
-    Optimization algorithm (Wrapper).
-    Takes a loss function and initial values, returns optimal parameters.
-    """
-    def minimize(self, loss_fn: Callable[[PyTree], Scalar], init_params: PyTree) -> PyTree:
-        ...

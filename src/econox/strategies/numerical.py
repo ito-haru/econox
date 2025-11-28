@@ -1,4 +1,4 @@
-# src/econox/strategies/optimizer.py
+# src/econox/strategies/numerical.py
 """
 Optimization and Fixed-Point strategies using Optimistix.
 Wraps numerical solvers to provide a consistent interface for Econox components.
@@ -13,7 +13,7 @@ from jaxtyping import Float, PyTree, Scalar, Array, Bool, Int
 # 1. Optimization Strategies
 # =============================================================================
 
-class OptimizationResult(eqx.Module):
+class MinimizerResult(eqx.Module):
     """
     A generic container for optimization results.
     Decouples the Estimator from the specific backend (optimistix/jaxopt).
@@ -51,7 +51,7 @@ class Minimizer(eqx.Module):
         self, 
         loss_fn: Callable[[PyTree], Scalar], 
         init_params: PyTree
-    ) -> OptimizationResult:
+    ) -> MinimizerResult:
         """
         Minimizes the loss function using the specified method and tolerances.
 
@@ -67,13 +67,11 @@ class Minimizer(eqx.Module):
         OptimizationResult
             Contains the optimized parameters, final loss, success status, and iteration count.
         """
-        # Inject the wrapper's tolerances into the solver instance
-        # This ensures consistent behavior even if the user swapped the method
         def wrapped_loss_fn(params, args) -> tuple[Scalar, Scalar]:
             loss = loss_fn(params)
             return loss, loss
         
-        sol:optx.Solution = optx.minimise(
+        sol: optx.Solution = optx.minimise(
             fn=wrapped_loss_fn,
             solver=self.method,
             y0=init_params,
@@ -86,7 +84,7 @@ class Minimizer(eqx.Module):
         final_loss: Float[Array, ""] = sol.aux
         steps: Int = sol.stats["num_steps"]
 
-        result: OptimizationResult = OptimizationResult(
+        result: MinimizerResult = MinimizerResult(
             params=params,
             loss=final_loss,
             success=success,

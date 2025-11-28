@@ -4,16 +4,16 @@ Data structures for holding computation results.
 Uses Equinox modules to allow mixins and PyTree registration.
 """
 
+from __future__ import annotations
 import json
 import dataclasses
 import jax
 import jax.numpy as jnp
-import numpy as np
 import pandas as pd
 import equinox as eqx
 from pathlib import Path
 from typing import Any, Dict, Union
-from jaxtyping import Array, Float, Bool, PyTree
+from jaxtyping import Array, Float, Bool, PyTree, Scalar
 
 # =============================================================================
 # 1. Save Logic (Mixin)
@@ -45,18 +45,13 @@ class ResultMixin:
         summary_lines.append(f"Result Report: {class_name}")
         summary_lines.append("=" * 60 + "\n")
 
-        # Iterate over fields
-        # eqx.Module uses dataclass fields, accessible via __dataclass_fields__ or just iterate vars if dynamic
-        # Ideally, we iterate over the fields defined in the class.
-        # For eqx.Module, we can use vars(self) or serialization approaches, 
-        # but explicit field access is safer.
-        
-        # Get all field names
+        # Get all field names from eqx.Module (which is a dataclass)
+        field_names = []
         if dataclasses.is_dataclass(self):
             field_names = [f.name for f in dataclasses.fields(self)]
         else:
-            # Fallback for non-dataclass objects (vars() or __dict__)
-            field_names = list(getattr(self, "__dict__", {}).keys())
+            # Fallback for non-dataclass objects
+            field_names = list(vars(self).keys())
 
         for field_name in field_names:
             value = getattr(self, field_name)
@@ -65,13 +60,55 @@ class ResultMixin:
             if hasattr(value, 'save') and isinstance(value, ResultMixin):
                 sub_path = base_path / field_name
                 value.save(sub_path, overwrite=overwrite)
-                summary_lines.append(f"{field_name:<25}: [Saved in ./{field_name}/]")
+                summary_lines.append(f"{field_name:<25}: [Nested result saved in ./{field_name}/]")
+                metadata[field_name] = f"./{field_name}/"
                 continue
             
-            # 2. JAX/Numpy Arrays
-            if isinstance(value, (jnp.ndarray, np.ndarray)):
-                # Convert to numpy for saving
-                arr = np.array(value)
+            # 2. Dictionary Fields (aux, meta)
+            if isinstance(value, dict):
+                if not value:
+                    summary_lines.append(f"{field_name:<25}: {{}}")
+                    metadata[field_name] = {}
+                else:
+                    dict_dir = base_path / field_name
+                    dict_dir.mkdir(exist_ok=True)
+
+                    summary_lines.append(f"{field_name:<25}: [Saved as dir ./{field_name}/]")
+                    dict_metadata = {}
+
+                    for k, v in value.items():
+                        # Handle nested arrays in dictionaries
+                        if isinstance(v, (jnp.ndarray, getattr(jax.numpy, "ndarray", type(None)))):
+                            arr = jax.device_get(v)
+                            if arr.size < 10 and arr.ndim <= 1:
+                                arr_list = arr.tolist()
+                                summary_lines.append(f"  - {k:<21}: {str(arr_list)[:30]}")
+                                dict_metadata[k] = arr_list
+                            else:
+                                csv_name = f"{k}.csv"
+                                csv_path = dict_dir / csv_name
+                                self._save_array_to_csv(arr, csv_path)
+                                shape_str = str(arr.shape)
+                                summary_lines.append(f"  - {k:<21}: [./{field_name}/{csv_name}] Shape={shape_str}")
+                                dict_metadata[k] = f"./{field_name}/{csv_name}"
+                        else:
+                            # Primitive values
+                            val_str = str(v)
+                            if len(val_str) > 50:
+                                val_str = val_str[:47] + "..."
+                            summary_lines.append(f"  - {k:<21}: {val_str}")
+                            try:
+                                json.dumps(v)
+                                dict_metadata[k] = v
+                            except (TypeError, OverflowError):
+                                dict_metadata[k] = str(v)
+
+                    metadata[field_name] = dict_metadata
+                continue
+            
+            # 3. JAX Arrays
+            if isinstance(value, jnp.ndarray):
+                arr = jax.device_get(value)
                 
                 # Scalar or Small Array -> Save in Text/JSON
                 if arr.size < 10 and arr.ndim <= 1:
@@ -90,13 +127,19 @@ class ResultMixin:
                     summary_lines.append(f"{field_name:<25}: [Saved as data/{csv_name}] Shape={shape_str}")
                     metadata[field_name] = f"data/{csv_name}"
 
-            # 3. None or Primitives
+            # 4. Boolean values
+            elif isinstance(value, (bool, jnp.bool_)):
+                bool_val = bool(value)
+                summary_lines.append(f"{field_name:<25}: {bool_val}")
+                metadata[field_name] = bool_val
+
+            # 5. None or Primitives
             elif value is None:
                 summary_lines.append(f"{field_name:<25}: None")
                 metadata[field_name] = None
             
             else:
-                # Python primitives (int, float, str, dict)
+                # Python primitives (int, float, str)
                 val_str = str(value)
                 if len(val_str) > 50:
                     val_str = val_str[:47] + "..."
@@ -117,16 +160,16 @@ class ResultMixin:
         with open(base_path / "metadata.json", "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=4)
 
-        print(f"✅ Results saved to: {base_path}")
+        print(f"Results saved to: {base_path}")
 
-    def _save_array_to_csv(self, arr: np.ndarray, path: Path) -> None:
+    def _save_array_to_csv(self, arr: jnp.ndarray, path: Path) -> None:
         """Helper to save arrays to CSV using Pandas."""
-        if arr.ndim <= 2:
-            pd.DataFrame(arr).to_csv(path, index=False)
-        else:
-            # Flatten >2D arrays for CSV
+        if hasattr(arr, "ndim") and arr.ndim > 2:
+             # Flatten >2D arrays for CSV (e.g. T x S x A -> T*S rows)
             flattened = arr.reshape(arr.shape[0], -1)
             pd.DataFrame(flattened).to_csv(path, index=False)
+        else:
+            pd.DataFrame(arr).to_csv(path, index=False)
 
 
 # =============================================================================
@@ -137,29 +180,50 @@ class SolverResult(ResultMixin, eqx.Module):
     """
     Container for the output of a Solver (Inner/Outer Loop).
     """
-    values: PyTree
-    policy: PyTree
-    success: Bool[Array, ""] | bool
-    aux: Dict[str, Any] = eqx.field(default_factory=dict)
-    
-    # Market clearing / GE results
-    equilibrium: PyTree | None = None
 
+    solution: PyTree
+    """
+    Main solution returned by the solver (the fixed point).
+    - **DP**: Value function $V(s)$.
+    - **GE**: Equilibrium allocations (e.g., Population Distribution $D$) or Prices $P$.
+    """
+
+    profile: PyTree | None = None
+    """
+    Associated profile information derived from the solution.
+    - **DP**: Policy function / Choice probabilities $P(a|s)$.
+    - **GE**: Market prices (Wage, Rent) or aggregate states corresponding to the solution.
+    """
+
+    inner_result: SolverResult | None = None
+    """
+    Associated inner solver result used during nested solving.
+    """
+
+    success: Bool[Array, ""] | bool = False
+    """Whether the solver converged successfully."""
+    aux: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
+    """Additional auxiliary information (e.g., diagnostics)."""
 
 class EstimationResult(ResultMixin, eqx.Module):
     """
     Container for the output of an Estimator.
     """
     params: PyTree
-    loss: float
-    success: Bool[Array, ""] | bool
+    """Estimated parameters."""
+    loss: Scalar | float
+    """Final value of the loss function (e.g., negative log-likelihood)."""
+    success: Bool[Array, ""] | bool = False
+    """Whether the estimation converged successfully."""
+    solver_result: SolverResult | None = None
+    """Associated (outermost) solver result used during estimation."""
     
     std_errors: PyTree | None = None
+    """Standard errors of the estimated parameters, if available."""
     vcov: Float[Array, "n_params n_params"] | None = None
-    meta: Dict[str, Any] = eqx.field(default_factory=dict)
-
-    # 推定されたパラメータでの均衡状態
-    equilibrium: SolverResult | None = None
+    """Variance-covariance matrix of the estimated parameters, if available."""
+    meta: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
+    """Additional metadata about the estimation process (e.g., convergence criteria, iteration counts, duration)."""
 
     @property
     def t_values(self) -> PyTree | None:

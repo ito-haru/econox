@@ -4,7 +4,7 @@ Protocol definitions for the Econox framework.
 """
 
 from __future__ import annotations
-from typing import Callable, Protocol, Any, TypeAlias, runtime_checkable
+from typing import Protocol, Any, TypeAlias, runtime_checkable
 from jaxtyping import Array, Float, PyTree
 
 Scalar: TypeAlias = Float[Array, ""]
@@ -152,13 +152,4 @@ class Objective(Protocol):
         dist: Distribution | None = None,
         feedback: FeedbackMechanism | None = None
     ) -> Scalar:
-        ...
-
-@runtime_checkable
-class Optimizer(Protocol):
-    """
-    Optimization algorithm (Wrapper).
-    Takes a loss function and initial values, returns optimal parameters.
-    """
-    def minimize(self, loss_fn: Callable[[PyTree], Scalar], init_params: PyTree) -> PyTree:
         ...

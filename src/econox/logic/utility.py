@@ -1,4 +1,4 @@
-# src/econox/components/utility.py
+# src/econox/logic/utility.py
 """
 Utility components for the Econox framework.
 """

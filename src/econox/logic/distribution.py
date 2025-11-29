@@ -1,4 +1,4 @@
-# src/econox/components/distribution.py
+# src/econox/logic/distribution.py
 """
 Distribution components for Econox.
 Handles stochastic parts of the model (error terms).

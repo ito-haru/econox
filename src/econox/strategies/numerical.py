@@ -121,10 +121,11 @@ class FixedPoint(eqx.Module):
     
     Examples:
         >>> # Default (FixedPointIteration)
-        >>> fp = FixedPoint()
-        
-        >>> # Custom (Anderson Acceleration)
-        >>> fp = FixedPoint(method=optx.AndersonAcceleration(rtol=1e-5, atol=1e-5))
+        >>> # Uses default max_steps (2000) and tolerances (rtol=1e-8, atol=1e-8)
+        >>> fp = FixedPoint() 
+
+        >>> # Custom 
+        >>> fp = FixedPoint(method=optx.FixedPointIteration(rtol=1e-10, atol=1e-10), max_steps=5000)
     """
     method: optx.AbstractFixedPointSolver = optx.FixedPointIteration(rtol=1e-8, atol=1e-8)
     max_steps: int = eqx.field(static=True, default=2000)

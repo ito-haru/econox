@@ -25,7 +25,7 @@ from econox.logic import (
 )
 
 # 3. Solvers (Computational Engines)
-from econox.solvers.fixed_point import ValueIterationSolver
+from econox.solvers.dynamic_programming import ValueIterationSolver
 
 # 4. Workflow (High-level APIs) -> 将来 Estimator などができたらここに追加
 # from econox.workflow import Estimator, Simulator

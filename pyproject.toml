@@ -34,3 +34,8 @@ reportUnknownMemberType = false
 reportUnknownVariableType = false
 
 reportMissingImports = true
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
+]

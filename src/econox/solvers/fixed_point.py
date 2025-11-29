@@ -24,7 +24,7 @@ class ValueIterationSolver(eqx.Module):
 
     Optional Data Keys:
         The solver looks for the following keys in `model.data` to enable 
-        terminal state approximation (EV(T) = EV(T-1)):
+        terminal state approximation (EV(T-1) = EV(T)):
         
         * "terminal_state_indices" (Int[Array, "n"]): Indices of states at T.
         * "previous_state_indices" (Int[Array, "n"]): Indices of states at T-1 to copy from.
@@ -60,8 +60,8 @@ class ValueIterationSolver(eqx.Module):
 
         Returns
         -------
-        FixedPointResult
-            The result of the fixed-point computation.
+        SolverResult
+            The result of the solver containing the solution and additional info.
         """
         
         data: PyTree = model.data
@@ -85,8 +85,8 @@ class ValueIterationSolver(eqx.Module):
                 )
         
         # If finite, approximate terminal value EV[T-1] = EV[T]
-        term_idx: Int[Array, " n_terminal"] | None = get_from_pytree(data, "terminal_state_indices", default=None)
-        prev_idx: Int[Array, " n_terminal"] | None = get_from_pytree(data, "previous_state_indices", default=None)
+        term_idx: Int[Array, "n_terminal"] | None = get_from_pytree(data, "terminal_state_indices", default=None)
+        prev_idx: Int[Array, "n_terminal"] | None = get_from_pytree(data, "previous_state_indices", default=None)
 
         # Validate terminal approximation indices
         if (term_idx is None) != (prev_idx is None):
@@ -109,7 +109,7 @@ class ValueIterationSolver(eqx.Module):
         # Helper Function (Closure)
         # ---------------------------------------------------------
         def apply_terminal_approximation(expected: Array) -> Array:
-            """Apply terminal state approximation EV(T) = EV(T-1) if configured."""
+            """Apply terminal state approximation EV(T-1) = EV(T) if configured."""
             if term_idx is not None and prev_idx is not None:
                 expected_at_prev = expected[prev_idx, :]
                 return expected.at[term_idx, :].set(expected_at_prev)
@@ -118,7 +118,17 @@ class ValueIterationSolver(eqx.Module):
         # ---------------------------------------------------------
         # Bellman Operator
         # ---------------------------------------------------------
-        def bellman_operator(current_ev: Array, _) -> Array:
+        def bellman_operator(current_ev: Array, args=None) -> Array:
+            """
+            Bellman operator for value iteration.
+            
+            Args:
+                current_ev: Current expected value vector (S,)
+                args: Unused. Required by FixedPoint.find_fixed_point signature.
+            
+            Returns:
+                Updated expected value vector (S,)
+            """
             # current_ev: (S,)
             expected_flat = transitions @ current_ev
             expected = expected_flat.reshape(num_states, num_actions)

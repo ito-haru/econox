@@ -1,4 +1,4 @@
-# src/econox/components/feedback.py
+# src/econox/logic/feedback.py
 """
 Feedback mechanisms for General Equilibrium (GE) interactions.
 Updates environmental variables (e.g., prices) based on agent distributions.

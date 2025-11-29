@@ -261,7 +261,7 @@ class SolverResult(ResultMixin, eqx.Module):
 
     success: Bool[Array, ""] | bool = False
     """Whether the solver converged successfully."""
-    aux: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
+    aux: Dict[str, Any] = eqx.field(default_factory=dict)
     """Additional auxiliary information (e.g., diagnostics)."""
 
 class EstimationResult(ResultMixin, eqx.Module):

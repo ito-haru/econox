@@ -3,6 +3,7 @@
 from __future__ import annotations
 import dataclasses
 from typing import Dict, Any
+import numpy as np
 import jax.numpy as jnp
 import equinox as eqx
 from jaxtyping import Array, Float, Int
@@ -39,12 +40,12 @@ class Model(eqx.Module):
 
     # ---Optional Fields & Protocol Extensions---
     
-    num_periods: int | None = eqx.field(default=None, static=True)
+    num_periods: int | float = eqx.field(default=np.inf, static=True)
     """
     Time horizon ($T$) of the model.
     
-    * `None`: Infinite horizon. Solvers will seek a fixed point (Steady State).
-    * `int`: Finite horizon. Solvers will use backward induction.
+    * `np.inf`: Infinite horizon (default).
+    * `int`: Finite horizon.
     """
     
     availability: Int[Array, "num_states num_actions"] | None = None
@@ -64,6 +65,10 @@ class Model(eqx.Module):
     * Deterministic mapping logic
     """
 
+    def __check_init__(self):
+        if self.num_periods != np.inf and self.num_periods % 1 != 0:
+            raise ValueError("num_periods must be an integer if finite.")
+    
     # ---Factory Method---
     @classmethod
     def from_data(
@@ -73,7 +78,7 @@ class Model(eqx.Module):
         data: Dict[str, Any],
         availability: Any | None = None,
         transitions: Any | None = None,
-        num_periods: int | None = None,
+        num_periods: int | float = np.inf,
     ) -> Model:
         """
         Factory method to initialize a Model from raw Python/NumPy data.
@@ -89,7 +94,7 @@ class Model(eqx.Module):
                   Keys should be strings, values can be lists, NumPy arrays, or JAX arrays.
             availability: Optional mask for feasible actions. Shape must be (num_states, num_actions).
             transitions: Optional transition matrices.
-            num_periods: Time horizon. Defaults to `None` (Infinite). Must be positive if provided.
+            num_periods: Time horizon. Defaults to `np.inf` (Infinite). Must be positive.
 
         Returns:
             A frozen, JAX-ready `Model` instance.

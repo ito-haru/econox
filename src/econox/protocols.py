@@ -26,6 +26,14 @@ class StructuralModel(Protocol):
     def num_actions(self) -> int: ...
 
     @property
+    def num_periods(self) -> int | float:
+        """
+        Number of periods in the model.
+        Should be a positive integer for finite horizon or `np.inf` for infinite horizon.
+        """
+        ...
+
+    @property
     def data(self) -> PyTree:
         """
         Holds environment constants (features, matrices, etc.).

@@ -21,13 +21,15 @@ from econox.structures import (
 from econox.logic import (
     LinearUtility,
     GumbelDistribution,
-    LogLinearFeedback
+    LogLinearFeedback,
+    SimpleDynamics,
+    TrajectoryDynamics
 )
 
 # 3. Solvers (Computational Engines)
-from econox.solvers.dynamic_programming import ValueIterationSolver
+from econox.solvers import ValueIterationSolver, EquilibriumSolver
 
-# 4. Workflow (High-level APIs) -> 将来 Estimator などができたらここに追加
+# 4. Workflow (High-level APIs)
 # from econox.workflow import Estimator, Simulator
 
 __all__ = [
@@ -40,6 +42,9 @@ __all__ = [
     "LinearUtility",
     "GumbelDistribution",
     "LogLinearFeedback",
+    "SimpleDynamics",
+    "TrajectoryDynamics",
     # Solvers
     "ValueIterationSolver",
+    "EquilibriumSolver",
 ]

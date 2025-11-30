@@ -4,7 +4,7 @@ Protocol definitions for the Econox framework.
 """
 
 from __future__ import annotations
-from typing import Protocol, Any, TypeAlias, runtime_checkable
+from typing import Protocol, Any, TypeAlias, Callable, runtime_checkable
 from jaxtyping import Array, Float, PyTree
 
 Scalar: TypeAlias = Float[Array, ""]
@@ -163,15 +163,48 @@ class Objective(Protocol):
     """
     Loss function definition (Strategy).
     Compares solver results with observed data and returns the loss to minimize.
+    Also handles statistical inference (variance calculation).
     """
+    
     def compute_loss(
         self,
-        params: PyTree, 
-        model: StructuralModel, 
-        solver: Solver, 
+        result: Any, 
         observations: Any,
-        utility: Utility, 
-        dist: Distribution | None = None,
-        feedback: FeedbackMechanism | None = None
+        params: PyTree, 
+        model: StructuralModel
     ) -> Scalar:
+        """
+        Calculates the scalar loss metric.
+        
+        Args:
+            result: The result returned by the solver (e.g., SolverResult).
+            observations: Observed data to compare against the model result.
+            params: Current model parameters (useful for regularization terms).
+            model: The structural model environment.
+            
+        Returns:
+            Scalar loss value.
+        """
+        ...
+
+    def calculate_variance(
+        self,
+        loss_fn: Callable[[PyTree], Scalar],
+        params: PyTree,
+        observations: Any,
+        num_observations: int
+    ) -> Float[Array, "n_params n_params"] | None:
+        """
+        Calculates the variance-covariance matrix of the estimators.
+        
+        Args:
+            loss_fn: A differentiable function f(params) -> loss.
+                     (Created by the Estimator, wrapping the Solver).
+            params: The estimated optimal parameters (usually in RAW space for differentiation).
+            observations: The observed data (used for GMM weighting etc).
+            num_observations: Number of data points (N), used for scaling.
+            
+        Returns:
+            The variance-covariance matrix, or None if calculation is not supported or failed.
+        """
         ...

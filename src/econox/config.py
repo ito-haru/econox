@@ -39,3 +39,10 @@ SUMMARY_DICT_KEY_WIDTH: int = 21
 
 SUMMARY_SEPARATOR_LENGTH: int = 60
 """Length of separator lines (=== bars) in summary.txt."""
+
+LOSS_PENALTY: float = float("inf")
+"""
+Penalty value returned for invalid model solutions during optimization.
+Used to steer the optimizer away from unstable parameter regions.
+Default is positive infinity.
+"""

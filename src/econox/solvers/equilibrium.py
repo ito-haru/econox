@@ -119,5 +119,7 @@ class EquilibriumSolver(eqx.Module):
             profile=final_inner_result.profile,  # Equilibrium Policy P*
             inner_result=final_inner_result,     # Full inner details (V*)
             success=result.success,
-            aux={"steps": result.steps, "diff": jnp.max(jnp.abs(result.value - initial_distribution))}
+            aux={"steps": result.steps,
+            "diff": jnp.max(jnp.abs(result.value - initial_distribution)),
+            "equilibrium_data": final_model.data}
         )

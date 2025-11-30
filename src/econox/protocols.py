@@ -120,6 +120,20 @@ class FeedbackMechanism(Protocol):
     def update(self, params: PyTree, current_result: Any, model: StructuralModel) -> StructuralModel:
         ...
 
+@runtime_checkable
+class Dynamics(Protocol):
+    """
+    Protocol for the Law of Motion logic.
+    Physics: D_{t+1} = f(D_t, Policy_t, Model)
+    """
+    def __call__(
+        self, 
+        distribution: Float[Array, "num_states"], 
+        policy: Float[Array, "num_states num_actions"], 
+        model: StructuralModel
+    ) -> Float[Array, "num_states"]:
+        ...
+
 # =============================================================================
 # 3. Core Engine (Solver)
 # =============================================================================

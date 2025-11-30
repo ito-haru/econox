@@ -1,4 +1,6 @@
 # src/econox/solvers/__init__.py
 
-from .fixed_point import ValueIterationSolver
-__all__ = ["ValueIterationSolver"]
+from econox.solvers.dynamic_programming import ValueIterationSolver
+from econox.solvers.equilibrium import EquilibriumSolver
+
+__all__ = ["ValueIterationSolver", "EquilibriumSolver"]

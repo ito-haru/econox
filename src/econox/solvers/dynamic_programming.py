@@ -1,6 +1,7 @@
-# src/econox/solvers/fixed_point.py
+# src/econox/solvers/dynamic_programming.py
 """
-Fixed-point solver for Structural Models in the Econox framework.
+Dynamic programming solver module for economic models.
+Can be used for static models as well by setting discount_factor=0.
 """
 
 import jax.numpy as jnp
@@ -165,3 +166,4 @@ class ValueIterationSolver(eqx.Module):
             success=result.success,
             aux={"num_steps": result.steps}
         )
+        

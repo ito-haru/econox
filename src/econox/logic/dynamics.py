@@ -77,10 +77,10 @@ class TrajectoryDynamics(eqx.Module):
     1. Explicit Transition Matrices (S*A -> S) to handle complex flows.
     2. Boundary Conditions (e.g., Fixing t=0 population).
     
-    This class expects the following keys in `model.data`:
-    - "transition_matrix": (S*A, S) matrix defining physical movement.
-    - "initial_year_indices": Indices to enforce boundary conditions.
-    - "initial_year_values": Values to enforce at the boundary.
+    This class expects the following in the model:
+    - The transition matrix must be accessible via the `transitions` property of the model (i.e., `model.transitions` should return a (S*A, S) matrix defining physical movement).
+    - "initial_year_indices": Indices to enforce boundary conditions (in `model.data`).
+    - "initial_year_values": Values to enforce at the boundary (in `model.data`).
     """
     enforce_boundary: bool = eqx.field(default=True, static=True)
 

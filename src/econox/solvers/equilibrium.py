@@ -11,7 +11,8 @@ from jaxtyping import PyTree, Float, Array
 from econox.protocols import Distribution, FeedbackMechanism, StructuralModel, Solver, Utility, Dynamics
 from econox.strategies import FixedPoint, FixedPointResult
 from econox.logic import SimpleDynamics
-from econox import SolverResult, ValueIterationSolver
+from econox.structures import SolverResult
+from econox.solvers.dynamic_programming import ValueIterationSolver
 
 
 class EquilibriumSolver(eqx.Module):
@@ -35,7 +36,7 @@ class EquilibriumSolver(eqx.Module):
         dynamics: Dynamics | None = None,
         initial_distribution: Float[Array, "num_states"] | None = None,
         damping: float = 1.0
-    )-> SolverResult:
+    ) -> SolverResult:
         """
         Solves for the fixed point of the structural model using equilibrium conditions.
 
@@ -51,10 +52,10 @@ class EquilibriumSolver(eqx.Module):
             Distribution of agents in the model.
         feedback : FeedbackMechanism
             Feedback mechanism (updates model based on distribution).
-        initial_distribution : Float[Array, "num_states"] | None
-            Initial guess for the distribution. If None, uniform distribution is used.
         dynamics : Dynamics | None
             Dynamics logic for distribution evolution. If None, SimpleDynamics is used.
+        initial_distribution : Float[Array, "num_states"] | None
+            Initial guess for the distribution. If None, uniform distribution is used.
         damping : float
             Damping factor for fixed-point updates (0 < damping <= 1).
 
@@ -65,6 +66,10 @@ class EquilibriumSolver(eqx.Module):
             profile: Equilibrium Policy P*
             inner_result: Full result from the inner solver (Value Function etc.)
         """
+
+        # Validate damping
+        if not (0 < damping <= 1.0):
+             raise ValueError(f"Damping must be in range (0, 1], got {damping}")
         
         num_states = model.num_states
         if initial_distribution is None:
@@ -90,7 +95,10 @@ class EquilibriumSolver(eqx.Module):
                 policy=policy, 
                 model=model_updated)
             
-            return damping * new_dist + (1 - damping) * current_dist
+            updated_dist = damping * new_dist + (1 - damping) * current_dist
+
+            # Normalize to prevent numerical drift (Ensure sum is exactly 1.0)
+            return updated_dist / jnp.sum(updated_dist)
         
         result: FixedPointResult = self.numerical_solver.find_fixed_point(
             step_fn=equilibrium_step,

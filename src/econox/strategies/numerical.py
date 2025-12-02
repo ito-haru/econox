@@ -6,6 +6,8 @@ Wraps numerical solvers to provide a consistent interface for Econox components.
 
 from typing import Callable, Any
 import equinox as eqx
+from jax._src.interpreters import ad
+import lineax as lx
 import optimistix as optx
 from jaxtyping import Float, PyTree, Scalar, Array, Bool, Int
 
@@ -43,7 +45,7 @@ class Minimizer(eqx.Module):
         >>> # Custom method (e.g., Nelder-Mead) and tolerances
         >>> opt = Minimizer(method=optx.NelderMead(atol=1e-5, rtol=1e-5))
     """
-    method: optx.AbstractMinimiser = optx.BFGS(rtol=1e-6, atol=1e-6)
+    method: optx.AbstractMinimiser = optx.LBFGS(rtol=1e-6, atol=1e-6)
     max_steps: int = eqx.field(static=True, default=1000)
     throw: bool = eqx.field(static=True, default=False)
 
@@ -130,6 +132,7 @@ class FixedPoint(eqx.Module):
     method: optx.AbstractFixedPointSolver = optx.FixedPointIteration(rtol=1e-8, atol=1e-8)
     max_steps: int = eqx.field(static=True, default=2000)
     throw: bool = eqx.field(static=True, default=False)
+    adjoint: optx.AbstractAdjoint = optx.ImplicitAdjoint(linear_solver=lx.AutoLinearSolver(well_posed=False))
 
     def find_fixed_point(
         self, 
@@ -162,7 +165,8 @@ class FixedPoint(eqx.Module):
             y0=init_val,
             args=args,
             max_steps=self.max_steps,
-            throw=self.throw
+            throw=self.throw,
+            adjoint=self.adjoint
         )
 
         return FixedPointResult(

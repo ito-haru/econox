@@ -20,6 +20,14 @@ class LogLinearFeedback(eqx.Module):
     Physics:
         ln(Target) = Intercept + Elasticity * ln(Density)
         Density = (Population_Share * Total_Population) / Area_Size
+    
+    Attributes:
+        target_data_key (str): Key in model.data to update (e.g., "rent").
+        result_metric_key (str): Key in solver result for population share metric (e.g., "pop_share").
+        elasticity_param_key (str): Key in params for elasticity coefficient (e.g., "rent_elasticity").
+        intercept_param_key (str): Key in params for intercept term (e.g., "rent_intercepts").
+        area_data_key (str): Key in model.data for area sizes.
+        total_pop_data_key (str): Key in model.data for total population.
     """
     target_data_key: str
     result_metric_key: str

@@ -32,6 +32,8 @@ from econox.solvers import ValueIterationSolver, EquilibriumSolver
 # 4. Workflow (High-level APIs)
 from econox.workflow import Estimator      #, Simulator
 
+from econox.strategies import MaximumLikelihood, GaussianMomentMatch, CompositeObjective
+
 __all__ = [
     # Structures
     "Model",
@@ -49,4 +51,8 @@ __all__ = [
     "EquilibriumSolver",
     # Workflow
     "Estimator",
+    # Strategies
+    "MaximumLikelihood",
+    "GaussianMomentMatch",
+    "CompositeObjective"
 ]

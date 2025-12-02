@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import dataclasses
 import shutil
+import numpy as np
 import jax
 import jax.numpy as jnp
 import pandas as pd
@@ -213,7 +214,7 @@ class ResultMixin:
             If arr is empty or has invalid dimensions.
         """
         # Validate input type
-        if not isinstance(arr, (jax.Array, jnp.ndarray)):
+        if not isinstance(arr, (jax.Array, jnp.ndarray, np.ndarray)):
             raise TypeError(
                 f"Expected JAX array or NumPy array, got {type(arr).__name__}"
             )

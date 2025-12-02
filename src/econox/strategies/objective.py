@@ -116,24 +116,20 @@ class MaximumLikelihood(eqx.Module):
         params: PyTree,
         model: StructuralModel
     ) -> Scalar:
-        
-        # 1. Check Solver Success
-        if not result.success:
-            return jnp.array(LOSS_PENALTY)
 
-        # 2. Extract Probabilities from Result
         choice_probs = getattr(result, self.choice_probs_key, None)
-        
-        if choice_probs is None:
-             raise ValueError(f"SolverResult does not contain '{self.choice_probs_key}'.")
 
-        # 3. Retrieve Observed Data
+        if choice_probs is None:
+            raise ValueError(
+                f"SolverResult does not contain '{self.choice_probs_key}'. "
+                "MaximumLikelihood requires choice probabilities (e.g. 'profile')."
+            )
+
+        # Retrieve Observed Data
         obs_states = get_from_pytree(observations, "state_indices")
         obs_choices = get_from_pytree(observations, "choice_indices")
         obs_weights = get_from_pytree(observations, "weights", default=1.0)
 
-        # 4. Compute NLL
-        # Select probabilities for the observed choices: P(choice | state)
         p_selected = choice_probs[obs_states, obs_choices]
         
         # Clip for numerical stability to avoid log(0)
@@ -143,8 +139,10 @@ class MaximumLikelihood(eqx.Module):
         sum_weights = jnp.sum(obs_weights) if jnp.ndim(obs_weights) > 0 else obs_states.shape[0]
         ll_choice = jnp.sum(jnp.log(p_selected) * obs_weights)
         
-        # Return Negative Log Likelihood (normalized)
-        return -(ll_choice / sum_weights)
+        nll = - (ll_choice / sum_weights)
+        robust_nll = jnp.where(jnp.isfinite(nll), nll, jnp.array(LOSS_PENALTY))
+
+        return robust_nll
 
     def calculate_variance(
         self,
@@ -194,12 +192,7 @@ class GaussianMomentMatch(eqx.Module):
         params: PyTree,
         model: StructuralModel
     ) -> Scalar:
-        
-        # 1. Check Solver Success
-        if not result.success:
-            return jnp.array(LOSS_PENALTY)
 
-        # 2. Retrieve Data
         if "equilibrium_data" in result.aux:
             source = result.aux["equilibrium_data"]
         else:
@@ -209,7 +202,6 @@ class GaussianMomentMatch(eqx.Module):
         obs_val = get_from_pytree(observations, self.obs_key)
         sigma = get_from_pytree(params, self.scale_param_key)
         
-        # 3. Transform (Log-Normal if requested)
         if self.log_transform:
             epsilon = 1e-10
             pred_val = jnp.log(jnp.maximum(pred_val, epsilon))
@@ -220,8 +212,9 @@ class GaussianMomentMatch(eqx.Module):
         residuals = obs_val - pred_val
         
         nll = jnp.log(sigma_safe) + 0.5 * jnp.mean((residuals / sigma_safe) ** 2)
-        
-        return nll
+        robust_nll = jnp.where(jnp.isfinite(nll), nll, jnp.array(LOSS_PENALTY))
+
+        return robust_nll
 
     def calculate_variance(
         self,

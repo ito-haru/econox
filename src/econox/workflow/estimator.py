@@ -4,6 +4,7 @@ Estimator module for the Econox framework.
 Orchestrates the estimation process by connecting Data, Model, Solver, and Objective.
 """
 
+import logging
 import jax
 import jax.numpy as jnp
 import equinox as eqx
@@ -11,12 +12,13 @@ from jax.flatten_util import ravel_pytree
 from typing import Any
 from jaxtyping import PyTree, Scalar, Array
 
-from econox.logic import feedback
 from econox.protocols import FeedbackMechanism, StructuralModel, Solver, Objective, Utility, Distribution
-from econox.structures import ParameterSpace, EstimationResult, SolverResult
+from econox.structures import ParameterSpace, EstimationResult
 from econox.strategies.numerical import Minimizer, MinimizerResult
 from econox.config import LOSS_PENALTY
 from econox.utils import get_from_pytree
+
+logger = logging.getLogger(__name__)
 
 
 class Estimator(eqx.Module):
@@ -28,6 +30,19 @@ class Estimator(eqx.Module):
     2. Solving the model (Single run or Batched Simulation/SMM).
     3. Evaluating the objective function (Loss calculation).
     4. Minimizing the loss using an Optimizer.
+
+    Attributes:
+        model: StructuralModel - The structural model to estimate.
+        param_space: ParameterSpace - Parameter transformation and constraints.
+        solver: Solver - Solver to compute model solutions.
+        utility: Utility - Utility specification for the model.
+        dist: Distribution - Distribution specification for the model.
+        objective: Objective - Objective function to evaluate fit.
+        optimizer: Minimizer - Optimization strategy for minimizing the loss.
+        feedback: FeedbackMechanism | None - Optional feedback mechanism during solving.
+        num_simulations: int | None - Number of simulations for SMM (if applicable).
+        key: jax.Array | None - Random key for stochastic simulations. (Currently unused)
+        verbose: bool - If True, enables detailed logging for debugging.
     """
     model: StructuralModel
     param_space: ParameterSpace
@@ -44,7 +59,12 @@ class Estimator(eqx.Module):
     # Debugging
     verbose: bool = eqx.field(default=False, static=True)
 
-    def fit(self, observations: Any, initial_params: dict | None = None) -> EstimationResult:
+    def fit(
+        self,
+        observations: Any, 
+        initial_params: dict | None = None,
+        sample_size: int | None = None
+        ) -> EstimationResult:
         """
         Estimates the model parameters to minimize the objective function.
 
@@ -52,11 +72,12 @@ class Estimator(eqx.Module):
             observations: Observed data to match (passed to Objective).
             initial_params: Dictionary of initial parameter values (Constrained space).
                             If None, uses initial_params from ParameterSpace.
+            sample_size: Effective sample size for variance calculations (if needed).
 
         Returns:
             EstimationResult containing estimated parameters, final loss, and details.
         """
-        # 1. Prepare Initial Parameters
+        # Prepare Initial Parameters
         # Convert constrained initial params to raw (unconstrained) space for the optimizer
         if initial_params is None:
             constrained_init = self.param_space.initial_params
@@ -65,14 +86,40 @@ class Estimator(eqx.Module):
             
         raw_init = self.param_space.inverse_transform(constrained_init)
 
-        # 2. Define Loss Function (The core pipeline)
+
+        # Sample Size Handling
+        sum_weights = self._get_sum_weights(observations)
+        final_N = None
+    
+        if sample_size is not None:
+            # Use provided sample size
+            final_N = sample_size
+            # Warn if provided sample size differs from sum of weights
+            if sum_weights is not None:
+                if abs(final_N - sum_weights) > 1.0: 
+                    logger.warning(
+                        f"Provided sample_size ({final_N}) differs from sum of weights ({sum_weights}). "
+                        "Using provided sample_size."
+                    )
+        else:
+            # Try to infer sample size from weights in observations
+            if sum_weights is not None:
+                final_N = int(sum_weights)
+                logger.info(f"Using sum of weights (N={final_N}) as sample size.")
+            else:
+                # Unable to determine sample size
+                raise ValueError(
+                    "Sample size could not be determined.\n"
+                    "Please provide `sample_size` argument explicitly, or ensure `observations` contains 'weights'."
+                )
+
+        # ----------------------------------------
+
+        # Define Loss Function (The core pipeline)
         @eqx.filter_jit
         def loss_fn(raw_params: PyTree, args: Any) -> Scalar:
             # A. Transform Parameters: Raw (Optimizer) -> Constrained (Model)
-            try:
-                params = self.param_space.transform(raw_params)
-            except ValueError:
-                return jnp.array(LOSS_PENALTY)
+            params = self.param_space.transform(raw_params)
 
             # Debug output if verbose
             if self.verbose:
@@ -105,8 +152,8 @@ class Estimator(eqx.Module):
                 
             return loss
 
-        # 3. Run Optimization
-        print(f"Starting estimation with {self.optimizer.__class__.__name__}...")
+        # Run Optimization
+        logger.info(f"Starting estimation with {self.optimizer.__class__.__name__}...")
         opt_result: MinimizerResult = self.optimizer.minimize(
             loss_fn=loss_fn,
             init_params=raw_init,
@@ -118,22 +165,16 @@ class Estimator(eqx.Module):
         final_constrained_params = self.param_space.transform(final_raw_params)
         final_loss = opt_result.loss
         
-        # --- [Correction 4] Run Solver one last time to get the final state ---
         final_solver_result = self.solver.solve(
             final_constrained_params, self.model, self.utility, self.dist, self.feedback
         )
 
-        # 5. Post-Estimation Inference (Standard Errors with Delta Method)
-        vcov_model = None
         std_errors = None
+        vcov = None
 
         if opt_result.success:
             try:
-                # --- Get number of observations ---
-                num_obs = self._get_num_observations(observations)
-                
-                # --- [Correction 1 & 2] Jacobian Correction & Fixed Masking ---
-                
+                # Handle parameter space transformation with fixed parameter masking  
                 # A. Flatten Raw Params
                 flat_raw_params, unravel_fn = ravel_pytree(final_raw_params)
                 
@@ -154,7 +195,7 @@ class Estimator(eqx.Module):
                     loss_fn=loss_fn_for_inference,
                     params=flat_free_params,
                     observations=observations,
-                    num_observations=num_obs
+                    num_observations=final_N
                 )
 
                 if vcov_free is not None:
@@ -189,6 +230,7 @@ class Estimator(eqx.Module):
                     
                     # Apply transformation
                     vcov_model_flat = J @ vcov_raw @ J.T
+                    vcov = vcov_model_flat
                     
                     # Extract Standard Errors
                     std_errors_flat = jnp.sqrt(jnp.maximum(jnp.diag(vcov_model_flat), 0.0))
@@ -196,24 +238,22 @@ class Estimator(eqx.Module):
                     # Reshape back to PyTree
                     _, unravel_model_fn = ravel_pytree(final_constrained_params)
                     std_errors = unravel_model_fn(std_errors_flat)
-                    
-                    # Optional: Store covariance matrix
-                    # vcov_model = vcov_model_flat
                 
                 else:
                     if self.verbose:
                         jax.debug.print("Warning: vcov_free is None")
 
             except Exception as e:
-                print(f"Warning: Failed to compute standard errors: {e}")
+                logger.warning(f"Failed to compute standard errors: {e}")
                 std_errors = None
+                vcov = None
 
         return EstimationResult(
             params=final_constrained_params,
             loss=final_loss,
             success=opt_result.success,
             std_errors=std_errors,
-            vcov=None,
+            vcov=vcov,
             solver_result=final_solver_result,
             meta={
                 "steps": int(opt_result.steps), 
@@ -221,15 +261,12 @@ class Estimator(eqx.Module):
             }
         )
 
-    def _get_num_observations(self, observations: Any) -> int:
-        """Extract effective sample size from observations."""
+    def _get_sum_weights(self, observations: Any) -> int | None:
+        """
+        Extract sum of weights from observations if available.
+        Returns None if 'weights' key is not found.
+        """
         weights = get_from_pytree(observations, "weights", default=None)
         if weights is not None:
             return int(jnp.sum(weights))
-        
-        leaves = jax.tree_util.tree_leaves(observations)
-        for leaf in leaves:
-            if hasattr(leaf, 'shape') and leaf.ndim > 0:
-                return int(leaf.shape[0])
-        
-        return 1
+        return None

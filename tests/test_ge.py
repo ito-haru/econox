@@ -10,7 +10,7 @@ import jax.numpy as jnp
 import jax.nn as jnn
 import pytest
 import equinox as eqx
-from typing import Sequence, Any, Dict
+from typing import Sequence, Any
 from jaxtyping import PyTree, Float, Array
 
 from econox import (
@@ -89,7 +89,6 @@ def generate_realistic_data(num_areas=5, num_periods=10, base_pop=1000.0, key=No
     if key is None:
         key = jax.random.PRNGKey(42)
     
-    S = num_areas * num_periods
     # Simplified area sizes for test speed
     area_sizes = jnp.linspace(100.0, 200.0, num_areas)
     

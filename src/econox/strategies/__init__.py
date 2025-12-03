@@ -7,5 +7,6 @@ from econox.strategies.numerical import Minimizer, MinimizerResult, FixedPoint, 
 from econox.strategies.objective import CompositeObjective, MaximumLikelihood, GaussianMomentMatch
 
 __all__ = [
-    "Minimizer", "MinimizerResult", "FixedPoint", "FixedPointResult"
+    "Minimizer", "MinimizerResult", "FixedPoint", "FixedPointResult",
+    "CompositeObjective", "MaximumLikelihood", "GaussianMomentMatch"
 ]

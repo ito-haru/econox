@@ -4,6 +4,7 @@ Objective function definitions for the Econox framework.
 Defines criteria for comparing model outputs with observed data.
 """
 
+import logging
 import jax
 import jax.numpy as jnp
 import equinox as eqx
@@ -15,6 +16,8 @@ from econox.protocols import StructuralModel, Objective
 from econox.structures import SolverResult
 from econox.utils import get_from_pytree
 from econox.config import LOSS_PENALTY
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # 1. Aggregator (The Composite)
@@ -67,35 +70,18 @@ class CompositeObjective(eqx.Module):
         """
         Calculates the variance-covariance matrix of the composite objective.
         
-        WARNING:
-        This assumes that the weighted sum of losses represents a valid 
-        Negative Log-Likelihood (NLL). 
-        
-        - Valid Case: Summing NLLs from independent datasets (Joint Estimation).
-        - Invalid Case: Mixing NLL with Regularization or GMM moments.
-          In such cases, the inverse Hessian does NOT correspond to standard errors.
+        Currently returns None because standard errors for composite objectives 
+        (e.g. Micro + Macro) cannot be reliably estimated using the simple inverse Hessian 
+        method without correct relative weighting or sandwich estimators.
         """
-        # --- Python Warning (Works because this method is NOT JIT compiled) ---
         warnings.warn(
-            "Calculating variance for a CompositeObjective. "
-            "Standard errors may be theoretically invalid unless the composite loss "
-            "represents a proper joint likelihood (e.g. independent datasets). "
-            "Interpret standard errors with caution.",
+            "Standard error calculation for CompositeObjective is currently disabled "
+            "in this version to prevent misleading results. "
+            "Please rely on parameter point estimates or use bootstrap methods manually.",
             UserWarning
         )
-        try:
-            # 1. Compute Hessian of the *TOTAL* weighted loss
-            H = jax.hessian(loss_fn)(params)
-            
-            # 2. Invert Hessian
-            # Assuming loss_fn returns a mean-like scale (standard in Econox),
-            # we apply the standard MLE variance formula: V = H^{-1} / N.
-            vcov = jnp.linalg.pinv(H) / num_observations
-            
-            return vcov
-            
-        except Exception:
-            return None
+
+        return None
 
 
 # =============================================================================
@@ -165,9 +151,7 @@ class MaximumLikelihood(eqx.Module):
             return vcov
             
         except Exception as e:
-            # Fallback if Hessian computation fails
-            # This allows the Estimator to return a result with None for std_errors
-            # print(f"Warning: Failed to compute Hessian for standard errors: {e}")
+            logger.warning(f"Failed to compute Hessian for standard errors in MaximumLikelihood: {e}")
             return None
 
 
@@ -207,7 +191,7 @@ class GaussianMomentMatch(eqx.Module):
             pred_val = jnp.log(jnp.maximum(pred_val, epsilon))
             obs_val = jnp.log(jnp.maximum(obs_val, epsilon))
             
-        # 4. Compute Gaussian NLL
+        # Compute Gaussian NLL
         sigma_safe = jnp.maximum(sigma, 1e-10)
         residuals = obs_val - pred_val
         

@@ -54,7 +54,7 @@ class EquilibriumSolver(eqx.Module):
             Distribution of agents in the model.
         feedback : FeedbackMechanism | None = None
             Feedback mechanism (updates model based on distribution).
-            If None, raises an error.
+            If None, raises ValueError.
         dynamics : Dynamics | None
             Dynamics logic for distribution evolution. If None, SimpleDynamics is used.
         initial_distribution : Float[Array, "num_states"] | None
@@ -108,7 +108,6 @@ class EquilibriumSolver(eqx.Module):
                 model=model_updated)
             
             updated_dist = damping * new_dist + (1 - damping) * current_dist
-
 
             return updated_dist
         

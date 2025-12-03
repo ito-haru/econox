@@ -6,7 +6,6 @@ Wraps numerical solvers to provide a consistent interface for Econox components.
 
 from typing import Callable, Any
 import equinox as eqx
-from jax._src.interpreters import ad
 import lineax as lx
 import optimistix as optx
 from jaxtyping import Float, PyTree, Scalar, Array, Bool, Int
@@ -39,7 +38,7 @@ class Minimizer(eqx.Module):
     You can customize the method and tolerances at initialization.
     
     Examples:
-        >>> # Default (BFGS, tol=1e-6)
+        >>> # Default (LBFGS, tol=1e-6)
         >>> opt = Minimizer()
         
         >>> # Custom method (e.g., Nelder-Mead) and tolerances

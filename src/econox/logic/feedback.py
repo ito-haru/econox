@@ -20,6 +20,14 @@ class LogLinearFeedback(eqx.Module):
     Physics:
         ln(Target) = Intercept + Elasticity * ln(Density)
         Density = (Population_Share * Total_Population) / Area_Size
+    
+    Attributes:
+        target_data_key (str): Key in model.data to update (e.g., "rent").
+        result_metric_key (str): Key in solver result for population share metric (e.g., "pop_share").
+        elasticity_param_key (str): Key in params for elasticity coefficient (e.g., "rent_elasticity").
+        intercept_param_key (str): Key in params for intercept term (e.g., "rent_intercepts").
+        area_data_key (str): Key in model.data for area sizes.
+        total_pop_data_key (str): Key in model.data for total population.
     """
     target_data_key: str
     result_metric_key: str
@@ -107,7 +115,7 @@ class LogLinearFeedback(eqx.Module):
         # Using maximum(..., epsilon) for numerical stability
         ln_density: Array = jnp.log(jnp.maximum(density, self.epsilon))
         pred_ln_val: Array = intercept + elasticity * ln_density
-        pred_ln_val_safe: Array = jnp.clip(pred_ln_val, a_min=self.clip_min, a_max=self.clip_max)
+        pred_ln_val_safe: Array = jnp.clip(pred_ln_val, self.clip_min, self.clip_max)
         new_val: Array = jnp.exp(pred_ln_val_safe)
 
         # 5. Return New Model with Updated Data

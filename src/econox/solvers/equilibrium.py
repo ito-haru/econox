@@ -25,6 +25,8 @@ class EquilibriumSolver(eqx.Module):
     """
     numerical_solver: FixedPoint = eqx.field(default_factory=FixedPoint)
     inner_solver: Solver = eqx.field(default_factory=ValueIterationSolver)
+    default_initial_distribution: Float[Array, "num_states"] | None = None
+    default_dynamics: Dynamics | None = None
 
     def solve(
         self,
@@ -32,7 +34,7 @@ class EquilibriumSolver(eqx.Module):
         model: StructuralModel,
         utility: Utility,
         dist: Distribution,
-        feedback: FeedbackMechanism,
+        feedback: FeedbackMechanism | None = None,
         dynamics: Dynamics | None = None,
         initial_distribution: Float[Array, "num_states"] | None = None,
         damping: float = 1.0
@@ -50,12 +52,13 @@ class EquilibriumSolver(eqx.Module):
             Utility function instance.
         dist : Distribution
             Distribution of agents in the model.
-        feedback : FeedbackMechanism
+        feedback : FeedbackMechanism | None = None
             Feedback mechanism (updates model based on distribution).
+            If None, raises ValueError.
         dynamics : Dynamics | None
             Dynamics logic for distribution evolution. If None, SimpleDynamics is used.
         initial_distribution : Float[Array, "num_states"] | None
-            Initial guess for the distribution. If None, uniform distribution is used.
+            Initial guess for the distribution. If None, uses uniform distribution.
         damping : float
             Damping factor for fixed-point updates (0 < damping <= 1).
 
@@ -71,14 +74,23 @@ class EquilibriumSolver(eqx.Module):
         if not (0 < damping <= 1.0):
              raise ValueError(f"Damping must be in range (0, 1], got {damping}")
         
+        if feedback is None:
+            raise ValueError("Feedback mechanism must be provided for EquilibriumSolver.")
+        
         num_states = model.num_states
-        if initial_distribution is None:
-            initial_distribution = jnp.ones(num_states) / num_states
 
+        if dynamics is None:
+            dynamics = self.default_dynamics
         apply_dynamics = dynamics if dynamics is not None else SimpleDynamics()
 
+        if initial_distribution is None:
+            initial_distribution = self.default_initial_distribution
+        if initial_distribution is None:
+            initial_distribution = jnp.ones(num_states) / num_states
+        
         def equilibrium_step(current_dist: Array, args: None) -> Array:
-            model_updated: StructuralModel = feedback.update(params, current_dist, model)
+            current_result = {"solution": current_dist}
+            model_updated: StructuralModel = feedback.update(params, current_result, model)
 
             inner_result: SolverResult = self.inner_solver.solve(
                 params=params, 
@@ -97,8 +109,7 @@ class EquilibriumSolver(eqx.Module):
             
             updated_dist = damping * new_dist + (1 - damping) * current_dist
 
-            # Normalize to prevent numerical drift (Ensure sum is exactly 1.0)
-            return updated_dist / jnp.sum(updated_dist)
+            return updated_dist
         
         result: FixedPointResult = self.numerical_solver.find_fixed_point(
             step_fn=equilibrium_step,
@@ -106,7 +117,8 @@ class EquilibriumSolver(eqx.Module):
         )
 
         final_dist = result.value
-        final_model: StructuralModel = feedback.update(params, final_dist, model)
+        final_result = {"solution": final_dist}
+        final_model: StructuralModel = feedback.update(params, final_result, model)
         final_inner_result = self.inner_solver.solve(
             params=params, 
             model=final_model, 
@@ -119,5 +131,7 @@ class EquilibriumSolver(eqx.Module):
             profile=final_inner_result.profile,  # Equilibrium Policy P*
             inner_result=final_inner_result,     # Full inner details (V*)
             success=result.success,
-            aux={"steps": result.steps, "diff": jnp.max(jnp.abs(result.value - initial_distribution))}
+            aux={"steps": result.steps,
+            "diff": jnp.max(jnp.abs(result.value - initial_distribution)),
+            "equilibrium_data": final_model.data}
         )

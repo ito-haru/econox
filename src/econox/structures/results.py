@@ -5,9 +5,11 @@ Uses Equinox modules to allow mixins and PyTree registration.
 """
 
 from __future__ import annotations
+import logging
 import json
 import dataclasses
 import shutil
+import numpy as np
 import jax
 import jax.numpy as jnp
 import pandas as pd
@@ -24,6 +26,8 @@ from econox.config import (
     SUMMARY_DICT_KEY_WIDTH,
     SUMMARY_SEPARATOR_LENGTH,
 )
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # 1. Save Logic (Mixin)
@@ -192,7 +196,7 @@ class ResultMixin:
         with open(base_path / "metadata.json", "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=4)
 
-        print(f"Results saved to: {base_path}")
+        logger.info(f"Results saved to: {base_path}")
 
     def _save_array_to_csv(self, arr, path: Path) -> None:
         """
@@ -213,7 +217,7 @@ class ResultMixin:
             If arr is empty or has invalid dimensions.
         """
         # Validate input type
-        if not isinstance(arr, (jax.Array, jnp.ndarray)):
+        if not isinstance(arr, (jax.Array, jnp.ndarray, np.ndarray)):
             raise TypeError(
                 f"Expected JAX array or NumPy array, got {type(arr).__name__}"
             )

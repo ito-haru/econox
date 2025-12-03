@@ -216,7 +216,7 @@ class Estimator(eqx.Module):
             vcov=None,
             solver_result=final_solver_result,
             meta={
-                "steps": opt_result.steps, 
+                "steps": int(opt_result.steps), 
                 "optimizer": self.optimizer.__class__.__name__
             }
         )

@@ -5,6 +5,7 @@ import dataclasses
 from typing import Dict, Any
 import numpy as np
 import jax.numpy as jnp
+from jax.experimental import sparse
 import equinox as eqx
 from jaxtyping import Array, Float, Int
 
@@ -55,7 +56,7 @@ class Model(eqx.Module):
     while `0` (or `False`) indicates it is physically impossible.
     """
     
-    transitions: Float[Array, "..."] | None = None
+    transitions: Float[Array, "..."] | sparse.BCOO | None = None
     """
     Exogenous transition structure.
     
@@ -156,10 +157,13 @@ class Model(eqx.Module):
         # Validate and convert transitions
         jax_trans = None
         if transitions is not None:
-            try:
-                jax_trans = jnp.asarray(transitions)
-            except (ValueError, TypeError) as e:
-                raise TypeError(f"Failed to convert transitions to JAX array: {e}") from e
+            if isinstance(transitions, (jnp.ndarray, sparse.BCOO)):
+                jax_trans = transitions
+            else:
+                try:
+                    jax_trans = jnp.asarray(transitions)
+                except (ValueError, TypeError) as e:
+                    raise TypeError(f"Failed to convert transitions to JAX array: {e}") from e
 
         return cls(
             num_states=num_states,

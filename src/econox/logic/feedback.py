@@ -115,7 +115,7 @@ class LogLinearFeedback(eqx.Module):
         # Using maximum(..., epsilon) for numerical stability
         ln_density: Array = jnp.log(jnp.maximum(density, self.epsilon))
         pred_ln_val: Array = intercept + elasticity * ln_density
-        pred_ln_val_safe: Array = jnp.clip(pred_ln_val, a_min=self.clip_min, a_max=self.clip_max)
+        pred_ln_val_safe: Array = jnp.clip(pred_ln_val, min=self.clip_min, max=self.clip_max)
         new_val: Array = jnp.exp(pred_ln_val_safe)
 
         # 5. Return New Model with Updated Data

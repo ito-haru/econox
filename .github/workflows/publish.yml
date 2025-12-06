@@ -20,6 +20,7 @@ jobs:
       url: https://pypi.org/p/econox
     permissions:
       id-token: write  # Required for Trusted Publishing
+      contents: read
 
     steps:
       - uses: actions/checkout@v4

@@ -10,6 +10,7 @@
 
 import os
 import sys
+import importlib.metadata
 sys.path.insert(0, os.path.abspath('../../src'))
 
 project = 'Econox'
@@ -18,13 +19,12 @@ author = 'Haruto Ito'
 
 init_path = os.path.join(os.path.dirname(__file__), '../../src/econox/__init__.py')
 
-# Extract version information from __init__.py
-release = ''
-with open(init_path, 'r', encoding='utf-8') as f:
-    for line in f:
-        if line.startswith('__version__'):
-            release: str = line.split('=')[1].strip().strip('"').strip("'")
-            break
+# Get version from package metadata
+try:
+    release = importlib.metadata.version('econox')
+except importlib.metadata.PackageNotFoundError:
+    release = '0.0.0'
+
 version = release
 
 # -- General configuration ---------------------------------------------------

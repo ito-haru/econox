@@ -40,7 +40,7 @@ Requires Python 3.11+ and JAX.
 **Using pip:**
 ```bash
 pip install econox
-#Using uv (Recommended):
+# Using uv (Recommended):
 uv add econox
 ```
 
@@ -55,7 +55,7 @@ import jax.numpy as jnp
 from econox import Model, LinearUtility, GumbelDistribution, ValueIterationSolver
 
 # 1. Define the Environment (Data)
-# Create a dummy model with 10 states, 3 actions, and random feature 'x'
+# Create a dummy model with 10 states, 3 actions, and dummy feature 'x'
 num_states, num_actions = 10, 3
 model = Model.from_data(
     num_states=num_states,

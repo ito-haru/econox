@@ -30,13 +30,6 @@ class CompositeObjective(eqx.Module):
     """
     objectives: Sequence[Objective]
     weights: Sequence[float] | None = None
-
-    def __init__(
-        self, 
-        objectives: Sequence[Objective], 
-        weights: Sequence[float] | None = None
-    ):
-        self.objectives = objectives
         
     def compute_loss(
         self,

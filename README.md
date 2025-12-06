@@ -1,4 +1,5 @@
 # Econox
+[![PyPI version](https://img.shields.io/pypi/v/econox.svg)](https://pypi.org/project/econox/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![JAX](https://img.shields.io/badge/backend-JAX-informational)](https://github.com/jax-ml/jax)
 [![Status](https://img.shields.io/badge/status-alpha-orange)](https://github.com/ito-haru/econox)
@@ -80,3 +81,4 @@ result = solver.solve(
 print(f"Converged: {result.success}")
 print(f"Value Function: {result.solution}") # shape: (num_states,)
 print(f"Choice Probs: {result.profile}")    # shape: (num_states, num_actions)
+```

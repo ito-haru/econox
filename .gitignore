@@ -11,3 +11,6 @@ wheels/
 
 # IDE files
 .vscode/
+
+# Version file
+src/econox/_version.py

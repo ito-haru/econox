@@ -1,7 +1,8 @@
 [project]
 name = "econox"
-version = "0.0.2"
-description = "Add your description here"
+dynamic = ["version"]
+description = "A JAX-based library for structural modeling and estimation in economics."
+keywords = ["jax", "economics", "econometrics", "structural-estimation", "equinox"]
 readme = "README.md"
 authors = [
     { name = "Haruto Ito", email = "harutoito@g.ecc.u-tokyo.ac.jp" }
@@ -21,8 +22,13 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["uv_build>=0.8.19,<0.9.0"]
-build-backend = "uv_build"
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"
+local_scheme = "no-local-version"
+write_to = "src/econox/_version.py"
 
 [tool.basedpyright]
 typeCheckingMode = "standard"
@@ -37,5 +43,8 @@ reportMissingImports = true
 
 [dependency-groups]
 dev = [
+    "furo>=2025.9.25",
     "pytest>=9.0.1",
+    "sphinx>=8.2.3",
+    "sphinx-autodoc-typehints>=3.5.2",
 ]

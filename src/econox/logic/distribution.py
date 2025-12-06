@@ -12,6 +12,9 @@ class GumbelDistribution(eqx.Module):
     """
     Type I Extreme Value (Gumbel) distribution logic for Logit models.
     Provides Emax (LogSumExp) and choice probabilities (Softmax).
+
+    Attributes:
+        scale (float): Scale parameter of the Gumbel distribution.
     """
     scale: float = 1.0
 

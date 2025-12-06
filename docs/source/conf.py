@@ -69,5 +69,43 @@ html_static_path = ['_static']
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 napoleon_include_init_with_doc = True 
+napoleon_use_ivar = True
 
-autodoc_typehints = 'description'  
+autoclass_content = 'both'
+autodoc_typehints = 'description'
+autodoc_preserve_defaults = True
+autodoc_member_order = 'bysource'
+
+
+# Custom processing of signatures to better display equinox.Module fields
+def process_signature(app, what, name, obj, options, signature, return_annotation):
+    # Only process classes
+    if what != "class":
+        return signature, return_annotation
+
+    try:
+        # Check if it is an Equinox class
+        # (For safety, get the module name as a string and check)
+        if hasattr(obj, "__module__") and "equinox" in getattr(obj, "__module__", ""):
+            import dataclasses
+            
+            if dataclasses.is_dataclass(obj):
+                fields = dataclasses.fields(obj)
+                sig_parts = []
+                for f in fields:
+                    if f.default is not dataclasses.MISSING:
+                        sig_parts.append(f"{f.name}={f.default}")
+                    elif f.default_factory is not dataclasses.MISSING:
+                        sig_parts.append(f"{f.name}=<factory>")
+                    else:
+                        sig_parts.append(f"{f.name}")
+                
+                return f"({', '.join(sig_parts)})", return_annotation
+    except Exception:
+        pass
+            
+    return signature, return_annotation
+
+# Register the event handler
+def setup(app):
+    app.connect("autodoc-process-signature", process_signature)

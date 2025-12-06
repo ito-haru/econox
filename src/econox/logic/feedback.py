@@ -20,57 +20,27 @@ class LogLinearFeedback(eqx.Module):
     Physics:
         ln(Target) = Intercept + Elasticity * ln(Density)
         Density = (Population_Share * Total_Population) / Area_Size
-    
-    Attributes:
-        target_data_key (str): Key in model.data to update (e.g., "rent").
-        result_metric_key (str): Key in solver result for population share metric (e.g., "pop_share").
-        elasticity_param_key (str): Key in params for elasticity coefficient (e.g., "rent_elasticity").
-        intercept_param_key (str): Key in params for intercept term (e.g., "rent_intercepts").
-        area_data_key (str): Key in model.data for area sizes.
-        total_pop_data_key (str): Key in model.data for total population.
     """
     target_data_key: str
+    """Key in model.data to update with new values (e.g., "rent")."""
     result_metric_key: str
+    """Key in solver result for population share metric (e.g., "pop_share")."""
     elasticity_param_key: str
+    """Key in params for elasticity coefficient (e.g., "rent_elasticity")."""
     intercept_param_key: str
+    """Key in params for intercept term (e.g., "rent_intercepts")."""
     area_data_key: str
+    """Key in model.data for area sizes."""
     total_pop_data_key: str
+    """Key in model.data for total population."""
 
     # Configuration
     clip_min: float = LOG_CLIP_MIN
+    """Minimum clipping value for log predictions."""
     clip_max: float = LOG_CLIP_MAX
+    """Maximum clipping value for log predictions."""
     epsilon: float = NUMERICAL_EPSILON
-
-    def __init__(
-        self,
-        target_data_key: str, 
-        result_metric_key: str,      
-        elasticity_param_key: str,    
-        intercept_param_key: str,     
-        area_data_key: str = "area_size",
-        total_pop_data_key: str = "total_pop",
-        clip_min: float = LOG_CLIP_MIN,
-        clip_max: float = LOG_CLIP_MAX,
-        epsilon: float = NUMERICAL_EPSILON
-    ) -> None:
-        """
-        Args:
-            target_data_key (str): Key in model.data to update with new values (e.g., "rent").
-            result_metric_key (str): Key in solver result for population share metric (e.g., "pop_share").
-            elasticity_param_key (str): Key in params for elasticity coefficient (e.g., "rent_elasticity").
-            intercept_param_key (str): Key in params for intercept term (e.g., "rent_intercepts").
-            area_data_key (str): Key in model.data for area sizes. Default "area_size".
-            total_pop_data_key (str): Key in model.data for total population. Default "total_pop".
-            clip_min (float): Minimum clipping value for log predictions. Default LOG_CLIP_MIN.
-            clip_max (float): Maximum clipping value for log predictions. Default LOG_CLIP_MAX.
-            epsilon (float): Small constant for numerical stability. Default NUMERICAL_EPSILON.
-        """
-        self.target_data_key = target_data_key
-        self.result_metric_key = result_metric_key
-        self.elasticity_param_key = elasticity_param_key
-        self.intercept_param_key = intercept_param_key
-        self.area_data_key = area_data_key
-        self.total_pop_data_key = total_pop_data_key
+    """Small constant for numerical stability."""
 
     def update(
         self, 

@@ -9,7 +9,7 @@ import jax
 import jax.numpy as jnp
 import equinox as eqx
 import warnings
-from typing import Any, Sequence, Callable
+from typing import Any, Sequence, Callable, Optional
 from jaxtyping import PyTree, Scalar, Float, Array
 
 from econox.protocols import StructuralModel, Objective
@@ -29,7 +29,7 @@ class CompositeObjective(eqx.Module):
     Loss = sum( weight_i * loss_i )
     """
     objectives: Sequence[Objective]
-    weights: Sequence[float]
+    weights: Sequence[float] | None = None
 
     def __init__(
         self, 
@@ -37,13 +37,7 @@ class CompositeObjective(eqx.Module):
         weights: Sequence[float] | None = None
     ):
         self.objectives = objectives
-        if weights is None:
-            self.weights = [1.0] * len(objectives)
-        else:
-            if len(weights) != len(objectives):
-                raise ValueError("Weights and objectives must have the same length.")
-            self.weights = weights
-
+        
     def compute_loss(
         self,
         result: SolverResult,
@@ -51,10 +45,16 @@ class CompositeObjective(eqx.Module):
         params: PyTree,
         model: StructuralModel
     ) -> Scalar:
+        current_weights = self.weights
+        
+        if current_weights is None:
+            current_weights = [1.0] * len(self.objectives)
+        elif len(current_weights) != len(self.objectives):
+            raise ValueError("Weights and objectives must have the same length.")
         
         total_loss = jnp.array(0.0)
         
-        for obj, w in zip(self.objectives, self.weights):
+        for obj, w in zip(self.objectives, current_weights):
             loss = obj.compute_loss(result, observations, params, model)
             total_loss += w * loss
             
@@ -66,7 +66,7 @@ class CompositeObjective(eqx.Module):
         params: PyTree,
         observations: Any,
         num_observations: int
-    ) -> Float[Array, "n_params n_params"] | None:
+    ) -> Optional[Float[Array, "n_params n_params"]]:
         """
         Calculates the variance-covariance matrix of the composite objective.
         
@@ -136,7 +136,7 @@ class MaximumLikelihood(eqx.Module):
         params: PyTree,
         observations: Any,
         num_observations: int
-    ) -> Float[Array, "n_params n_params"] | None:
+    ) -> Optional[Float[Array, "n_params n_params"]]:
         """
         Calculates the variance-covariance matrix using the inverse Hessian of the NLL.
         V = H^{-1} / N (Assuming loss_fn returns mean NLL)
@@ -206,7 +206,7 @@ class GaussianMomentMatch(eqx.Module):
         params: PyTree,
         observations: Any,
         num_observations: int
-    ) -> Float[Array, "n_params n_params"] | None:
+    ) -> Optional[Float[Array, "n_params n_params"]]:
         """
         Standard variance calculation for GMM/OLS logic not yet implemented.
         Returns None to indicate lack of standard errors.
@@ -227,7 +227,7 @@ class GeneralizedMethodOfMoments(eqx.Module):
     """
     model_moments_key: str
     observed_moments_key: str
-    weights_matrix: Float[Array, "n_moments n_moments"] | None = None
+    weights_matrix: Optional[Float[Array, "n_moments n_moments"]] = None
 
     def compute_loss(
         self,
@@ -246,7 +246,7 @@ class GeneralizedMethodOfMoments(eqx.Module):
         params: PyTree,
         observations: Any,
         num_observations: int
-    ) -> Float[Array, "n_params n_params"] | None:
+    ) -> Optional[Float[Array, "n_params n_params"]]:
 
         raise NotImplementedError(
             "Variance calculation for GMM Objective is not yet implemented."

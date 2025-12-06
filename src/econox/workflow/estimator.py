@@ -15,7 +15,6 @@ from jaxtyping import PyTree, Scalar, Array
 from econox.protocols import FeedbackMechanism, StructuralModel, Solver, Objective, Utility, Distribution
 from econox.structures import ParameterSpace, EstimationResult
 from econox.strategies.numerical import Minimizer, MinimizerResult
-from econox.config import LOSS_PENALTY
 from econox.utils import get_from_pytree
 
 logger = logging.getLogger(__name__)

@@ -17,18 +17,9 @@ class LinearUtility(eqx.Module):
     Formula: U(s, a) = sum_k ( param_k * feature_k(s, a) )
     """
     param_keys: tuple[str, ...]
+    """Keys in params for the coefficients corresponding to each feature."""
     feature_key: str
-
-    def __init__(self, param_keys: Sequence[str], feature_key: str = "features") -> None:
-        """
-        Args:
-            param_keys: List of keys to extract from the params PyTree.
-                        Order must match the last dimension of the feature tensor.
-            feature_key: The key in model.data where the feature tensor is stored.
-                         Default is "features".
-        """
-        self.param_keys = tuple(param_keys)
-        self.feature_key = feature_key
+    """Key in model.data for the feature tensor of shape (num_states, num_actions, num_features)."""
 
     def compute_flow_utility(
         self, 

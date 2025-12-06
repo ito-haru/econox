@@ -1,9 +1,15 @@
 # src/econox/__init__.py
 """
-Econox: A JAX-based structural estimation library for dynamic economic models.
-"""
+Econox: Structural modeling and estimation in JAX.
 
-__version__ = "0.1.0"
+Econox provides an Equinox-based framework for defining economic models,
+simulating data, and performing structural estimation.
+
+Main components:
+    - models: Base classes for structural models (e.g., Logit, DDCM).
+    - estimation: Tools for MLE, GMM, and other estimation methods.
+    - simulation: Utilities for forward simulation and data generation.
+"""
 
 # =============================================================================
 # User-Facing API (Shortcuts)

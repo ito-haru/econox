@@ -17,10 +17,11 @@ class SimpleDynamics(eqx.Module):
     Standard Law of Motion for dynamic models.
     
     Supports two modes:
-    1. Explicit Transition: D_{t+1} = (D_t * P(a|s)) @ T(s'|s,a)
+
+    1. Explicit Transition: :math:`D_{t+1} = (D_t * P(a|s)) @ T(s'|s,a)`
        Used when a transition matrix is provided in the model.
        
-    2. Direct Mapping: D_{t+1} = D_t @ P(a|s)
+    2. Direct Mapping: :math:`D_{t+1} = D_t @ P(a|s)`
        Used when no transition matrix is provided.
        Assumes Action Space maps 1-to-1 to State Space (A=S).
     """

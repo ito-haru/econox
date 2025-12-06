@@ -12,7 +12,8 @@ from jax.flatten_util import ravel_pytree
 from typing import Any
 from jaxtyping import PyTree, Scalar, Array
 
-from econox.protocols import FeedbackMechanism, StructuralModel, Solver, Objective, Utility, Distribution
+from econox.protocols import FeedbackMechanism, StructuralModel, Solver, Utility, Distribution
+from econox.strategies.objective import Objective
 from econox.structures import ParameterSpace, EstimationResult
 from econox.strategies.numerical import Minimizer, MinimizerResult
 from econox.utils import get_from_pytree
@@ -33,10 +34,10 @@ class Estimator(eqx.Module):
     Attributes:
         model: StructuralModel - The structural model to estimate.
         param_space: ParameterSpace - Parameter transformation and constraints.
-        solver: Solver - Solver to compute model solutions.
-        utility: Utility - Utility specification for the model.
-        dist: Distribution - Distribution specification for the model.
         objective: Objective - Objective function to evaluate fit.
+        solver: Solver | None - Solver to compute model solutions. 
+        utility: Utility | None - Utility specification for the model.
+        dist: Distribution | None - Distribution specification for the model.
         optimizer: Minimizer - Optimization strategy for minimizing the loss.
         feedback: FeedbackMechanism | None - Optional feedback mechanism during solving.
         num_simulations: int | None - Number of simulations for SMM (if applicable).
@@ -45,10 +46,10 @@ class Estimator(eqx.Module):
     """
     model: StructuralModel
     param_space: ParameterSpace
-    solver: Solver
-    utility: Utility
-    dist: Distribution
     objective: Objective
+    solver: Solver | None = None
+    utility: Utility | None = None
+    dist: Distribution | None = None
     optimizer: Minimizer = eqx.field(default_factory=Minimizer)
     feedback: FeedbackMechanism | None = None
     # SMM Configuration
@@ -76,6 +77,29 @@ class Estimator(eqx.Module):
         Returns:
             EstimationResult containing estimated parameters, final loss, and details.
         """
+        # =========================================================
+        # 1. Try Analytical Solution (Priority)
+        # =========================================================
+        analytical_result = self.objective.solve(
+            self.model, observations, self.param_space
+        )
+        
+        if analytical_result is not None:
+            return analytical_result
+
+        # =========================================================
+        # 2. Numerical Optimization (Structural Route)
+        # =========================================================
+        solver = self.solver
+        utility = self.utility
+        dist = self.dist
+
+        if solver is None or utility is None or dist is None:
+             raise ValueError(
+                 "Structural estimation requires 'solver', 'utility', and 'dist' components.\n"
+                 "Objective did not provide an analytical solution, so these components are mandatory."
+             )
+
         # Prepare Initial Parameters
         # Convert constrained initial params to raw (unconstrained) space for the optimizer
         if initial_params is None:
@@ -134,11 +158,11 @@ class Estimator(eqx.Module):
 
             # Case 2: Standard Estimation (MLE / NFXP) - Single Execution
             else:
-                result = self.solver.solve(
+                result = solver.solve(
                     params, 
                     self.model, 
-                    self.utility, 
-                    self.dist,
+                    utility, 
+                    dist,
                     feedback=self.feedback
                 )
 
@@ -164,8 +188,8 @@ class Estimator(eqx.Module):
         final_constrained_params = self.param_space.transform(final_raw_params)
         final_loss = opt_result.loss
         
-        final_solver_result = self.solver.solve(
-            final_constrained_params, self.model, self.utility, self.dist, self.feedback
+        final_solver_result = solver.solve(
+            final_constrained_params, self.model, utility, dist, self.feedback
         )
 
         std_errors = None

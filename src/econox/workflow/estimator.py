@@ -4,6 +4,7 @@ Estimator module for the Econox framework.
 Orchestrates the estimation process by connecting Data, Model, Solver, and Objective.
 """
 
+from econox.structures.results import EstimationResult
 import logging
 import jax
 import jax.numpy as jnp
@@ -15,7 +16,7 @@ from jaxtyping import PyTree, Scalar, Array
 from econox.protocols import FeedbackMechanism, StructuralModel, Solver, Utility, Distribution
 from econox.strategies.objective import Objective
 from econox.structures import ParameterSpace, EstimationResult
-from econox.strategies.numerical import Minimizer, MinimizerResult
+from econox.optim import Minimizer, MinimizerResult
 from econox.utils import get_from_pytree
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,8 @@ class Estimator(eqx.Module):
         self,
         observations: Any, 
         initial_params: dict | None = None,
-        sample_size: int | None = None
+        sample_size: int | None = None,
+        force_numerical: bool = False
         ) -> EstimationResult:
         """
         Estimates the model parameters to minimize the objective function.
@@ -73,6 +75,7 @@ class Estimator(eqx.Module):
             initial_params: Dictionary of initial parameter values (Constrained space).
                             If None, uses initial_params from ParameterSpace.
             sample_size: Effective sample size for variance calculations (if needed).
+            force_numerical: If True, forces numerical optimization even if an analytical solution is available.
 
         Returns:
             EstimationResult containing estimated parameters, final loss, and details.
@@ -80,12 +83,13 @@ class Estimator(eqx.Module):
         # =========================================================
         # 1. Try Analytical Solution (Priority)
         # =========================================================
-        analytical_result = self.objective.solve(
-            self.model, observations, self.param_space
-        )
-        
-        if analytical_result is not None:
-            return analytical_result
+        if not force_numerical:
+            analytical_result: EstimationResult | None = self.objective.solve(
+                self.model, observations, self.param_space
+            )
+            
+            if analytical_result is not None:
+                return analytical_result
 
         # =========================================================
         # 2. Numerical Optimization (Structural Route)
@@ -280,7 +284,8 @@ class Estimator(eqx.Module):
             solver_result=final_solver_result,
             meta={
                 "steps": int(opt_result.steps), 
-                "optimizer": self.optimizer.__class__.__name__
+                "optimizer": self.optimizer.__class__.__name__,
+                "method": "Numerical"
             }
         )
 

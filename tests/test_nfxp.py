@@ -102,7 +102,7 @@ def synthetic_data(nfxp_model, true_parameters) -> Dict[str, Any]:
         Dict containing 'observations' for the estimator and 'true_probs' for verification.
     """
     # 1. Setup Logic
-    utility = LinearUtility(param_keys=["p0", "p1", "p2"], feature_key="features")
+    utility = LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features")
     dist = GumbelDistribution()
     solver = ValueIterationSolver(discount_factor=0.9)
 
@@ -167,14 +167,14 @@ def test_estimator_execution(nfxp_model, synthetic_data):
         model=nfxp_model,
         param_space=param_space,
         solver=ValueIterationSolver(discount_factor=0.9),
-        utility=LinearUtility(param_keys=["p0", "p1", "p2"], feature_key="features"),
+        utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
         dist=GumbelDistribution(),
         objective=MaximumLikelihood(),
         verbose=False
     )
 
     observations = synthetic_data["observations"]
-    result = estimator.fit(observations)
+    result = estimator.fit(observations,sample_size=100000)
 
     assert result.success, "Estimator failed to converge."
     assert isinstance(result, EstimationResult)
@@ -192,14 +192,14 @@ def test_parameter_recovery(nfxp_model, true_parameters, synthetic_data):
         model=nfxp_model,
         param_space=ParameterSpace.create(initial_params=initial_params),
         solver=ValueIterationSolver(discount_factor=0.9),
-        utility=LinearUtility(param_keys=["p0", "p1", "p2"], feature_key="features"),
+        utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
         dist=GumbelDistribution(),
         objective=MaximumLikelihood(),
         verbose=True
     )
 
     observations = synthetic_data["observations"]
-    result = estimator.fit(observations)
+    result = estimator.fit(observations, sample_size=100000)
 
     estimated_params = result.params
     
@@ -223,14 +223,14 @@ def test_standard_errors(nfxp_model, synthetic_data):
         model=nfxp_model,
         param_space=ParameterSpace.create(initial_params=initial_params),
         solver=ValueIterationSolver(discount_factor=0.9),
-        utility=LinearUtility(param_keys=["p0", "p1", "p2"], feature_key="features"),
+        utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
         dist=GumbelDistribution(),
         objective=MaximumLikelihood(),
         verbose=False
     )
 
     observations = synthetic_data["observations"]
-    result = estimator.fit(observations)
+    result = estimator.fit(observations, sample_size=100000)
 
     assert result.std_errors is not None, "Standard errors were not computed."
     

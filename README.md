@@ -40,7 +40,10 @@ Requires Python 3.11+ and JAX.
 **Using pip:**
 ```bash
 pip install econox
-# Using uv (Recommended):
+```
+
+**Using uv (Recommended):**
+```bash
 uv add econox
 ```
 

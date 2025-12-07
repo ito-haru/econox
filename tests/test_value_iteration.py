@@ -95,7 +95,7 @@ def solver_run(request, nfxp_example_data) -> Tuple[SolverResult, float, Dict[st
         num_periods=np.inf
     )
 
-    utility_logic = LinearUtility(param_keys=["coeffs"], feature_key="features")
+    utility_logic = LinearUtility(param_keys=("coeffs",), feature_key="features")
     distribution_logic = GumbelDistribution(scale=1.0)
     solver = ValueIterationSolver(discount_factor=discount_factor)
     params = {"coeffs": data["coeffs"]}
@@ -175,7 +175,7 @@ def test_value_iteration_invalid_inputs() -> None:
     solver = ValueIterationSolver()
     
     with pytest.raises(ValueError, match="Model transitions must be defined"):
-        solver.solve({}, model_no_trans, LinearUtility([]), GumbelDistribution())
+        solver.solve({}, model_no_trans, LinearUtility((),feature_key="dummy"), GumbelDistribution())
 
     # Case 2: Invalid Shape
     invalid_trans_3d = jnp.zeros((2, 4, 4)) 
@@ -184,4 +184,4 @@ def test_value_iteration_invalid_inputs() -> None:
     )
     
     with pytest.raises(ValueError, match="MVP Version only supports"):
-        solver.solve({}, model_3d, LinearUtility([]), GumbelDistribution())
+        solver.solve({}, model_3d, LinearUtility((),feature_key="dummy"), GumbelDistribution())

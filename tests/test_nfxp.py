@@ -169,7 +169,7 @@ def test_estimator_execution(nfxp_model, synthetic_data):
         solver=ValueIterationSolver(discount_factor=0.9),
         utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
         dist=GumbelDistribution(),
-        objective=MaximumLikelihood(),
+        method=MaximumLikelihood(),
         verbose=False
     )
 
@@ -194,7 +194,7 @@ def test_parameter_recovery(nfxp_model, true_parameters, synthetic_data):
         solver=ValueIterationSolver(discount_factor=0.9),
         utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
         dist=GumbelDistribution(),
-        objective=MaximumLikelihood(),
+        method=MaximumLikelihood(),
         verbose=True
     )
 
@@ -225,7 +225,7 @@ def test_standard_errors(nfxp_model, synthetic_data):
         solver=ValueIterationSolver(discount_factor=0.9),
         utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
         dist=GumbelDistribution(),
-        objective=MaximumLikelihood(),
+        method=MaximumLikelihood(),
         verbose=False
     )
 

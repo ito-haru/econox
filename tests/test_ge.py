@@ -21,7 +21,7 @@ from econox import (
     LogLinearFeedback,
     GumbelDistribution,
     SolverResult,
-    CompositeObjective,
+    CompositeMethod,
     GaussianMomentMatch,
     MaximumLikelihood,
     Estimator
@@ -356,8 +356,8 @@ def test_ge_estimation(ge_model, ge_components, ge_data_bundle):
     weights_flat = obs_weights_matrix.flatten()
     
     # 3. Setup Estimator
-    objective = CompositeObjective(
-        objectives=[
+    objective = CompositeMethod(
+        methods=[
             MaximumLikelihood(),
             GaussianMomentMatch(obs_key="obs_wage", model_key="wage", scale_param_key="wage_scale"),
             GaussianMomentMatch(obs_key="obs_rent", model_key="rent", scale_param_key="rent_scale")
@@ -372,7 +372,7 @@ def test_ge_estimation(ge_model, ge_components, ge_data_bundle):
         solver=equilibrium_solver,
         dist=ge_components["dist"],
         feedback=ge_components["feedback"],
-        objective=objective,
+        method=objective,
         verbose=True
     )
     

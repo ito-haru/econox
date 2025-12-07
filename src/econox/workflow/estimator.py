@@ -4,7 +4,6 @@ Estimator module for the Econox framework.
 Orchestrates the estimation process by connecting Data, Model, Solver, and Objective.
 """
 
-from econox.structures.results import EstimationResult
 import logging
 import jax
 import jax.numpy as jnp
@@ -14,7 +13,7 @@ from typing import Any
 from jaxtyping import PyTree, Scalar, Array
 
 from econox.protocols import FeedbackMechanism, StructuralModel, Solver, Utility, Distribution
-from econox.strategies.objective import Objective
+from econox.methods.base import EstimationMethod
 from econox.structures import ParameterSpace, EstimationResult
 from econox.optim import Minimizer, MinimizerResult
 from econox.utils import get_from_pytree
@@ -29,25 +28,26 @@ class Estimator(eqx.Module):
     Handles:
     1. Parameter transformation (Raw <-> Constrained) via ParameterSpace.
     2. Solving the model (Single run or Batched Simulation/SMM).
-    3. Evaluating the objective function (Loss calculation).
+    3. Evaluating the loss function via EstimationMethod.
     4. Minimizing the loss using an Optimizer.
 
     Attributes:
         model: StructuralModel - The structural model to estimate.
         param_space: ParameterSpace - Parameter transformation and constraints.
-        objective: Objective - Objective function to evaluate fit.
-        solver: Solver | None - Solver to compute model solutions. 
+        method: EstimationMethod - Strategy for estimation (Loss definition & Inference).
+        solver: Solver | None - Solver to compute model solutions. Not required for reduced-form estimation.
         utility: Utility | None - Utility specification for the model.
         dist: Distribution | None - Distribution specification for the model.
         optimizer: Minimizer - Optimization strategy for minimizing the loss.
         feedback: FeedbackMechanism | None - Optional feedback mechanism during solving.
         num_simulations: int | None - Number of simulations for SMM (if applicable).
-        key: jax.Array | None - Random key for stochastic simulations. (Currently unused)
+        key: jax.Array | None - Random key for stochastic simulations.
         verbose: bool - If True, enables detailed logging for debugging.
     """
     model: StructuralModel
     param_space: ParameterSpace
-    objective: Objective
+    method: EstimationMethod
+
     solver: Solver | None = None
     utility: Utility | None = None
     dist: Distribution | None = None
@@ -84,7 +84,7 @@ class Estimator(eqx.Module):
         # 1. Try Analytical Solution (Priority)
         # =========================================================
         if not force_numerical:
-            analytical_result: EstimationResult | None = self.objective.solve(
+            analytical_result: EstimationResult | None = self.method.solve(
                 self.model, observations, self.param_space
             )
             
@@ -98,11 +98,11 @@ class Estimator(eqx.Module):
         utility = self.utility
         dist = self.dist
 
-        if solver is None or utility is None or dist is None:
-             raise ValueError(
-                 "Structural estimation requires 'solver', 'utility', and 'dist' components.\n"
-                 "Objective did not provide an analytical solution, so these components are mandatory."
-             )
+        if solver is not None:
+            if utility is None or dist is None:
+                 raise ValueError(
+                     "Structural estimation (with solver) requires 'utility' and 'dist' components."
+                 )
 
         # Prepare Initial Parameters
         # Convert constrained initial params to raw (unconstrained) space for the optimizer
@@ -153,25 +153,34 @@ class Estimator(eqx.Module):
                 jax.debug.print("Estimator: Checking Params: {}", params)
 
             # B. Solve the Model
-            # Case 1: SMM (Simulated Method of Moments) - Batched Execution
-            if self.num_simulations is not None:
-                raise NotImplementedError(
+            if solver is not None:
+                if utility is None or dist is None:
+                    raise ValueError(
+                        "Utility and Distribution must be provided for standard estimation with a Solver."
+                    )
+
+                # Case1: Simulated Method of Moments (SMM)
+                if self.num_simulations is not None:
+                    raise NotImplementedError(
                     "SMM (Simulated Method of Moments) is not yet implemented. "
                     "Please set num_simulations=None to use standard estimation."
-                )
+                    )
 
-            # Case 2: Standard Estimation (MLE / NFXP) - Single Execution
+                # Case2: Standard Structural Estimation
+                else:
+                    result = solver.solve(
+                        params, 
+                        self.model, 
+                        utility, 
+                        dist,
+                        feedback=self.feedback
+                    )
+            # Case3: Reduced Form (No Solver)
             else:
-                result = solver.solve(
-                    params, 
-                    self.model, 
-                    utility, 
-                    dist,
-                    feedback=self.feedback
-                )
+                result = None
 
             # C. Evaluate Objective
-            loss = self.objective.compute_loss(result, observations, params, self.model)
+            loss = self.method.compute_loss(result, observations, params, self.model)
             
             # Debug output if verbose
             if self.verbose:
@@ -192,16 +201,22 @@ class Estimator(eqx.Module):
         final_constrained_params = self.param_space.transform(final_raw_params)
         final_loss = opt_result.loss
         
-        final_solver_result = solver.solve(
-            final_constrained_params, self.model, utility, dist, self.feedback
-        )
+        if solver is not None and utility is not None and dist is not None:
+            final_solver_result = solver.solve(
+                final_constrained_params, self.model, utility, dist, self.feedback
+            )
+        else:
+            final_solver_result = None
+
+        # =========================================================
+        # 3. Statistical Inference (Variance Calculation)
+        # =========================================================
 
         std_errors = None
         vcov = None
 
-        if opt_result.success:
+        if opt_result.success and final_N is not None and self.method.variance is not None:
             try:
-                # Handle parameter space transformation with fixed parameter masking  
                 # A. Flatten Raw Params
                 flat_raw_params, unravel_fn = ravel_pytree(final_raw_params)
                 
@@ -211,14 +226,15 @@ class Estimator(eqx.Module):
                 is_free = jnp.logical_not(flat_fixed_mask)
                 flat_free_params = flat_raw_params[is_free]
                 
-                # C. Define wrapper loss for free params only
+                # C. Define wrapper loss for free params only (for Hessian/Gradient)
                 def loss_fn_for_inference(free_params_vec: Array) -> Scalar:
                     full_params_vec = flat_raw_params.at[is_free].set(free_params_vec)
                     raw_pytree = unravel_fn(full_params_vec)
                     return loss_fn(raw_pytree, observations)
 
-                # D. Compute Variance in FREE Raw Space
-                vcov_free = self.objective.calculate_variance(
+                # D. Compute Variance in FREE Raw Space using Method's Variance Logic
+                # Note: We mainly need the covariance matrix (vcov_free) to propagate via Delta Method
+                _, vcov_free = self.method.variance.compute(
                     loss_fn=loss_fn_for_inference,
                     params=flat_free_params,
                     observations=observations,
@@ -226,7 +242,7 @@ class Estimator(eqx.Module):
                 )
 
                 if vcov_free is not None:
-                    # E. Expand to Full Raw Space (N x N)
+                    # E. Expand to Full Raw Space (N x N) - Fill fixed params with 0
                     n_total = flat_raw_params.shape[0]
                     vcov_raw = jnp.zeros((n_total, n_total))
                     
@@ -234,32 +250,22 @@ class Estimator(eqx.Module):
                     ix_grid, iy_grid = jnp.meshgrid(free_indices, free_indices, indexing='ij')
                     vcov_raw = vcov_raw.at[ix_grid, iy_grid].set(vcov_free)
 
-                    # F. Delta Method: Raw -> Model Space
+                    # F. Delta Method: Raw Space -> Constrained (Model) Space
+                    # Cov(Model) = J @ Cov(Raw) @ J.T
                     def transform_flat(flat_raw_vec):
                         p_raw = unravel_fn(flat_raw_vec)
                         p_model = self.param_space.transform(p_raw)
                         p_model_flat, _ = ravel_pytree(p_model)
                         return p_model_flat
                     
-                    # Calculate Jacobian
+                    # Calculate Jacobian of the transformation
                     J = jax.jacfwd(transform_flat)(flat_raw_params)
-                    
-                    # Validate dimensions
-                    if self.verbose:
-                        jax.debug.print("Delta Method - J shape: {}, vcov_raw shape: {}", 
-                                       J.shape, vcov_raw.shape)
-                    
-                    if J.shape[1] != vcov_raw.shape[0]:
-                        raise ValueError(
-                            f"Jacobian columns ({J.shape[1]}) don't match "
-                            f"vcov_raw rows ({vcov_raw.shape[0]})"
-                        )
                     
                     # Apply transformation
                     vcov_model_flat = J @ vcov_raw @ J.T
                     vcov = vcov_model_flat
                     
-                    # Extract Standard Errors
+                    # Extract Standard Errors (sqrt of diagonal)
                     std_errors_flat = jnp.sqrt(jnp.maximum(jnp.diag(vcov_model_flat), 0.0))
                     
                     # Reshape back to PyTree
@@ -268,7 +274,7 @@ class Estimator(eqx.Module):
                 
                 else:
                     if self.verbose:
-                        jax.debug.print("Warning: vcov_free is None")
+                        logger.warning("Variance calculation returned None (e.g. Hessian failed).")
 
             except Exception as e:
                 logger.warning(f"Failed to compute standard errors: {e}")

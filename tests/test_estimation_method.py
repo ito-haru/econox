@@ -17,6 +17,7 @@ from econox import (
     LeastSquares,
     GaussianMomentMatch,
     CompositeMethod,
+    TwoStageLeastSquares
 )
 
 # =============================================================================
@@ -211,3 +212,161 @@ def test_fixed_parameter(simple_model, linear_data):
     
     # Check beta (should optimize to compensate, though model will be bad)
     assert result.params["beta_0"] != 0.0, "Free parameter 'beta_0' did not update."
+
+# =============================================================================
+# 2SLS Tests
+# =============================================================================
+
+@pytest.fixture
+def iv_data():
+    """
+    Generates data with endogeneity to test 2SLS.
+    Structure:
+        Z (Instrument) -> X (Endogenous) -> Y (Outcome)
+        U (Unobserved) affects both X and Y (Confounder)
+    """
+    key = jax.random.PRNGKey(999)
+    N = 1000  # Need larger sample for IV convergence
+    
+    # 1. Instrument Z (Exogenous)
+    k1, k2, k3, k4 = jax.random.split(key, 4)
+    z = jax.random.normal(k1, (N, 1))
+    
+    # 2. Unobserved Confounder U
+    u = jax.random.normal(k2, (N, 1))
+    
+    # 3. Endogenous Variable X
+    # X depends on Z (relevance) and U (endogeneity)
+    # True First Stage: X = 0.8*Z + 0.5*U + noise
+    x = 0.8 * z + 0.5 * u + 0.1 * jax.random.normal(k3, (N, 1))
+    
+    # 4. Outcome Y
+    # Y depends on X and U (bias source)
+    # True Structural Equation: Y = 2.0*X + 1.0 + (U + noise)
+    true_beta = 2.0
+    true_intercept = 1.0
+    
+    # Note: Because X contains 0.5*U, and Y contains 1.0*U, 
+    # OLS will overestimate beta (Positive Bias).
+    y = (true_beta * x).ravel() + true_intercept + (u + 0.1 * jax.random.normal(k4, (N, 1))).ravel()
+    
+    return {
+        "x": x,
+        "y": y,
+        "z": z,
+        "N": N,
+        "true_beta": true_beta,
+        "true_intercept": true_intercept
+    }
+
+def test_2sls_recovery(iv_data):
+    """
+    Verifies that 2SLS correctly recovers parameters in the presence of endogeneity,
+    whereas OLS fails (is biased).
+    """
+    # Setup Data Container
+    data = {
+        "y": iv_data["y"],
+        "X": iv_data["x"], # Endogenous
+        "Z": iv_data["z"]  # Instrument
+    }
+    
+    model = Model.from_data(
+        num_states=iv_data["N"],
+        num_actions=1,
+        data=data
+    )
+    
+    # Initial Params (same for both)
+    # Note: 2SLS class in analytical.py likely parses "beta_0", "intercept" etc.
+    initial_params = {"intercept": 0.0, "beta_0": 0.0}
+    param_space = ParameterSpace.create(initial_params)
+    
+    # ---------------------------------------------------------
+    # 1. Run OLS (Expected to be Biased)
+    # ---------------------------------------------------------
+    ols_method = LeastSquares(feature_key="X", target_key="y")
+    estimator_ols = Estimator(model, param_space, ols_method)
+    
+    # Use analytical solve
+    res_ols = estimator_ols.fit(data, sample_size=iv_data["N"])
+    beta_ols = res_ols.params["beta_0"]
+    
+    # ---------------------------------------------------------
+    # 2. Run 2SLS (Expected to be Consistent)
+    # ---------------------------------------------------------
+    tsls_method = TwoStageLeastSquares(
+        target_key="y",
+        endog_key="X",
+        instrument_key="Z"
+    )
+    estimator_tsls = Estimator(model, param_space, tsls_method)
+    
+    # Use analytical solve
+    res_tsls = estimator_tsls.fit(data, sample_size=iv_data["N"])
+    beta_tsls = res_tsls.params["beta_0"]
+    intercept_tsls = res_tsls.params["intercept"]
+    
+    # ---------------------------------------------------------
+    # Verification
+    # ---------------------------------------------------------
+    print(f"\nTrue Beta: {iv_data['true_beta']}")
+    print(f"OLS Beta : {beta_ols:.4f} (Should be biased upward)")
+    print(f"2SLS Beta: {beta_tsls:.4f} (Should be close to True)")
+    
+    # 1. 2SLS should be accurate (allow some sampling noise)
+    assert jnp.abs(beta_tsls - iv_data["true_beta"]) < 0.15, \
+        f"2SLS failed to recover beta. Got {beta_tsls}, expected {iv_data['true_beta']}"
+        
+    assert jnp.abs(intercept_tsls - iv_data["true_intercept"]) < 0.15, \
+        f"2SLS failed to recover intercept. Got {intercept_tsls}"
+
+    # 2. OLS should be significantly biased (Bias check)
+    # In this simulation, bias should be roughly cov(X,U)/var(X) > 0
+    assert beta_ols > iv_data["true_beta"] + 0.1, \
+        "OLS should be biased in this endogeneity setup, but it wasn't."
+
+def test_2sls_numerical_equivalence(iv_data):
+    """
+    Verify that 2SLS analytical solution matches numerical optimization
+    (Assuming the objective function is defined consistently).
+    
+    Note: Standard 2SLS is usually closed-form. If EstimationMethod.compute_loss 
+    is implemented for 2SLS (e.g. via IV-GMM objective), this test verifies consistency.
+    """
+    data = {
+        "y": iv_data["y"],
+        "X": iv_data["x"],
+        "Z": iv_data["z"]
+    }
+    model = Model.from_data(iv_data["N"], 1, data)
+    
+    initial_params = {"intercept": 0.0, "beta_0": 0.0}
+    param_space = ParameterSpace.create(initial_params)
+    
+    tsls_method = TwoStageLeastSquares(
+        target_key="y",
+        endog_key="X",
+        instrument_key="Z"
+    )
+    
+    # 1. Analytical
+    res_analytical = Estimator(model, param_space, tsls_method).fit(
+        data, sample_size=iv_data["N"]
+    )
+    
+    # 2. Numerical
+    # This requires TwoStageLeastSquares.compute_loss to be implemented correctly
+    res_numerical = Estimator(model, param_space, tsls_method).fit(
+        data, sample_size=iv_data["N"], force_numerical=True
+    )
+    
+    print("\n2SLS Analytical:", res_analytical.params)
+    print("2SLS Numerical: ", res_numerical.params)
+    
+    for k in res_analytical.params:
+        assert jnp.allclose(
+            res_analytical.params[k], 
+            res_numerical.params[k], 
+            atol=1e-2
+        ), f"Parameter {k} mismatch between Analytical and Numerical 2SLS."

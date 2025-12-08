@@ -66,24 +66,6 @@ class StructuralModel(Protocol):
         """
         ...
 
-@runtime_checkable
-class ParameterSpace(Protocol):
-    """
-    Interface for parameter management and transformation.
-    Responsible for mutual transformation between real space (for optimization) and model space (with constraints).
-    """
-    def transform(self, raw_params: PyTree) -> PyTree:
-        """Real parameters (Unconstrained) -> Model parameters (Constrained)"""
-        ...
-
-    def inverse_transform(self, model_params: PyTree) -> PyTree:
-        """Model parameters (Constrained) -> Real parameters (Unconstrained)"""
-        ...
-    
-    def get_bounds(self) -> tuple[PyTree, PyTree] | None:
-        """Returns parameter bounds (if necessary)"""
-        ...
-
 # =============================================================================
 # 2. Logic Components (The Physics)
 # =============================================================================

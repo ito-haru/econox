@@ -24,7 +24,7 @@ class EstimationMethod(eqx.Module):
     3. **Inference**: Optionally defines how to calculate standard errors (e.g., Hessian, Sandwich).
 
     Users can create custom objectives by subclassing this class or by using the 
-    `@custom_objective` decorator.
+    `@method_from_loss` decorator.
 
     Attributes:
         variance: Variance | None
@@ -101,7 +101,7 @@ class EstimationMethod(eqx.Module):
             An instance of a dynamically created `Objective` subclass.
 
         Example:
-            >>> @custom_objective
+            >>> @method_from_loss
             ... def mse_loss(result, observations, params, model):
             ...     return jnp.mean((result.solution - observations) ** 2)
         """

@@ -174,7 +174,7 @@ def test_estimator_execution(nfxp_model, synthetic_data):
     )
 
     observations = synthetic_data["observations"]
-    result = estimator.fit(observations,sample_size=100000)
+    result = estimator.fit(observations, sample_size=100000)
 
     assert result.success, "Estimator failed to converge."
     assert isinstance(result, EstimationResult)

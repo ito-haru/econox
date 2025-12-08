@@ -175,7 +175,7 @@ def test_value_iteration_invalid_inputs() -> None:
     solver = ValueIterationSolver()
     
     with pytest.raises(ValueError, match="Model transitions must be defined"):
-        solver.solve({}, model_no_trans, LinearUtility((),feature_key="dummy"), GumbelDistribution())
+        solver.solve({}, model_no_trans, LinearUtility((), feature_key="dummy"), GumbelDistribution())
 
     # Case 2: Invalid Shape
     invalid_trans_3d = jnp.zeros((2, 4, 4)) 
@@ -184,4 +184,4 @@ def test_value_iteration_invalid_inputs() -> None:
     )
     
     with pytest.raises(ValueError, match="MVP Version only supports"):
-        solver.solve({}, model_3d, LinearUtility((),feature_key="dummy"), GumbelDistribution())
+        solver.solve({}, model_3d, LinearUtility((), feature_key="dummy"), GumbelDistribution())

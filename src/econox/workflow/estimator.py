@@ -74,7 +74,10 @@ class Estimator(eqx.Module):
             observations: Observed data to match (passed to Objective).
             initial_params: Dictionary of initial parameter values (Constrained space).
                             If None, uses initial_params from ParameterSpace.
-            sample_size: Effective sample size for variance calculations (if needed).
+            sample_size: Effective sample size for variance calculations.
+                         Note: This argument is primarily for numerical estimation.
+                         If an analytical solution is found, this argument 
+                         is ignored and the actual data size (n_obs) is used instead.
             force_numerical: If True, forces numerical optimization even if an analytical solution is available.
 
         Returns:
@@ -154,10 +157,8 @@ class Estimator(eqx.Module):
 
             # B. Solve the Model
             if solver is not None:
-                if utility is None or dist is None:
-                    raise ValueError(
-                        "Utility and Distribution must be provided for standard estimation with a Solver."
-                    )
+                assert utility is not None
+                assert dist is not None
 
                 # Case1: Simulated Method of Moments (SMM)
                 if self.num_simulations is not None:

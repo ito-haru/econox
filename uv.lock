@@ -156,6 +156,7 @@ source = { editable = "." }
 dependencies = [
     { name = "equinox" },
     { name = "jax" },
+    { name = "lineax" },
     { name = "optimistix" },
     { name = "pandas" },
 ]
@@ -172,6 +173,7 @@ dev = [
 requires-dist = [
     { name = "equinox", specifier = ">=0.13.2" },
     { name = "jax", specifier = ">=0.8.1" },
+    { name = "lineax", specifier = ">=0.0.8" },
     { name = "optimistix", specifier = ">=0.0.11" },
     { name = "pandas", specifier = ">=2.3.3" },
 ]

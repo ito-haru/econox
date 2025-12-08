@@ -10,7 +10,7 @@ from typing import Any
 from jaxtyping import PyTree, Array, Int
 
 from econox.protocols import StructuralModel, Utility, Distribution, FeedbackMechanism
-from econox.strategies import FixedPoint, FixedPointResult
+from econox.optim import FixedPoint, FixedPointResult
 from econox.structures import SolverResult
 from econox.utils import get_from_pytree
 

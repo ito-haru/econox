@@ -17,6 +17,7 @@ classifiers = [
 dependencies = [
     "equinox>=0.13.2",
     "jax>=0.8.1",
+    "lineax>=0.0.8",
     "optimistix>=0.0.11",
     "pandas>=2.3.3",
 ]

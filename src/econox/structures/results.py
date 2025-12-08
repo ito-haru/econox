@@ -286,6 +286,8 @@ class EstimationResult(ResultMixin, eqx.Module):
     """Standard errors of the estimated parameters, if available."""
     vcov: Float[Array, "n_params n_params"] | None = None
     """Variance-covariance matrix of the estimated parameters, if available."""
+    r_squared: Scalar | None = None
+    """R-squared statistic for goodness-of-fit, if available."""
     meta: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
     """Additional metadata about the estimation process (e.g., convergence criteria, iteration counts, duration)."""
 

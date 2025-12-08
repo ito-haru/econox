@@ -1,4 +1,4 @@
-# src/econox/strategies/numerical.py
+# src/econox/optim.py
 """
 Optimization and Fixed-Point strategies using Optimistix.
 Wraps numerical solvers to provide a consistent interface for Econox components.

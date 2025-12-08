@@ -66,24 +66,6 @@ class StructuralModel(Protocol):
         """
         ...
 
-@runtime_checkable
-class ParameterSpace(Protocol):
-    """
-    Interface for parameter management and transformation.
-    Responsible for mutual transformation between real space (for optimization) and model space (with constraints).
-    """
-    def transform(self, raw_params: PyTree) -> PyTree:
-        """Real parameters (Unconstrained) -> Model parameters (Constrained)"""
-        ...
-
-    def inverse_transform(self, model_params: PyTree) -> PyTree:
-        """Model parameters (Constrained) -> Real parameters (Unconstrained)"""
-        ...
-    
-    def get_bounds(self) -> tuple[PyTree, PyTree] | None:
-        """Returns parameter bounds (if necessary)"""
-        ...
-
 # =============================================================================
 # 2. Logic Components (The Physics)
 # =============================================================================
@@ -152,59 +134,4 @@ class Solver(Protocol):
         dist: Distribution, 
         feedback: FeedbackMechanism | None = None
     ) -> Any:
-        ...
-
-# =============================================================================
-# 4. Strategy Layer (Estimator Logic)
-# =============================================================================
-
-@runtime_checkable
-class Objective(Protocol):
-    """
-    Loss function definition (Strategy).
-    Compares solver results with observed data and returns the loss to minimize.
-    Also handles statistical inference (variance calculation).
-    """
-    
-    def compute_loss(
-        self,
-        result: Any, 
-        observations: Any,
-        params: PyTree, 
-        model: StructuralModel
-    ) -> Scalar:
-        """
-        Calculates the scalar loss metric.
-        
-        Args:
-            result: The result returned by the solver (e.g., SolverResult).
-            observations: Observed data to compare against the model result.
-            params: Current model parameters (useful for regularization terms).
-            model: The structural model environment.
-            
-        Returns:
-            Scalar loss value.
-        """
-        ...
-
-    def calculate_variance(
-        self,
-        loss_fn: Callable[[PyTree], Scalar],
-        params: PyTree,
-        observations: Any,
-        num_observations: int
-    ) -> Float[Array, "n_params n_params"] | None:
-        """
-        Calculates the variance-covariance matrix of the estimators.
-        
-        Args:
-            loss_fn: A differentiable function f(params) -> loss.
-                     (Created by the Estimator, wrapping the Solver).
-            params: The estimated optimal parameters (usually in RAW space for differentiation).
-            observations: The observed data (used for GMM weighting etc).
-            num_observations: Number of data points (N), used for scaling.
-            
-        Returns:
-            The variance-covariance matrix, or None if calculation is not supported or failed.
-        """
         ...

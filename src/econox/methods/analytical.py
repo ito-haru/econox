@@ -25,7 +25,6 @@ from typing import Any, Dict, Tuple, List
 import jax
 import jax.numpy as jnp
 import equinox as eqx
-import lineax as lx
 from jaxtyping import Array, PyTree
 
 from econox.protocols import StructuralModel
@@ -118,7 +117,6 @@ class LinearMethod(EstimationMethod):
     """
     Base class providing the template method for analytical solving.
     """
-    solver: lx.AbstractLinearSolver = lx.AutoLinearSolver(well_posed=False)
     add_intercept: bool = True
     target_key: str = "y"
     # Optional parameter names for fixed parameters
@@ -146,6 +144,8 @@ class LinearMethod(EstimationMethod):
         
         Returns:
             EstimationResult if successful, None if fallback to numerical needed
+                - loss: The Sum of Squared Residuals (SSR). 
+                        Note that this is the total sum, not the mean (MSE).
         
         Note:
             Returns None when constraints other than 'fixed'/'free' are present,

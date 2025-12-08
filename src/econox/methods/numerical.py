@@ -21,6 +21,15 @@ class CompositeMethod(EstimationMethod):
     Assumes methods are independent (Block-Diagonal Weighting).
     
     Loss = sum( weight_i * loss_i )
+
+    Attributes:
+        methods: Sequence[EstimationMethod]
+        weights: Sequence[float] | None
+            Optional weights for each method. If None, equal weights are used.
+        variance: Variance | None
+            Optional variance calculation strategy for inference.
+            Note: By default, variance is not computed for composite methods because
+            the combined loss may not correspond to a valid statistical model.
     """
     methods: Sequence[EstimationMethod]
     weights: Sequence[float] | None = eqx.field(default=None)
@@ -70,7 +79,7 @@ class MaximumLikelihood(EstimationMethod):
         model: StructuralModel
     ) -> Scalar:
         if result is None:
-             raise ValueError("MaximumLikelihood requires a SolverResult (numerical solution), but got None.")
+            raise ValueError("MaximumLikelihood requires a SolverResult (numerical solution), but got None.")
 
         choice_probs = getattr(result, self.choice_probs_key, None)
 
@@ -129,7 +138,7 @@ class GaussianMomentMatch(EstimationMethod):
     ) -> Scalar:
 
         if result is None:
-             raise ValueError("GaussianMomentMatch requires a SolverResult (numerical solution), but got None.")
+            raise ValueError("GaussianMomentMatch requires a SolverResult (numerical solution), but got None.")
 
         # Try to find equilibrium data in auxiliary info, otherwise fallback to model data
         if hasattr(result, "aux") and isinstance(result.aux, dict) and "equilibrium_data" in result.aux:

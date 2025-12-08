@@ -57,7 +57,7 @@ __all__ = [
     "EquilibriumSolver",
     # Workflow
     "Estimator",
-    # Strategies
+    # Methods
     "MaximumLikelihood",
     "GaussianMomentMatch",
     "CompositeMethod",

@@ -98,7 +98,7 @@ class EstimationMethod(eqx.Module):
                   `(result, observations, params, model) -> Scalar`
 
         Returns:
-            An instance of a dynamically created `Objective` subclass.
+            An instance of a dynamically created `EstimationMethod` subclass.
 
         Example:
             >>> @method_from_loss

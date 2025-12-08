@@ -103,9 +103,9 @@ class Estimator(eqx.Module):
 
         if solver is not None:
             if utility is None or dist is None:
-                 raise ValueError(
+                raise ValueError(
                      "Structural estimation (with solver) requires 'utility' and 'dist' components."
-                 )
+                )
 
         # Prepare Initial Parameters
         # Convert constrained initial params to raw (unconstrained) space for the optimizer
@@ -227,7 +227,7 @@ class Estimator(eqx.Module):
                 is_free = jnp.logical_not(flat_fixed_mask)
                 flat_free_params = flat_raw_params[is_free]
                 
-                # C. Define wrapper loss for free params only (for Hessian/Gradient)
+                # C. Define wrapper loss for free params only (for Hessian)
                 def loss_fn_for_inference(free_params_vec: Array) -> Scalar:
                     full_params_vec = flat_raw_params.at[is_free].set(free_params_vec)
                     raw_pytree = unravel_fn(full_params_vec)

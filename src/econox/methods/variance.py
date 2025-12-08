@@ -5,10 +5,14 @@ Handles the computation of standard errors and covariance matrices.
 """
 
 from typing import Callable, Any
+import numpy as np
 import jax
 import jax.numpy as jnp
 import equinox as eqx
 from jaxtyping import PyTree, Scalar, Array, Float
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Variance(eqx.Module):
     """
@@ -84,6 +88,8 @@ class Hessian(Variance):
             # Since 'params' passed from Estimator is typically flat, this matches the input structure.
             return std_errors_flat, vcov
             
-        except Exception as e:
+        except (np.linalg.LinAlgError, ValueError) as e:
             # Return None if Hessian computation fails (e.g. out of memory, singular)
+            logger.warning(f"Hessian inversion failed due to numerical instability: {e}")
             return None, None
+            

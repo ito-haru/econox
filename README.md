@@ -30,7 +30,6 @@ Econox is built upon the modern JAX ecosystem. The core dependencies include:
 * **[JAX](https://github.com/jax-ml/jax):** For high-performance array computing and automatic differentiation.
 * **[Equinox](https://github.com/patrick-kidger/equinox):** For defining parameterized models and neural networks.
 * **[Optimistix](https://github.com/patrick-kidger/optimistix):** For nonlinear optimization and root-finding.
-* **[Lineax](https://github.com/patrick-kidger/lineax):** For linear solvers.
 * **[Jaxtyping](https://github.com/patrick-kidger/jaxtyping):** For type annotations and shape checking.
 
 ### Installation

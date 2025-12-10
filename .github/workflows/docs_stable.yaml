@@ -1,0 +1,82 @@
+# .github/workflows/docs-stable.yml
+name: Docs (stable)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-deploy-stable:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check out the tagged release
+        run: |
+          git checkout $GITHUB_REF
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package and docs dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install ".[dev]"
+
+      - name: Build Sphinx HTML (stable)
+        env:
+          DOCS_CHANNEL: stable
+          DOCS_ROOT: "/econox"
+        run: |
+          sphinx-build -b html docs/source docs/_build/stable
+
+      - name: Deploy docs to /stable/ (latest stable)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: docs/_build/stable
+          destination_dir: stable
+          keep_files: true
+
+      - name: Deploy versioned docs (/vX.Y.Z/)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: docs/_build/stable
+          destination_dir: ${{ github.ref_name }}   # e.g., v0.1.0a1
+          keep_files: true
+
+      - name: Create root redirect index.html → /stable/
+        run: |
+          mkdir -p root
+          cat << 'EOF' > root/index.html
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta http-equiv="refresh" content="0; url=./stable/">
+              <title>Econox documentation</title>
+            </head>
+            <body>
+              <p>Redirecting to <a href="./stable/">stable documentation</a>...</p>
+            </body>
+          </html>
+          EOF
+
+      - name: Deploy root index.html
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: root
+          destination_dir: .
+          keep_files: true

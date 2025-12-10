@@ -1,0 +1,77 @@
+name: Prepare Release
+
+on:
+  # Trigger manually from the GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New Version (e.g., 0.1.0a1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write      # Required to push commits
+  pull-requests: write # Required to create a PR
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for proper git operations
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create Release Branch
+        run: |
+          VERSION=${{ inputs.version }}
+          BRANCH_NAME="release/v$VERSION"
+          
+          # Configure Git user for the bot
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create and switch to the new release branch
+          git checkout -b $BRANCH_NAME
+          echo "Created branch: $BRANCH_NAME"
+
+      - name: Update Version Numbers
+        run: |
+          # Run the python script to update CITATION.cff and README.md
+          python scripts/update_version.py ${{ inputs.version }}
+
+      - name: Commit and Push Changes
+        run: |
+          VERSION=${{ inputs.version }}
+          BRANCH_NAME="release/v$VERSION"
+          
+          # Stage the modified files
+          git add CITATION.cff README.md
+          
+          # Commit only if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: bump version to $VERSION"
+            git push origin $BRANCH_NAME
+            echo "Pushed changes to $BRANCH_NAME"
+          fi
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${{ inputs.version }}
+          BRANCH_NAME="release/v$VERSION"
+          
+          # Create a Pull Request using GitHub CLI
+          gh pr create \
+            --title "Release v$VERSION" \
+            --body "This PR updates version numbers and release dates for release **v$VERSION**. Merging this PR will update the main branch." \
+            --base main \
+            --head $BRANCH_NAME

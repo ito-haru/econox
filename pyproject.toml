@@ -49,3 +49,11 @@ dev = [
     "sphinx>=8.2.3",
     "sphinx-autodoc-typehints>=3.5.2",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "furo>=2025.9.25",
+    "pytest>=9.0.1",
+    "sphinx>=8.2.3",
+    "sphinx-autodoc-typehints>=3.5.2",
+]

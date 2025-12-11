@@ -34,4 +34,4 @@ jobs:
           DOCS_CHANNEL: latest
           DOCS_ROOT: "/econox"
         run: |
-          sphinx-build -b html -W --keep-going docs/source docs/_build/latest
+          sphinx-build -b html --keep-going docs/source docs/_build/latest

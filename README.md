@@ -13,7 +13,7 @@
 </div>
 
 > [!WARNING]
-> **Status: v0.1.0 Alpha Release**
+> **Status: Alpha Release**
 > 
 > Econox is currently in the **alpha stage**. We are actively expanding the library of solvers and structural components.
 >

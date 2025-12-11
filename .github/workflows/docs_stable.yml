@@ -52,7 +52,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: docs/_build/stable
-          destination_dir: ${{ github.ref_name }}   # e.g., v0.1.0a1
+          destination_dir: ${{ github.ref_name }}   # e.g., v0.2.0
           keep_files: true
 
       - name: Create root redirect index.html → /stable/

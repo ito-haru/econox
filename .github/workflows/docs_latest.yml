@@ -43,4 +43,4 @@ jobs:
           publish_branch: gh-pages
           publish_dir: docs/_build/latest
           destination_dir: latest
-          keep_files: true   # Keep other versioned docs intact (stable, v0.1.0a1, etc.)
+          keep_files: true   # Keep other versioned docs intact (stable, v0.2.0, etc.)

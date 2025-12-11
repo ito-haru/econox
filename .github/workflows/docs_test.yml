@@ -1,0 +1,37 @@
+# .github/workflows/docs_test.yml
+name: Docs (PR check)
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - "src/**"
+      - "pyproject.toml"
+      - ".github/workflows/docs_latest.yaml"
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package and docs dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install ".[dev]"
+
+      - name: Build Sphinx HTML (PR / latest)
+        env:
+          DOCS_CHANNEL: latest
+          DOCS_ROOT: "/econox"
+        run: |
+          sphinx-build -b html --keep-going docs/source docs/_build/latest

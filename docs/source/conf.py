@@ -27,6 +27,12 @@ except importlib.metadata.PackageNotFoundError:
 
 version = release
 
+# Add version banner for development versions
+if 'dev' in release or '+' in release:
+    html_theme_options = {
+        "announcement": f"<em>Development version ({release})</em> - For stable release, see tagged versions.",
+    }
+
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -65,6 +71,39 @@ exclude_patterns = []
 
 html_theme = 'furo'
 html_static_path = ['_static']
+
+html_css_files = [
+    "version_tabs.css",
+]
+
+
+DOCS_CHANNEL = os.environ.get("DOCS_CHANNEL", "latest")
+DOCS_ROOT = os.environ.get("DOCS_ROOT", "").rstrip("/")
+
+if DOCS_ROOT:
+    stable_url = f"{DOCS_ROOT}/stable/"
+    latest_url = f"{DOCS_ROOT}/latest/"
+else:
+    stable_url = "../stable/"
+    latest_url = "../latest/"
+
+html_theme_options = globals().get("html_theme_options", {})
+
+
+def _version_tabs_html(channel: str) -> str:
+    def cls(name: str) -> str:
+        return "version-tab selected" if channel == name else "version-tab"
+
+    return f"""
+    <div class="version-tabs-container">
+      <a href="{stable_url}" class="{cls('stable')}">Stable</a>
+      <a href="{latest_url}" class="{cls('latest')}">Latest (dev)</a>
+    </div>
+    """
+
+_base_announcement = html_theme_options.get("announcement", "")
+html_theme_options["announcement"] = _version_tabs_html(DOCS_CHANNEL) + _base_announcement
+
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False

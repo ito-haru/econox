@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Ito"
+    given-names: "Haruto"
+    affiliation: "The University of Tokyo"
+title: "Econox: A JAX-based toolkit for structural modeling and estimation"
+version: 0.1.0a1
+date-released: 2025-12-10
+url: "https://github.com/ito-haru/econox"
+repository-code: "https://github.com/ito-haru/econox"
+license: Apache-2.0
+keywords:
+  - economics
+  - structural-estimation
+  - econometrics
+  - jax
+  - discrete-choice-models
+abstract: >-
+  Econox is a JAX-based toolkit for structural modeling and estimation.
+  It leverages Equinox to provide a highly modular, object-oriented framework
+  where researchers can assemble economic models from reusable components.

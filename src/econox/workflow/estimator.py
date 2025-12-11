@@ -40,8 +40,6 @@ class Estimator(eqx.Module):
         dist: Distribution | None - Distribution specification for the model.
         optimizer: Minimizer - Optimization strategy for minimizing the loss.
         feedback: FeedbackMechanism | None - Optional feedback mechanism during solving.
-        num_simulations: int | None - Number of simulations for SMM (if applicable).
-        key: jax.Array | None - Random key for stochastic simulations.
         verbose: bool - If True, enables detailed logging for debugging.
     """
     model: StructuralModel
@@ -53,9 +51,6 @@ class Estimator(eqx.Module):
     dist: Distribution | None = None
     optimizer: Minimizer = eqx.field(default_factory=Minimizer)
     feedback: FeedbackMechanism | None = None
-    # SMM Configuration
-    num_simulations: int | None = eqx.field(default=None, static=True)
-    key: jax.Array | None = None
     
     # Debugging
     verbose: bool = eqx.field(default=False, static=True)
@@ -156,27 +151,18 @@ class Estimator(eqx.Module):
                 jax.debug.print("Estimator: Checking Params: {}", params)
 
             # B. Solve the Model
+            # Case1: Structural (With Solver)
             if solver is not None:
                 assert utility is not None
                 assert dist is not None
-
-                # Case1: Simulated Method of Moments (SMM)
-                if self.num_simulations is not None:
-                    raise NotImplementedError(
-                    "SMM (Simulated Method of Moments) is not yet implemented. "
-                    "Please set num_simulations=None to use standard estimation."
-                    )
-
-                # Case2: Standard Structural Estimation
-                else:
-                    result = solver.solve(
+                result = solver.solve(
                         params, 
                         self.model, 
                         utility, 
                         dist,
                         feedback=self.feedback
                     )
-            # Case3: Reduced Form (No Solver)
+            # Case2: Reduced Form (No Solver)
             else:
                 result = None
 

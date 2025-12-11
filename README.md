@@ -157,7 +157,7 @@ If you use **Econox** in your research, please cite the software artifact as fol
   author = {Ito, Haruto},
   title = {Econox: A JAX-based toolkit for structural modeling and estimation},
   url = {[https://github.com/ito-haru/econox](https://github.com/ito-haru/econox)},
-  version = {0.1.0a1},
+  version = {0.1.1},
   year = {2025},
   note = {Alpha Release}
 }

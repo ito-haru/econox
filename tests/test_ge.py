@@ -216,8 +216,8 @@ def ge_model(ge_config, ge_data_bundle) -> ecx.Model:
         }
     )
 
-@ecx.function_feedback(target_key="wage",)
-def wage_feedback(data, params, result):
+@ecx.function_feedback(target_key="wage")
+def wage_feedback(params, result, data):
     elasticity = params["wage_elasticity"]
     intercepts = params["wage_intercepts_S"]
     area_size = data["area_size"]
@@ -228,8 +228,8 @@ def wage_feedback(data, params, result):
     ln_wage = intercepts + elasticity * (ln_pop_density - mean_ln_density)
     return jnp.exp(ln_wage)
 
-@ecx.function_feedback(target_key="rent",)
-def rent_feedback(data, params, result):
+@ecx.function_feedback(target_key="rent")
+def rent_feedback(params, result, data):
     elasticity = params["rent_elasticity"]
     intercepts = params["rent_intercepts_S"]
     area_size = data["area_size"]
@@ -460,7 +460,7 @@ def test_custom_model_feedback_logic(ge_model, ge_components, ge_data_bundle):
     assert jnp.std(final_data["rent"]) > 1e-6, "Rents should vary across states."
     
     # Consistency check: Compare density implied by result vs data used for wage
-    # (Simplified check to ensure the feedback loop closed consistently)
+    # (simplified check to ensure the feedback loop closed consistently)
     final_wage = final_data["wage"]
     # Re-calculate expected wage from final distribution manually
     # This verifies the feedback function logic was applied correctly at the fixed point

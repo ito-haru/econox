@@ -84,10 +84,10 @@ def model_feedback(func: Callable) -> CustomUpdateFeedback:
 
         @ecx.model_feedback
         def my_ge_loop(params, result, model):
-           # ... calculation ...
-           new_model = model.replace_data("wage", new_wage_values)
-           new_model = new_model.replace_data("rent", new_rent_values)
-           return new_model
+            # ... calculation ...
+            new_model = model.replace_data("wage", new_wage_values)
+            new_model = new_model.replace_data("rent", new_rent_values)
+            return new_model
     """
     return CustomUpdateFeedback(func=func)
 
@@ -107,19 +107,19 @@ class FunctionFeedback(eqx.Module):
         model: StructuralModel
     ) -> StructuralModel:
         # Execute user logic
-        new_values = self.func(model.data, params, current_result)
+        new_values = self.func(params, current_result, model.data)
         
         return model.replace_data(self.target_key, new_values)
 
 
-def function_feedback(target_key: str) -> Callable[[Callable[..., Any]], FunctionFeedback]:
+def function_feedback(target_key: str) -> Callable[..., FunctionFeedback]:
     """Decorator for simple single-variable updates.
     Usage::
 
         @ecx.function_feedback(target_key="wage")
-         def wage_update(data, params, result):
-           # ... calculation ...
-           return new_wage_values
+        def wage_update(params, result, data):
+            # ... calculation ...
+            return new_wage_values
     """
     def wrapper(func: Callable) -> FunctionFeedback:
         return FunctionFeedback(func=func, target_key=target_key)

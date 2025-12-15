@@ -3,11 +3,12 @@
 
 from econox.structures.model import Model
 from econox.structures.results import SolverResult, EstimationResult
-from econox.structures.params import ParameterSpace
+from econox.structures.params import ParameterSpace, ConstraintKind
 
 __all__ = [
     "Model",
     "SolverResult",
     "EstimationResult",
-    "ParameterSpace"
+    "ParameterSpace",
+    "ConstraintKind",
 ]

@@ -26,10 +26,14 @@ from econox.structures import (
 # 2. Logic Components (Building Blocks)
 from econox.logic import (
     LinearUtility,
+    utility,
+    FunctionUtility,
     GumbelDistribution,
     CompositeFeedback,
     function_feedback,
     model_feedback,
+    FunctionFeedback,
+    CustomUpdateFeedback,
     SimpleDynamics,
     TrajectoryDynamics
 )
@@ -50,10 +54,14 @@ __all__ = [
     "EstimationResult",
     # Logic
     "LinearUtility",
+    "utility",
+    "FunctionUtility",
     "GumbelDistribution",
     "CompositeFeedback",
     "function_feedback",
     "model_feedback",
+    "FunctionFeedback",
+    "CustomUpdateFeedback",
     "SimpleDynamics",
     "TrajectoryDynamics",
     # Solvers

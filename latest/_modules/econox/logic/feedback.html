@@ -237,104 +237,155 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for econox.logic.feedback</h1><div class="highlight"><pre>
-<span></span><span class="c1"># src/econox/logic/feedback.py</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Feedback mechanisms for General Equilibrium (GE) interactions.</span>
-<span class="sd">Updates environmental variables (e.g., prices) based on agent distributions.</span>
+
+<span class="sd">This module provides the infrastructure for defining and executing feedback loops</span>
+<span class="sd">in structural models. It supports both component-wise updates (FunctionFeedback)</span>
+<span class="sd">and full-model updates (CustomUpdateFeedback).</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">equinox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">eqx</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Float</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">PyTree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">econox.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralModel</span><span class="p">,</span> <span class="n">FeedbackMechanism</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">econox.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOG_CLIP_MAX</span><span class="p">,</span> <span class="n">LOG_CLIP_MIN</span><span class="p">,</span> <span class="n">NUMERICAL_EPSILON</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">econox.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralModel</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">econox.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_from_pytree</span>
 
-<div class="viewcode-block" id="LogLinearFeedback">
-<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.LogLinearFeedback">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">LogLinearFeedback</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="CompositeFeedback">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.CompositeFeedback">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CompositeFeedback</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Updates a target variable based on population density using a log-linear rule.</span>
-<span class="sd">    </span>
-<span class="sd">    Physics:</span>
-<span class="sd">        ln(Target) = Intercept + Elasticity * ln(Density)</span>
-<span class="sd">        Density = (Population_Share * Total_Population) / Area_Size</span>
+<span class="sd">    A container that executes multiple feedback mechanisms sequentially.</span>
+<span class="sd">    Useful when you want to chain multiple update steps.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        If multiple feedbacks share intermediate calculations (e.g., population density),</span>
+<span class="sd">        using CompositeFeedback may result in redundant computations, as each feedback</span>
+<span class="sd">        is applied independently and may recompute shared intermediates. In such cases,</span>
+<span class="sd">        it is more efficient to use a joint update via @model_feedback (i.e., CustomUpdateFeedback),</span>
+<span class="sd">        which allows you to compute shared intermediates only once.</span>
+
+<span class="sd">    Usage::</span>
+<span class="sd">        </span>
+<span class="sd">        @ecx.function_feedback(target_key=&quot;wage&quot;)</span>
+<span class="sd">        def wage_update(data, params, result):</span>
+<span class="sd">            # ... calculation ...</span>
+<span class="sd">            return new_wage_values</span>
+
+<span class="sd">        @ecx.model_feedback # Both model_feedback and function_feedback can be used here</span>
+<span class="sd">        def rent_update(data, params, result):</span>
+<span class="sd">            # ... calculation ...</span>
+<span class="sd">            return new_model</span>
+<span class="sd">        </span>
+<span class="sd">        feedback = CompositeFeedback(feedbacks=[wage_update, rent_update])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">target_data_key</span><span class="p">:</span> <span class="nb">str</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Key in model.data to update with new values (e.g., &quot;rent&quot;).&quot;&quot;&quot;</span>
-    <span class="n">result_metric_key</span><span class="p">:</span> <span class="nb">str</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Key in solver result for population share metric (e.g., &quot;pop_share&quot;).&quot;&quot;&quot;</span>
-    <span class="n">elasticity_param_key</span><span class="p">:</span> <span class="nb">str</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Key in params for elasticity coefficient (e.g., &quot;rent_elasticity&quot;).&quot;&quot;&quot;</span>
-    <span class="n">intercept_param_key</span><span class="p">:</span> <span class="nb">str</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Key in params for intercept term (e.g., &quot;rent_intercepts&quot;).&quot;&quot;&quot;</span>
-    <span class="n">area_data_key</span><span class="p">:</span> <span class="nb">str</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Key in model.data for area sizes.&quot;&quot;&quot;</span>
-    <span class="n">total_pop_data_key</span><span class="p">:</span> <span class="nb">str</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Key in model.data for total population.&quot;&quot;&quot;</span>
+    <span class="n">feedbacks</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">FeedbackMechanism</span><span class="p">]</span>
 
-    <span class="c1"># Configuration</span>
-    <span class="n">clip_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">LOG_CLIP_MIN</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Minimum clipping value for log predictions.&quot;&quot;&quot;</span>
-    <span class="n">clip_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">LOG_CLIP_MAX</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum clipping value for log predictions.&quot;&quot;&quot;</span>
-    <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">NUMERICAL_EPSILON</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Small constant for numerical stability.&quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="LogLinearFeedback.update">
-<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.LogLinearFeedback.update">[docs]</a>
+<div class="viewcode-block" id="CompositeFeedback.update">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.CompositeFeedback.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> 
         <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> 
         <span class="n">current_result</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> 
         <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StructuralModel</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calculates the new equilibrium values and returns a generic updated model.</span>
-<span class="sd">        </span>
-<span class="sd">        Args:</span>
-<span class="sd">            params: Parameter PyTree containing elasticity and intercepts.</span>
-<span class="sd">            current_result: Solver result containing the population distribution.</span>
-<span class="sd">            model: Current StructuralModel containing constants (area, total_pop).</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            A new StructuralModel instance with updated data.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># 1. Retrieve Parameters</span>
-        <span class="n">elasticity</span><span class="p">:</span> <span class="n">PyTree</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">elasticity_param_key</span><span class="p">)</span>
-        <span class="n">intercept</span><span class="p">:</span> <span class="n">PyTree</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">intercept_param_key</span><span class="p">)</span>
-
-        <span class="c1"># 2. Retrieve Data from Model and Result</span>
-        <span class="n">model_data</span><span class="p">:</span> <span class="n">PyTree</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">data</span>
-        
-        <span class="c1"># Result Metric (Share): (num_states,)</span>
-        <span class="n">pop_share</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;num_states&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span>
-            <span class="n">current_result</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_metric_key</span>
-        <span class="p">)</span>
-        
-        <span class="c1"># Constants</span>
-        <span class="n">area_size</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">model_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">area_data_key</span><span class="p">)</span>
-        <span class="n">total_pop</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">model_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_pop_data_key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-
-        <span class="c1"># 3. Calculate Density</span>
-        <span class="c1"># Density = (Share * Total) / Area</span>
-        <span class="n">abs_population</span> <span class="o">=</span> <span class="n">pop_share</span> <span class="o">*</span> <span class="n">total_pop</span>
-        <span class="n">density</span> <span class="o">=</span> <span class="n">abs_population</span> <span class="o">/</span> <span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">area_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
-        
-        <span class="c1"># 4. Compute Log-Linear Update</span>
-        <span class="c1"># Formula: ln(Y) = alpha + beta * ln(Density)</span>
-        <span class="c1"># Using maximum(..., epsilon) for numerical stability</span>
-        <span class="n">ln_density</span><span class="p">:</span> <span class="n">Array</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">density</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">))</span>
-        <span class="n">pred_ln_val</span><span class="p">:</span> <span class="n">Array</span> <span class="o">=</span> <span class="n">intercept</span> <span class="o">+</span> <span class="n">elasticity</span> <span class="o">*</span> <span class="n">ln_density</span>
-        <span class="n">pred_ln_val_safe</span><span class="p">:</span> <span class="n">Array</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">pred_ln_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_max</span><span class="p">)</span>
-        <span class="n">new_val</span><span class="p">:</span> <span class="n">Array</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">pred_ln_val_safe</span><span class="p">)</span>
-
-        <span class="c1"># 5. Return New Model with Updated Data</span>
-        <span class="c1"># StructuralModel protocol guarantees `replace_data` method.</span>
-        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">replace_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_data_key</span><span class="p">,</span> <span class="n">new_val</span><span class="p">)</span></div>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sequential application of feedback mechanisms.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">fb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feedbacks</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">current_result</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span></div>
 </div>
+
+
+
+<div class="viewcode-block" id="CustomUpdateFeedback">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.CustomUpdateFeedback">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomUpdateFeedback</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A feedback mechanism that allows the user to define a custom function</span>
+<span class="sd">    to update the ENTIRE model structure.</span>
+<span class="sd">    </span>
+<span class="sd">    This is the most flexible approach, allowing for complex dependencies</span>
+<span class="sd">    (e.g., wage and rent depending on the same density calculation) without</span>
+<span class="sd">    redundant computations or shape mismatches.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        func: A callable with signature (params, result, model) -&gt; StructuralModel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span>
+
+<div class="viewcode-block" id="CustomUpdateFeedback.update">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.CustomUpdateFeedback.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> 
+        <span class="n">current_result</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> 
+        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StructuralModel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delegates the update logic entirely to the user-defined function.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">current_result</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="model_feedback">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.model_feedback">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">model_feedback</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomUpdateFeedback</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator to register a function as a CustomUpdateFeedback.</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">        @ecx.model_feedback</span>
+<span class="sd">        def my_ge_loop(params, result, model):</span>
+<span class="sd">            # ... calculation ...</span>
+<span class="sd">            new_model = model.replace_data(&quot;wage&quot;, new_wage_values)</span>
+<span class="sd">            new_model = new_model.replace_data(&quot;rent&quot;, new_rent_values)</span>
+<span class="sd">            return new_model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">CustomUpdateFeedback</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="FunctionFeedback">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.FunctionFeedback">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FunctionFeedback</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A simpler wrapper for updating a specific key in model.data.</span>
+<span class="sd">    Best for independent, single-variable updates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span>
+    <span class="n">target_key</span><span class="p">:</span> <span class="nb">str</span>
+
+<div class="viewcode-block" id="FunctionFeedback.update">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.FunctionFeedback.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> 
+        <span class="n">current_result</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> 
+        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StructuralModel</span><span class="p">:</span>
+        <span class="c1"># Execute user logic</span>
+        <span class="n">new_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">current_result</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">replace_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_key</span><span class="p">,</span> <span class="n">new_values</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="function_feedback">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.feedback.function_feedback">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">function_feedback</span><span class="p">(</span><span class="n">target_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">FunctionFeedback</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorator for simple single-variable updates.</span>
+<span class="sd">    Usage::</span>
+
+<span class="sd">        @ecx.function_feedback(target_key=&quot;wage&quot;)</span>
+<span class="sd">        def wage_update(params, result, data):</span>
+<span class="sd">            # ... calculation ...</span>
+<span class="sd">            return new_wage_values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FunctionFeedback</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">FunctionFeedback</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">target_key</span><span class="o">=</span><span class="n">target_key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrapper</span></div>
 
 </pre></div>
         </article>

@@ -1028,18 +1028,38 @@ Provides Emax (LogSumExp) and choice probabilities (Softmax).</p>
 </section>
 <section id="module-econox.logic.feedback">
 <span id="feedback-mechanisms"></span><h3>Feedback Mechanisms<a class="headerlink" href="#module-econox.logic.feedback" title="Link to this heading">¶</a></h3>
-<p>Feedback mechanisms for General Equilibrium (GE) interactions.
-Updates environmental variables (e.g., prices) based on agent distributions.</p>
+<p>Feedback mechanisms for General Equilibrium (GE) interactions.</p>
+<p>This module provides the infrastructure for defining and executing feedback loops
+in structural models. It supports both component-wise updates (FunctionFeedback)
+and full-model updates (CustomUpdateFeedback).</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.logic.feedback.</span></span><span class="sig-name descname"><span class="pre">LogLinearFeedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#LogLinearFeedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="econox.logic.feedback.CompositeFeedback">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.logic.feedback.</span></span><span class="sig-name descname"><span class="pre">CompositeFeedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#CompositeFeedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.CompositeFeedback" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Updates a target variable based on population density using a log-linear rule.</p>
-<dl class="simple">
-<dt>Physics:</dt><dd><p>ln(Target) = Intercept + Elasticity * ln(Density)
-Density = (Population_Share * Total_Population) / Area_Size</p>
-</dd>
-</dl>
+<p>A container that executes multiple feedback mechanisms sequentially.
+Useful when you want to chain multiple update steps.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If multiple feedbacks share intermediate calculations (e.g., population density),
+using CompositeFeedback may result in redundant computations, as each feedback
+is applied independently and may recompute shared intermediates. In such cases,
+it is more efficient to use a joint update via &#64;model_feedback (i.e., CustomUpdateFeedback),
+which allows you to compute shared intermediates only once.</p>
+</div>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ecx</span><span class="o">.</span><span class="n">function_feedback</span><span class="p">(</span><span class="n">target_key</span><span class="o">=</span><span class="s2">&quot;wage&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wage_update</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+    <span class="c1"># ... calculation ...</span>
+    <span class="k">return</span> <span class="n">new_wage_values</span>
+
+<span class="nd">@ecx</span><span class="o">.</span><span class="n">model_feedback</span> <span class="c1"># Both model_feedback and function_feedback can be used here</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rent_update</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+    <span class="c1"># ... calculation ...</span>
+    <span class="k">return</span> <span class="n">new_model</span>
+
+<span class="n">feedback</span> <span class="o">=</span> <span class="n">CompositeFeedback</span><span class="p">(</span><span class="n">feedbacks</span><span class="o">=</span><span class="p">[</span><span class="n">wage_update</span><span class="p">,</span> <span class="n">rent_update</span><span class="p">])</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1052,80 +1072,166 @@ Density = (Population_Share * Total_Population) / Area_Size</p>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.target_data_key">
-<span class="sig-name descname"><span class="pre">target_data_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.target_data_key" title="Link to this definition">¶</a></dt>
-<dd><p>Key in model.data to update with new values (e.g., “rent”).</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.result_metric_key">
-<span class="sig-name descname"><span class="pre">result_metric_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.result_metric_key" title="Link to this definition">¶</a></dt>
-<dd><p>Key in solver result for population share metric (e.g., “pop_share”).</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.elasticity_param_key">
-<span class="sig-name descname"><span class="pre">elasticity_param_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.elasticity_param_key" title="Link to this definition">¶</a></dt>
-<dd><p>Key in params for elasticity coefficient (e.g., “rent_elasticity”).</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.intercept_param_key">
-<span class="sig-name descname"><span class="pre">intercept_param_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.intercept_param_key" title="Link to this definition">¶</a></dt>
-<dd><p>Key in params for intercept term (e.g., “rent_intercepts”).</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.area_data_key">
-<span class="sig-name descname"><span class="pre">area_data_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.area_data_key" title="Link to this definition">¶</a></dt>
-<dd><p>Key in model.data for area sizes.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.total_pop_data_key">
-<span class="sig-name descname"><span class="pre">total_pop_data_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.total_pop_data_key" title="Link to this definition">¶</a></dt>
-<dd><p>Key in model.data for total population.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.clip_min">
-<span class="sig-name descname"><span class="pre">clip_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-20.0</span></em><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.clip_min" title="Link to this definition">¶</a></dt>
-<dd><p>Minimum clipping value for log predictions.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.clip_max">
-<span class="sig-name descname"><span class="pre">clip_max</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20.0</span></em><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.clip_max" title="Link to this definition">¶</a></dt>
-<dd><p>Maximum clipping value for log predictions.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.epsilon">
-<span class="sig-name descname"><span class="pre">epsilon</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-08</span></em><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.epsilon" title="Link to this definition">¶</a></dt>
-<dd><p>Small constant for numerical stability.</p>
-</dd></dl>
+<dt class="sig sig-object py" id="econox.logic.feedback.CompositeFeedback.feedbacks">
+<span class="sig-name descname"><span class="pre">feedbacks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code><span class="pre">[</span><a class="reference internal" href="#econox.protocols.FeedbackMechanism" title="econox.protocols.FeedbackMechanism"><code class="xref py py-class docutils literal notranslate"><span class="pre">FeedbackMechanism</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#econox.logic.feedback.CompositeFeedback.feedbacks" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="econox.logic.feedback.LogLinearFeedback.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#LogLinearFeedback.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.LogLinearFeedback.update" title="Link to this definition">¶</a></dt>
-<dd><p>Calculates the new equilibrium values and returns a generic updated model.</p>
+<dt class="sig sig-object py" id="econox.logic.feedback.CompositeFeedback.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#CompositeFeedback.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.CompositeFeedback.update" title="Link to this definition">¶</a></dt>
+<dd><p>Sequential application of feedback mechanisms.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyTree</span></code></span>) – Parameter PyTree containing elasticity and intercepts.</p></li>
-<li><p><strong>current_result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Solver result containing the population distribution.</p></li>
-<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – Current StructuralModel containing constants (area, total_pop).</p></li>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>params</strong> (<em>jaxtyping.PyTree</em>)</p></li>
+<li><p><strong>current_result</strong> (<em>Any</em>)</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
 </ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A new StructuralModel instance with updated data.</p>
 </dd>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.logic.feedback.CustomUpdateFeedback">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.logic.feedback.</span></span><span class="sig-name descname"><span class="pre">CustomUpdateFeedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#CustomUpdateFeedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.CustomUpdateFeedback" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>A feedback mechanism that allows the user to define a custom function
+to update the ENTIRE model structure.</p>
+<p>This is the most flexible approach, allowing for complex dependencies
+(e.g., wage and rent depending on the same density calculation) without
+redundant computations or shape mismatches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>func</strong> – A callable with signature (params, result, model) -&gt; StructuralModel.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.feedback.CustomUpdateFeedback.func">
+<span class="sig-name descname"><span class="pre">func</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></em><a class="headerlink" href="#econox.logic.feedback.CustomUpdateFeedback.func" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.feedback.CustomUpdateFeedback.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#CustomUpdateFeedback.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.CustomUpdateFeedback.update" title="Link to this definition">¶</a></dt>
+<dd><p>Delegates the update logic entirely to the user-defined function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>params</strong> (<em>jaxtyping.PyTree</em>)</p></li>
+<li><p><strong>current_result</strong> (<em>Any</em>)</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="econox.logic.feedback.model_feedback">
+<span class="sig-prename descclassname"><span class="pre">econox.logic.feedback.</span></span><span class="sig-name descname"><span class="pre">model_feedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#model_feedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.model_feedback" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator to register a function as a CustomUpdateFeedback.</p>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ecx</span><span class="o">.</span><span class="n">model_feedback</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_ge_loop</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+    <span class="c1"># ... calculation ...</span>
+    <span class="n">new_model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">replace_data</span><span class="p">(</span><span class="s2">&quot;wage&quot;</span><span class="p">,</span> <span class="n">new_wage_values</span><span class="p">)</span>
+    <span class="n">new_model</span> <span class="o">=</span> <span class="n">new_model</span><span class="o">.</span><span class="n">replace_data</span><span class="p">(</span><span class="s2">&quot;rent&quot;</span><span class="p">,</span> <span class="n">new_rent_values</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_model</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.logic.feedback.CustomUpdateFeedback" title="econox.logic.feedback.CustomUpdateFeedback"><code class="xref py py-class docutils literal notranslate"><span class="pre">CustomUpdateFeedback</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>func</strong> (<em>Callable</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.logic.feedback.FunctionFeedback">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.logic.feedback.</span></span><span class="sig-name descname"><span class="pre">FunctionFeedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#FunctionFeedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.FunctionFeedback" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>A simpler wrapper for updating a specific key in model.data.
+Best for independent, single-variable updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.feedback.FunctionFeedback.func">
+<span class="sig-name descname"><span class="pre">func</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></em><a class="headerlink" href="#econox.logic.feedback.FunctionFeedback.func" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.feedback.FunctionFeedback.target_key">
+<span class="sig-name descname"><span class="pre">target_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#econox.logic.feedback.FunctionFeedback.target_key" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.feedback.FunctionFeedback.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#FunctionFeedback.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.FunctionFeedback.update" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>params</strong> (<em>jaxtyping.PyTree</em>)</p></li>
+<li><p><strong>current_result</strong> (<em>Any</em>)</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="econox.logic.feedback.function_feedback">
+<span class="sig-prename descclassname"><span class="pre">econox.logic.feedback.</span></span><span class="sig-name descname"><span class="pre">function_feedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/feedback.html#function_feedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.feedback.function_feedback" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator for simple single-variable updates.
+Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ecx</span><span class="o">.</span><span class="n">function_feedback</span><span class="p">(</span><span class="n">target_key</span><span class="o">=</span><span class="s2">&quot;wage&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wage_update</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="c1"># ... calculation ...</span>
+    <span class="k">return</span> <span class="n">new_wage_values</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>, <a class="reference internal" href="#econox.logic.feedback.FunctionFeedback" title="econox.logic.feedback.FunctionFeedback"><code class="xref py py-class docutils literal notranslate"><span class="pre">FunctionFeedback</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>target_key</strong> (<em>str</em>)</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -2438,19 +2544,24 @@ V = H^{-1} / N</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-econox.logic.feedback">Feedback Mechanisms</a><ul>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback</span></code></a><ul>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.target_data_key"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.target_data_key</span></code></a></li>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.result_metric_key"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.result_metric_key</span></code></a></li>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.elasticity_param_key"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.elasticity_param_key</span></code></a></li>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.intercept_param_key"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.intercept_param_key</span></code></a></li>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.area_data_key"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.area_data_key</span></code></a></li>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.total_pop_data_key"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.total_pop_data_key</span></code></a></li>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.clip_min"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.clip_min</span></code></a></li>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.clip_max"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.clip_max</span></code></a></li>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.epsilon"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.epsilon</span></code></a></li>
-<li><a class="reference internal" href="#econox.logic.feedback.LogLinearFeedback.update"><code class="docutils literal notranslate"><span class="pre">LogLinearFeedback.update()</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.feedback.CompositeFeedback"><code class="docutils literal notranslate"><span class="pre">CompositeFeedback</span></code></a><ul>
+<li><a class="reference internal" href="#econox.logic.feedback.CompositeFeedback.feedbacks"><code class="docutils literal notranslate"><span class="pre">CompositeFeedback.feedbacks</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.feedback.CompositeFeedback.update"><code class="docutils literal notranslate"><span class="pre">CompositeFeedback.update()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#econox.logic.feedback.CustomUpdateFeedback"><code class="docutils literal notranslate"><span class="pre">CustomUpdateFeedback</span></code></a><ul>
+<li><a class="reference internal" href="#econox.logic.feedback.CustomUpdateFeedback.func"><code class="docutils literal notranslate"><span class="pre">CustomUpdateFeedback.func</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.feedback.CustomUpdateFeedback.update"><code class="docutils literal notranslate"><span class="pre">CustomUpdateFeedback.update()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#econox.logic.feedback.model_feedback"><code class="docutils literal notranslate"><span class="pre">model_feedback()</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.feedback.FunctionFeedback"><code class="docutils literal notranslate"><span class="pre">FunctionFeedback</span></code></a><ul>
+<li><a class="reference internal" href="#econox.logic.feedback.FunctionFeedback.func"><code class="docutils literal notranslate"><span class="pre">FunctionFeedback.func</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.feedback.FunctionFeedback.target_key"><code class="docutils literal notranslate"><span class="pre">FunctionFeedback.target_key</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.feedback.FunctionFeedback.update"><code class="docutils literal notranslate"><span class="pre">FunctionFeedback.update()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#econox.logic.feedback.function_feedback"><code class="docutils literal notranslate"><span class="pre">function_feedback()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-econox.logic.dynamics">Transition Dynamics</a><ul>

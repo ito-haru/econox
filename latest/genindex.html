@@ -282,8 +282,6 @@
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.area_data_key">area_data_key (econox.logic.feedback.LogLinearFeedback attribute)</a>
-</li>
         <li><a href="api_reference.html#econox.protocols.StructuralModel.availability">availability (econox.protocols.StructuralModel property)</a>
 
         <ul>
@@ -316,9 +314,7 @@
         </ul></li>
         <li><a href="api_reference.html#econox.methods.numerical.MaximumLikelihood.choice_probs_key">choice_probs_key (econox.methods.numerical.MaximumLikelihood attribute)</a>
 </li>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.clip_max">clip_max (econox.logic.feedback.LogLinearFeedback attribute)</a>
-</li>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.clip_min">clip_min (econox.logic.feedback.LogLinearFeedback attribute)</a>
+        <li><a href="api_reference.html#econox.logic.feedback.CompositeFeedback">CompositeFeedback (class in econox.logic.feedback)</a>
 </li>
         <li><a href="api_reference.html#econox.methods.numerical.CompositeMethod">CompositeMethod (class in econox.methods.numerical)</a>
 </li>
@@ -355,6 +351,8 @@
         <li><a href="api_reference.html#econox.methods.analytical.TwoStageLeastSquares.controls_key">controls_key (econox.methods.analytical.TwoStageLeastSquares attribute)</a>
 </li>
         <li><a href="api_reference.html#econox.structures.params.ParameterSpace.create">create() (econox.structures.params.ParameterSpace class method)</a>
+</li>
+        <li><a href="api_reference.html#econox.logic.feedback.CustomUpdateFeedback">CustomUpdateFeedback (class in econox.logic.feedback)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -490,11 +488,7 @@
           <li><a href="api_reference.html#module-econox.structures.results">module</a>
 </li>
         </ul></li>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.elasticity_param_key">elasticity_param_key (econox.logic.feedback.LogLinearFeedback attribute)</a>
-</li>
         <li><a href="api_reference.html#econox.methods.analytical.TwoStageLeastSquares.endog_key">endog_key (econox.methods.analytical.TwoStageLeastSquares attribute)</a>
-</li>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.epsilon">epsilon (econox.logic.feedback.LogLinearFeedback attribute)</a>
 </li>
         <li><a href="api_reference.html#econox.solvers.equilibrium.EquilibriumSolver">EquilibriumSolver (class in econox.solvers.equilibrium)</a>
 </li>
@@ -526,17 +520,29 @@
 </li>
         <li><a href="api_reference.html#econox.protocols.FeedbackMechanism">FeedbackMechanism (class in econox.protocols)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api_reference.html#econox.logic.feedback.CompositeFeedback.feedbacks">feedbacks (econox.logic.feedback.CompositeFeedback attribute)</a>
+</li>
         <li><a href="api_reference.html#econox.structures.params.ParameterSpace.fixed_mask">fixed_mask (econox.structures.params.ParameterSpace property)</a>
 </li>
         <li><a href="api_reference.html#econox.methods.analytical.AnalyticalParameterHandler.fixed_values_vec">fixed_values_vec (econox.methods.analytical.AnalyticalParameterHandler attribute)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api_reference.html#econox.structures.model.Model.from_data">from_data() (econox.structures.model.Model class method)</a>
 </li>
         <li><a href="api_reference.html#econox.methods.base.EstimationMethod.from_function">from_function() (econox.methods.base.EstimationMethod class method)</a>
 </li>
         <li><a href="api_reference.html#econox.methods.analytical.AnalyticalParameterHandler.from_params">from_params() (econox.methods.analytical.AnalyticalParameterHandler class method)</a>
+</li>
+        <li><a href="api_reference.html#econox.logic.feedback.CustomUpdateFeedback.func">func (econox.logic.feedback.CustomUpdateFeedback attribute)</a>
+
+        <ul>
+          <li><a href="api_reference.html#econox.logic.feedback.FunctionFeedback.func">(econox.logic.feedback.FunctionFeedback attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="api_reference.html#econox.logic.feedback.function_feedback">function_feedback() (in module econox.logic.feedback)</a>
+</li>
+        <li><a href="api_reference.html#econox.logic.feedback.FunctionFeedback">FunctionFeedback (class in econox.logic.feedback)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -584,8 +590,6 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api_reference.html#econox.methods.analytical.TwoStageLeastSquares.instrument_key">instrument_key (econox.methods.analytical.TwoStageLeastSquares attribute)</a>
 </li>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.intercept_param_key">intercept_param_key (econox.logic.feedback.LogLinearFeedback attribute)</a>
-</li>
         <li><a href="api_reference.html#econox.structures.params.ParameterSpace.inverse_transform">inverse_transform() (econox.structures.params.ParameterSpace method)</a>
 </li>
         <li><a href="api_reference.html#econox.methods.analytical.AnalyticalParameterHandler.is_fixed_mask">is_fixed_mask (econox.methods.analytical.AnalyticalParameterHandler attribute)</a>
@@ -602,13 +606,11 @@
 </li>
         <li><a href="api_reference.html#econox.methods.analytical.LinearMethod">LinearMethod (class in econox.methods.analytical)</a>
 </li>
-        <li><a href="api_reference.html#econox.logic.utility.LinearUtility">LinearUtility (class in econox.logic.utility)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api_reference.html#econox.methods.numerical.GaussianMomentMatch.log_transform">log_transform (econox.methods.numerical.GaussianMomentMatch attribute)</a>
+        <li><a href="api_reference.html#econox.logic.utility.LinearUtility">LinearUtility (class in econox.logic.utility)</a>
 </li>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback">LogLinearFeedback (class in econox.logic.feedback)</a>
+        <li><a href="api_reference.html#econox.methods.numerical.GaussianMomentMatch.log_transform">log_transform (econox.methods.numerical.GaussianMomentMatch attribute)</a>
 </li>
         <li><a href="api_reference.html#econox.structures.results.EstimationResult.loss">loss (econox.structures.results.EstimationResult attribute)</a>
 </li>
@@ -627,6 +629,8 @@
         <li><a href="api_reference.html#econox.methods.numerical.CompositeMethod.methods">methods (econox.methods.numerical.CompositeMethod attribute)</a>
 </li>
         <li><a href="api_reference.html#econox.structures.model.Model">Model (class in econox.structures.model)</a>
+</li>
+        <li><a href="api_reference.html#econox.logic.feedback.model_feedback">model_feedback() (in module econox.logic.feedback)</a>
 </li>
         <li><a href="api_reference.html#econox.methods.numerical.GaussianMomentMatch.model_key">model_key (econox.methods.numerical.GaussianMomentMatch attribute)</a>
 </li>
@@ -733,16 +737,14 @@
 </li>
         <li><a href="api_reference.html#econox.methods.analytical.AnalyticalParameterHandler.reconstruct">reconstruct() (econox.methods.analytical.AnalyticalParameterHandler method)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api_reference.html#econox.protocols.StructuralModel.replace_data">replace_data() (econox.protocols.StructuralModel method)</a>
 
         <ul>
           <li><a href="api_reference.html#econox.structures.model.Model.replace_data">(econox.structures.model.Model method)</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.result_metric_key">result_metric_key (econox.logic.feedback.LogLinearFeedback attribute)</a>
-</li>
         <li><a href="api_reference.html#econox.structures.results.ResultMixin">ResultMixin (class in econox.structures.results)</a>
 </li>
     </ul></td>
@@ -805,12 +807,12 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api_reference.html#econox.structures.results.EstimationResult.t_values">t_values (econox.structures.results.EstimationResult property)</a>
 </li>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.target_data_key">target_data_key (econox.logic.feedback.LogLinearFeedback attribute)</a>
+        <li><a href="api_reference.html#econox.logic.feedback.FunctionFeedback.target_key">target_key (econox.logic.feedback.FunctionFeedback attribute)</a>
+
+        <ul>
+          <li><a href="api_reference.html#econox.methods.analytical.LinearMethod.target_key">(econox.methods.analytical.LinearMethod attribute)</a>
 </li>
-        <li><a href="api_reference.html#econox.methods.analytical.LinearMethod.target_key">target_key (econox.methods.analytical.LinearMethod attribute)</a>
-</li>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.total_pop_data_key">total_pop_data_key (econox.logic.feedback.LogLinearFeedback attribute)</a>
-</li>
+        </ul></li>
         <li><a href="api_reference.html#econox.logic.dynamics.TrajectoryDynamics">TrajectoryDynamics (class in econox.logic.dynamics)</a>
 </li>
     </ul></td>
@@ -837,9 +839,13 @@
   <h2>U</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api_reference.html#econox.logic.feedback.LogLinearFeedback.update">update() (econox.logic.feedback.LogLinearFeedback method)</a>
+        <li><a href="api_reference.html#econox.logic.feedback.CompositeFeedback.update">update() (econox.logic.feedback.CompositeFeedback method)</a>
 
         <ul>
+          <li><a href="api_reference.html#econox.logic.feedback.CustomUpdateFeedback.update">(econox.logic.feedback.CustomUpdateFeedback method)</a>
+</li>
+          <li><a href="api_reference.html#econox.logic.feedback.FunctionFeedback.update">(econox.logic.feedback.FunctionFeedback method)</a>
+</li>
           <li><a href="api_reference.html#econox.protocols.FeedbackMechanism.update">(econox.protocols.FeedbackMechanism method)</a>
 </li>
         </ul></li>

@@ -100,6 +100,23 @@ class FunctionUtility(eqx.Module):
     """
     Wraps a user-defined function to satisfy the Utility protocol.
     Allows defining utility logic as a simple function.
+
+    Attributes:
+        func (Callable):
+            A function with signature `(params: PyTree, model: StructuralModel) -> Float[Array, "num_states num_actions"]`.
+            This function computes the flow utility matrix for the given parameters and model.
+    
+    Example:
+        >>> import econox as ecx
+        >>> # Define a custom utility function
+        >>> def my_utility(params, model):
+        ...     # params["beta"] is a scalar, model.data["x"] is (num_states, num_actions)
+        ...     return params["beta"] * model.data["x"]
+        >>> # Wrap it as a FunctionUtility
+        >>> utility: econox.protocols.Utility = ecx.utility(my_utility)
+        >>> u = utility.compute_flow_utility(params, model)
+        >>> u.shape
+        (num_states, num_actions)
     """
     func: Callable
 
@@ -108,18 +125,48 @@ class FunctionUtility(eqx.Module):
         params: PyTree, 
         model: StructuralModel
     ) -> Float[Array, "num_states num_actions"]:
-        return self.func(params, model)
+        """
+        Calls the user-defined function to compute flow utility.
+        Args:
+            params: Parameter PyTree.
+            model: StructuralModel instance.
+
+        Returns:
+            Float[Array, "num_states num_actions"]: 
+                The computed flow utility matrix.
+        """
+        result = self.func(params, model)
+        if result.shape != (model.num_states, model.num_actions):
+            raise ValueError(f"Utility function returned shape {result.shape}, expected {(model.num_states, model.num_actions)}")
+        return result
 
 
 def utility(func: Callable) -> FunctionUtility:
     """
     Decorator to convert a function into a Utility module.
+
+    This allows you to define a utility function with the standard signature and
+    automatically wrap it as a module compatible with the Econox framework.
+
+    Args:
+        func (Callable): 
+            A function with signature `(params: PyTree, model: StructuralModel) -> Float[Array, "num_states num_actions"]`.
+            The function should compute and return the flow utility matrix for the given parameters and model.
     
-    Usage::
+    Returns:
+        FunctionUtility: 
+            An object with a `compute_flow_utility(params, model)` method that calls the provided function.
     
-        @ecx.utility
-        def my_utility(params, model):
-            return params["beta"] * model.data["x"]
+    Example:
+        >>> import econox as ecx
+        >>> # Define a custom utility function
+        >>> @ecx.utility
+        ... def my_utility(params, model):
+        ...     # params["beta"] is a scalar, model.data["x"] is (num_states, num_actions)
+        ...     return params["beta"] * model.data["x"]
+        >>> # my_utility is now a FunctionUtility instance
+        >>> u = my_utility.compute_flow_utility(params, model)
+        >>> u.shape
+        (num_states, num_actions)
     """
     return FunctionUtility(func=func)
-    

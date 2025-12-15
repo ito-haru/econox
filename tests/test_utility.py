@@ -10,7 +10,6 @@ import equinox as eqx
 from jaxtyping import PyTree
 
 import econox as ecx
-from econox.logic.utility import FunctionUtility
 
 # =============================================================================
 # Fixtures
@@ -102,7 +101,7 @@ def test_function_utility_class(mock_model_data):
         return jnp.full((m.num_states, m.num_actions), val)
     
     # Wrap in class
-    utility = FunctionUtility(func=simple_logic)
+    utility = ecx.FunctionUtility(func=simple_logic)
     
     u_matrix = utility.compute_flow_utility(params, model)
     
@@ -123,10 +122,29 @@ def test_utility_decorator(mock_model_data):
         return b0 * f0 + 100.0
         
     # Check if it satisfies the interface
-    assert isinstance(my_custom_utility, FunctionUtility)
+    assert isinstance(my_custom_utility, ecx.FunctionUtility)
     
     u_matrix = my_custom_utility.compute_flow_utility(params, model)
     
     # Validation
     expected = 1.0 * features[..., 0] + 100.0
     assert jnp.allclose(u_matrix, expected)
+
+def test_utility_error_handling(mock_model_data):
+    model, params, _ = mock_model_data
+    
+    # 1. Shape mismatch
+    @ecx.utility
+    def bad_shape_utility(p, m):
+        return jnp.zeros((1,)) # Wrong shape
+    
+    with pytest.raises((ValueError, TypeError)): 
+        bad_shape_utility.compute_flow_utility(params, model)
+
+    # 2. User exception
+    @ecx.utility
+    def error_utility(p, m):
+        raise RuntimeError("User logic failed")
+
+    with pytest.raises(RuntimeError, match="User logic failed"):
+        error_utility.compute_flow_utility(params, model)

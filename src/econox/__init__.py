@@ -27,10 +27,13 @@ from econox.structures import (
 from econox.logic import (
     LinearUtility,
     utility,
+    FunctionUtility,
     GumbelDistribution,
     CompositeFeedback,
     function_feedback,
     model_feedback,
+    FunctionFeedback,
+    CustomUpdateFeedback,
     SimpleDynamics,
     TrajectoryDynamics
 )
@@ -52,10 +55,13 @@ __all__ = [
     # Logic
     "LinearUtility",
     "utility",
+    "FunctionUtility",
     "GumbelDistribution",
     "CompositeFeedback",
     "function_feedback",
     "model_feedback",
+    "FunctionFeedback",
+    "CustomUpdateFeedback",
     "SimpleDynamics",
     "TrajectoryDynamics",
     # Solvers

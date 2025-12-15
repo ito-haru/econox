@@ -3,13 +3,15 @@
 
 from econox.logic.distribution import GumbelDistribution
 from econox.logic.utility import LinearUtility
-from econox.logic.feedback import LogLinearFeedback
+from econox.logic.feedback import CompositeFeedback, function_feedback, model_feedback
 from econox.logic.dynamics import SimpleDynamics, TrajectoryDynamics
 
 __all__ = [
     "GumbelDistribution",
     "LinearUtility",
-    "LogLinearFeedback",
+    "CompositeFeedback",
+    "function_feedback",
+    "model_feedback",
     "SimpleDynamics",
     "TrajectoryDynamics",
 ]

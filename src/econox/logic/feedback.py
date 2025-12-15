@@ -1,46 +1,24 @@
-# src/econox/logic/feedback.py
 """
 Feedback mechanisms for General Equilibrium (GE) interactions.
-Updates environmental variables (e.g., prices) based on agent distributions.
+
+This module provides the infrastructure for defining and executing feedback loops
+in structural models. It supports both component-wise updates (FunctionFeedback)
+and full-model updates (CustomUpdateFeedback).
 """
 
-import jax.numpy as jnp
 import equinox as eqx
-from typing import Any
-from jaxtyping import PyTree, Array, Float
+import jax.numpy as jnp
+from typing import Sequence, Callable, Any
+from jaxtyping import PyTree
+from econox.protocols import StructuralModel, FeedbackMechanism
 
-from econox.config import LOG_CLIP_MAX, LOG_CLIP_MIN, NUMERICAL_EPSILON
-from econox.protocols import StructuralModel
-from econox.utils import get_from_pytree
 
-class LogLinearFeedback(eqx.Module):
+class CompositeFeedback(eqx.Module):
     """
-    Updates a target variable based on population density using a log-linear rule.
-    
-    Physics:
-        ln(Target) = Intercept + Elasticity * ln(Density)
-        Density = (Population_Share * Total_Population) / Area_Size
+    A container that executes multiple feedback mechanisms sequentially.
+    Useful when you want to chain multiple update steps.
     """
-    target_data_key: str
-    """Key in model.data to update with new values (e.g., "rent")."""
-    result_metric_key: str
-    """Key in solver result for population share metric (e.g., "pop_share")."""
-    elasticity_param_key: str
-    """Key in params for elasticity coefficient (e.g., "rent_elasticity")."""
-    intercept_param_key: str
-    """Key in params for intercept term (e.g., "rent_intercepts")."""
-    area_data_key: str
-    """Key in model.data for area sizes."""
-    total_pop_data_key: str
-    """Key in model.data for total population."""
-
-    # Configuration
-    clip_min: float = LOG_CLIP_MIN
-    """Minimum clipping value for log predictions."""
-    clip_max: float = LOG_CLIP_MAX
-    """Maximum clipping value for log predictions."""
-    epsilon: float = NUMERICAL_EPSILON
-    """Small constant for numerical stability."""
+    feedbacks: Sequence[FeedbackMechanism]
 
     def update(
         self, 
@@ -48,46 +26,81 @@ class LogLinearFeedback(eqx.Module):
         current_result: Any, 
         model: StructuralModel
     ) -> StructuralModel:
-        """
-        Calculates the new equilibrium values and returns a generic updated model.
-        
-        Args:
-            params: Parameter PyTree containing elasticity and intercepts.
-            current_result: Solver result containing the population distribution.
-            model: Current StructuralModel containing constants (area, total_pop).
+        """Sequential application of feedback mechanisms."""
+        for fb in self.feedbacks:
+            model = fb.update(params, current_result, model)
+        return model
 
-        Returns:
-            A new StructuralModel instance with updated data.
-        """
-        # 1. Retrieve Parameters
-        elasticity: PyTree = get_from_pytree(params, self.elasticity_param_key)
-        intercept: PyTree = get_from_pytree(params, self.intercept_param_key)
 
-        # 2. Retrieve Data from Model and Result
-        model_data: PyTree = model.data
-        
-        # Result Metric (Share): (num_states,)
-        pop_share: Float[Array, "num_states"] = get_from_pytree(
-            current_result, self.result_metric_key
-        )
-        
-        # Constants
-        area_size = get_from_pytree(model_data, self.area_data_key)
-        total_pop = get_from_pytree(model_data, self.total_pop_data_key, default=1.0)
+class CustomUpdateFeedback(eqx.Module):
+    """
+    A feedback mechanism that allows the user to define a custom function
+    to update the ENTIRE model structure.
+    
+    This is the most flexible approach, allowing for complex dependencies
+    (e.g., wage and rent depending on the same density calculation) without
+    redundant computations or shape mismatches.
 
-        # 3. Calculate Density
-        # Density = (Share * Total) / Area
-        abs_population = pop_share * total_pop
-        density = abs_population / jnp.maximum(area_size, self.epsilon)
-        
-        # 4. Compute Log-Linear Update
-        # Formula: ln(Y) = alpha + beta * ln(Density)
-        # Using maximum(..., epsilon) for numerical stability
-        ln_density: Array = jnp.log(jnp.maximum(density, self.epsilon))
-        pred_ln_val: Array = intercept + elasticity * ln_density
-        pred_ln_val_safe: Array = jnp.clip(pred_ln_val, self.clip_min, self.clip_max)
-        new_val: Array = jnp.exp(pred_ln_val_safe)
+    Attributes:
+        func: A callable with signature (params, result, model) -> StructuralModel.
+    """
+    func: Callable
 
-        # 5. Return New Model with Updated Data
-        # StructuralModel protocol guarantees `replace_data` method.
-        return model.replace_data(self.target_data_key, new_val)
+    def update(
+        self, 
+        params: PyTree, 
+        current_result: Any, 
+        model: StructuralModel
+    ) -> StructuralModel:
+        """Delegates the update logic entirely to the user-defined function."""
+        return self.func(params, current_result, model)
+
+
+def model_feedback(func: Callable) -> CustomUpdateFeedback:
+    """
+    Decorator to register a function as a CustomUpdateFeedback.
+
+    Usage:
+        @ecx.model_feedback
+        def my_ge_loop(params, result, model):
+           # ... calculation ...
+           return new_model
+    """
+    return CustomUpdateFeedback(func=func)
+
+
+class FunctionFeedback(eqx.Module):
+    """
+    A simpler wrapper for updating a specific key in model.data.
+    Best for independent, single-variable updates.
+    """
+    func: Callable
+    target_key: str
+
+    def update(
+        self, 
+        params: PyTree, 
+        current_result: Any, 
+        model: StructuralModel
+    ) -> StructuralModel:
+        # Execute user logic
+        new_values = self.func(model.data, params, current_result)
+        
+        # Update model data safely
+        new_data = model.data.copy()
+        new_data[self.target_key] = new_values
+        
+        return eqx.tree_at(lambda m: m.data, model, new_data)
+
+
+def function_feedback(target_key: str) -> Callable[[Callable[..., Any]], FunctionFeedback]:
+    """Decorator for simple single-variable updates.
+    Usage:
+        @ecx.function_feedback(target_key="wage")
+        > def wage_update(data, params, result):
+        >   # ... calculation ...
+        >   return new_wage_values
+    """
+    def wrapper(func: Callable) -> FunctionFeedback:
+        return FunctionFeedback(func=func, target_key=target_key)
+    return wrapper

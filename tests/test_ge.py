@@ -10,23 +10,10 @@ import jax.numpy as jnp
 import jax.nn as jnn
 import pytest
 import equinox as eqx
-from typing import Sequence, Any
 from jaxtyping import PyTree, Float, Array
 
-from econox import (
-    Model,
-    ParameterSpace,
-    ValueIterationSolver,
-    EquilibriumSolver,
-    LogLinearFeedback,
-    GumbelDistribution,
-    SolverResult,
-    CompositeMethod,
-    GaussianMomentMatch,
-    MaximumLikelihood,
-    Estimator
-)
-from econox.protocols import StructuralModel, FeedbackMechanism
+import econox as ecx
+from econox.protocols import StructuralModel
 from econox.logic.dynamics import TrajectoryDynamics
 from econox.utils import get_from_pytree
 
@@ -70,16 +57,6 @@ class RealWageUtility(eqx.Module):
         
         u = beta_money * real_wage + beta_dist * distance
         return u
-
-
-class SequentialFeedback(eqx.Module):
-    mechanisms: Sequence[FeedbackMechanism]
-
-    def update(self, params: PyTree, current_result: Any, model: StructuralModel) -> StructuralModel:
-        updated_model = model
-        for mech in self.mechanisms:
-            updated_model = mech.update(params, current_result, updated_model)
-        return updated_model
 
 # =============================================================================
 # Helper Functions (Data Generation)
@@ -191,7 +168,7 @@ def ge_data_bundle(ge_config):
     return {"data": data, "params": params}
 
 @pytest.fixture(scope="module")
-def ge_model(ge_config, ge_data_bundle) -> Model:
+def ge_model(ge_config, ge_data_bundle) -> ecx.Model:
     num_areas = ge_config["num_areas"]
     num_periods = ge_config["num_periods"]
     S = num_areas * num_periods
@@ -221,7 +198,7 @@ def ge_model(ge_config, ge_data_bundle) -> Model:
     initial_year_indices = jnp.arange(num_areas, dtype=jnp.int32)
     initial_year_values = data['pop_dist'][:A] / data['pop_dist'][:A].sum()
 
-    return Model.from_data(
+    return ecx.Model.from_data(
         num_states=S,
         num_actions=A,
         num_periods=num_periods,
@@ -238,6 +215,30 @@ def ge_model(ge_config, ge_data_bundle) -> Model:
             "initial_year_values": initial_year_values
         }
     )
+
+@ecx.function_feedback(target_key="wage",)
+def wage_feedback(data, params, result):
+    elasticity = params["wage_elasticity"]
+    intercepts = params["wage_intercepts_S"]
+    area_size = data["area_size"]
+    total_pop = data["total_pop"]
+    pop_density = result["solution"]*total_pop / area_size
+    ln_pop_density = jnp.log(pop_density + 1e-8)
+    mean_ln_density = jnp.mean(ln_pop_density)
+    ln_wage = intercepts + elasticity * (ln_pop_density - mean_ln_density)
+    return jnp.exp(ln_wage)
+
+@ecx.function_feedback(target_key="rent",)
+def rent_feedback(data, params, result):
+    elasticity = params["rent_elasticity"]
+    intercepts = params["rent_intercepts_S"]
+    area_size = data["area_size"]
+    total_pop = data["total_pop"]
+    pop_density = result["solution"]*total_pop / area_size
+    ln_pop_density = jnp.log(pop_density + 1e-8)
+    mean_ln_density = jnp.mean(ln_pop_density)
+    ln_rent = intercepts + elasticity * (ln_pop_density - mean_ln_density)
+    return jnp.exp(ln_rent)
 
 @pytest.fixture(scope="module")
 def ge_components(ge_config, ge_data_bundle):
@@ -260,34 +261,17 @@ def ge_components(ge_config, ge_data_bundle):
         "rent_scale": true_params['rent_scale']
     }
     
-    param_space = ParameterSpace.create(initial_params=initial_params)
+    param_space = ecx.ParameterSpace.create(initial_params=initial_params)
     
     utility = RealWageUtility(money_param_key="beta_money", dist_param_key="beta_dist")
     
-    feedback = SequentialFeedback(mechanisms=[
-        LogLinearFeedback(
-            target_data_key="wage", 
-            result_metric_key="solution",
-            elasticity_param_key="wage_elasticity",
-            intercept_param_key="wage_intercepts_S",
-            area_data_key="area_size",
-            total_pop_data_key="total_pop"
-        ),
-        LogLinearFeedback(
-            target_data_key="rent", 
-            result_metric_key="solution",
-            elasticity_param_key="rent_elasticity",
-            intercept_param_key="rent_intercepts_S",
-            area_data_key="area_size",
-            total_pop_data_key="total_pop"
-        )
-    ])
+    feedback = ecx.CompositeFeedback(feedbacks=(rent_feedback, wage_feedback))
     
     return {
         "param_space": param_space,
         "utility": utility,
         "feedback": feedback,
-        "dist": GumbelDistribution(),
+        "dist": ecx.GumbelDistribution(),
         "dynamics": TrajectoryDynamics(enforce_boundary=True)
     }
 
@@ -299,14 +283,14 @@ def test_equilibrium_stability(ge_model, ge_components, ge_data_bundle):
     """
     Verify that the EquilibriumSolver converges to a stable distribution.
     """
-    inner_solver = ValueIterationSolver(discount_factor=0.95)
-    equilibrium_solver = EquilibriumSolver(
+    inner_solver = ecx.ValueIterationSolver(discount_factor=0.95)
+    equilibrium_solver = ecx.EquilibriumSolver(
         inner_solver=inner_solver,
         default_initial_distribution=ge_data_bundle["data"]["pop_dist"],
         default_dynamics=ge_components["dynamics"]
     )
     
-    result: SolverResult = equilibrium_solver.solve(
+    result: ecx.SolverResult = equilibrium_solver.solve(
         params=ge_components["param_space"].initial_params,
         model=ge_model,
         utility=ge_components["utility"],
@@ -330,8 +314,8 @@ def test_ge_estimation(ge_model, ge_components, ge_data_bundle):
     so we focus on execution success and gradient availability.
     """
     # 1. Run Equilibrium once to generate "observed" weights
-    inner_solver = ValueIterationSolver(discount_factor=0.95)
-    equilibrium_solver = EquilibriumSolver(
+    inner_solver = ecx.ValueIterationSolver(discount_factor=0.95)
+    equilibrium_solver = ecx.EquilibriumSolver(
         inner_solver=inner_solver,
         default_initial_distribution=ge_data_bundle["data"]["pop_dist"],
         default_dynamics=ge_components["dynamics"]
@@ -356,16 +340,16 @@ def test_ge_estimation(ge_model, ge_components, ge_data_bundle):
     weights_flat = obs_weights_matrix.flatten()
     
     # 3. Setup Estimator
-    objective = CompositeMethod(
+    objective = ecx.CompositeMethod(
         methods=[
-            MaximumLikelihood(),
-            GaussianMomentMatch(obs_key="obs_wage", model_key="wage", scale_param_key="wage_scale"),
-            GaussianMomentMatch(obs_key="obs_rent", model_key="rent", scale_param_key="rent_scale")
+            ecx.MaximumLikelihood(),
+            ecx.GaussianMomentMatch(obs_key="obs_wage", model_key="wage", scale_param_key="wage_scale"),
+            ecx.GaussianMomentMatch(obs_key="obs_rent", model_key="rent", scale_param_key="rent_scale")
         ], 
         weights=[1.0, 1.0, 1.0] # Simplified weights
     )
     
-    estimator = Estimator(
+    estimator = ecx.Estimator(
         model=ge_model,
         param_space=ge_components["param_space"],
         utility=ge_components["utility"],
@@ -396,3 +380,95 @@ def test_ge_estimation(ge_model, ge_components, ge_data_bundle):
     # We check if loss is finite, success might be False if max_steps is hit early,
     # but the pipeline must complete without crashing.
     assert jnp.isfinite(result.loss)
+
+# =============================================================================
+# New Test Component: Model Feedback (Joint Update)
+# =============================================================================
+
+@ecx.model_feedback
+def joint_market_clearing(params, result, model):
+    """
+    Example of a 'CustomUpdateFeedback' that updates both Wage and Rent simultaneously.
+    This is more efficient than CompositeFeedback when updates share intermediate calculations
+    (like population density).
+    """
+    # 1. Retrieve Parameters
+    wage_elas = params["wage_elasticity"]
+    wage_int = params["wage_intercepts_S"]
+    rent_elas = params["rent_elasticity"]
+    rent_int = params["rent_intercepts_S"]
+    
+    # 2. Retrieve Data
+    area_size = model.data["area_size"]
+    total_pop = model.data["total_pop"]
+    
+    # 3. Shared Physics: Calculate Density ONCE
+    # (In CompositeFeedback, this would be calculated twice)
+    pop_density = result["solution"] * total_pop / area_size
+    ln_pop_density = jnp.log(pop_density + 1e-8)
+    mean_ln_density = jnp.mean(ln_pop_density)
+    
+    # 4. Calculate New Values
+    ln_wage = wage_int + wage_elas * (ln_pop_density - mean_ln_density)
+    ln_rent = rent_int + rent_elas * (ln_pop_density - mean_ln_density)
+    
+    # 5. Batch Update Model Data
+    # copying dictionary to avoid side effects (though JAX arrays are immutable)
+    new_data = model.data.copy()
+    new_data["wage"] = jnp.exp(ln_wage)
+    new_data["rent"] = jnp.exp(ln_rent)
+    
+    # Use eqx.tree_at to return the new StructuralModel safely
+    return eqx.tree_at(lambda m: m.data, model, new_data)
+
+
+def test_custom_model_feedback_logic(ge_model, ge_components, ge_data_bundle):
+    """
+    Test ensuring that @ecx.model_feedback works correctly by performing
+    a simultaneous update of multiple model variables.
+    """
+    inner_solver = ecx.ValueIterationSolver(discount_factor=0.95)
+    equilibrium_solver = ecx.EquilibriumSolver(
+        inner_solver=inner_solver,
+        default_initial_distribution=ge_data_bundle["data"]["pop_dist"],
+        default_dynamics=ge_components["dynamics"]
+    )
+    
+    # Run solver using the JOINT feedback mechanism defined above
+    result: ecx.SolverResult = equilibrium_solver.solve(
+        params=ge_components["param_space"].initial_params,
+        model=ge_model,
+        utility=ge_components["utility"],
+        dist=ge_components["dist"],
+        feedback=joint_market_clearing,  # Use the custom model feedback here
+        damping=0.5
+    )
+    
+    assert result.success, "Equilibrium solver with @model_feedback failed."
+    
+    # Validate Output
+    pop_dist = result.solution
+    assert jnp.all(jnp.isfinite(pop_dist))
+    assert jnp.all(pop_dist >= 0)
+    
+    # Check if data was actually updated in the final model result
+    final_data = result.aux["equilibrium_data"]
+    
+    # Wages and Rents should not be uniform if the feedback worked
+    assert jnp.std(final_data["wage"]) > 1e-6, "Wages should vary across states."
+    assert jnp.std(final_data["rent"]) > 1e-6, "Rents should vary across states."
+    
+    # Consistency check: Compare density implied by result vs data used for wage
+    # (Simplified check to ensure the feedback loop closed consistently)
+    final_wage = final_data["wage"]
+    # Re-calculate expected wage from final distribution manually
+    # This verifies the feedback function logic was applied correctly at the fixed point
+    recalc_model = joint_market_clearing.update(
+        ge_components["param_space"].initial_params, 
+        {"solution": pop_dist}, 
+        ge_model
+    )
+    assert jnp.allclose(final_wage, recalc_model.data["wage"], atol=1e-5)
+    final_rent = final_data["rent"]
+    assert jnp.allclose(final_rent, recalc_model.data["rent"], atol=1e-5)
+    

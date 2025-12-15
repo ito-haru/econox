@@ -161,6 +161,14 @@ dependencies = [
     { name = "pandas" },
 ]
 
+[package.optional-dependencies]
+dev = [
+    { name = "furo" },
+    { name = "pytest" },
+    { name = "sphinx" },
+    { name = "sphinx-autodoc-typehints" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "furo" },
@@ -172,11 +180,16 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "equinox", specifier = ">=0.13.2" },
+    { name = "furo", marker = "extra == 'dev'", specifier = ">=2025.9.25" },
     { name = "jax", specifier = ">=0.8.1" },
     { name = "lineax", specifier = ">=0.0.8" },
     { name = "optimistix", specifier = ">=0.0.11" },
     { name = "pandas", specifier = ">=2.3.3" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.1" },
+    { name = "sphinx", marker = "extra == 'dev'", specifier = ">=8.2.3" },
+    { name = "sphinx-autodoc-typehints", marker = "extra == 'dev'", specifier = ">=3.5.2" },
 ]
+provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [

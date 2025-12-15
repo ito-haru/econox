@@ -914,19 +914,42 @@ Implements the ‘Directory Bundle’ strategy.</p>
 <dt class="sig sig-object py" id="econox.logic.utility.LinearUtility">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.logic.utility.</span></span><span class="sig-name descname"><span class="pre">LinearUtility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/utility.html#LinearUtility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.utility.LinearUtility" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Computes flow utility as a linear combination of features and parameters.
-Formula: U(s, a) = sum_k ( param_k * feature_k(s, a) )</p>
+<p>Computes flow utility as a linear combination of features and parameters.</p>
+<p>This module implements the standard linear utility specification:
+.. math:: U(s, a) = sum_{k} beta_k cdot X_k(s, a)</p>
+<p>It expects parameters to be provided as individual scalars (or consistent arrays)
+corresponding to the last dimension of the feature tensor. This design enforces
+explicit naming of parameters, facilitating integration with <cite>ParameterSpace</cite>
+for constraints and interpretation.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>param_keys</strong> (<em>tuple</em><em>[</em><em>str</em><em>, </em><em>...</em><em>]</em>) – A sequence of keys to retrieve coefficients from the parameter PyTree.
+Order must match the last dimension of the feature tensor.
+Example: <cite>(“beta_income”, “beta_distance”)</cite></p></li>
+<li><p><strong>feature_key</strong> (<em>str</em>) – Key to retrieve the feature tensor from <cite>model.data</cite>.
+The tensor must have shape <cite>(num_states, num_actions, num_features)</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>args</strong> (<em>Any</em>)</p></li>
 <li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Any</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
 </dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Model data has features shape (100, 5, 2) -&gt; 2 features</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utility</span> <span class="o">=</span> <span class="n">LinearUtility</span><span class="p">(</span><span class="n">param_keys</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;beta_0&quot;</span><span class="p">,</span> <span class="s2">&quot;beta_1&quot;</span><span class="p">),</span> <span class="n">feature_key</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Params must contain &quot;beta_0&quot; and &quot;beta_1&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">utility</span><span class="o">.</span><span class="n">compute_flow_utility</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">u</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(100, 5)</span>
+</pre></div>
+</div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="econox.logic.utility.LinearUtility.param_keys">
 <span class="sig-name descname"><span class="pre">param_keys</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">,</span> <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code><span class="pre">]</span></em><a class="headerlink" href="#econox.logic.utility.LinearUtility.param_keys" title="Link to this definition">¶</a></dt>
@@ -942,24 +965,133 @@ Formula: U(s, a) = sum_k ( param_k * feature_k(s, a) )</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.logic.utility.LinearUtility.compute_flow_utility">
 <span class="sig-name descname"><span class="pre">compute_flow_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/utility.html#LinearUtility.compute_flow_utility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.utility.LinearUtility.compute_flow_utility" title="Link to this definition">¶</a></dt>
-<dd><p>Calculates flow utility using matrix multiplication (einsum).</p>
+<dd><p>Calculates flow utility using matrix multiplication.</p>
+<p>The method retrieves parameters specified by <cite>param_keys</cite>, stacks them into
+a single vector, and computes the dot product with the feature tensor.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyTree</span></code></span>) – Parameter PyTree containing the coefficients.</p></li>
-<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – StructuralModel containing the feature tensor.
-Expected shape: (num_states, num_actions, num_features)</p></li>
+<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyTree</span></code></span>) – Parameter PyTree containing the coefficients.
+Values for <cite>param_keys</cite> should typically be scalars.</p></li>
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – StructuralModel containing the feature tensor at <cite>model.data[self.feature_key]</cite>.
+Expected shape: <cite>(num_states, num_actions, num_features)</cite>.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'num_states</span> <span class="pre">num_actions')</span></code></span></p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The calculated flow utility matrix.</p>
 </dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Flow utility matrix of shape (num_states, num_actions).</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Float[Array, “num_states num_actions”]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the feature tensor is not 3D.</p></li>
+<li><p><strong>ValueError</strong> – If the number of <cite>param_keys</cite> does not match the
+    last dimension (num_features) of the feature tensor.</p></li>
+<li><p><strong>ValueError</strong> – If parameters cannot be stacked (e.g., shape mismatch).</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.logic.utility.FunctionUtility">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.logic.utility.</span></span><span class="sig-name descname"><span class="pre">FunctionUtility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/utility.html#FunctionUtility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.utility.FunctionUtility" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Wraps a user-defined function to satisfy the Utility protocol.
+Allows defining utility logic as a simple function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>func</strong> (<em>Callable</em>) – A function with signature <cite>(params: PyTree, model: StructuralModel) -&gt; Float[Array, “num_states num_actions”]</cite>.
+This function computes the flow utility matrix for the given parameters and model.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">econox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ecx</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a custom utility function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">my_utility</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="c1"># params[&quot;beta&quot;] is a scalar, model.data[&quot;x&quot;] is (num_states, num_actions)</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Wrap it as a FunctionUtility</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utility</span><span class="p">:</span> <span class="n">econox</span><span class="o">.</span><span class="n">protocols</span><span class="o">.</span><span class="n">Utility</span> <span class="o">=</span> <span class="n">ecx</span><span class="o">.</span><span class="n">utility</span><span class="p">(</span><span class="n">my_utility</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">utility</span><span class="o">.</span><span class="n">compute_flow_utility</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">u</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(num_states, num_actions)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.utility.FunctionUtility.func">
+<span class="sig-name descname"><span class="pre">func</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></em><a class="headerlink" href="#econox.logic.utility.FunctionUtility.func" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.utility.FunctionUtility.compute_flow_utility">
+<span class="sig-name descname"><span class="pre">compute_flow_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/utility.html#FunctionUtility.compute_flow_utility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.utility.FunctionUtility.compute_flow_utility" title="Link to this definition">¶</a></dt>
+<dd><p>Calls the user-defined function to compute flow utility.
+:type params: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyTree</span></code></span>
+:param params: Parameter PyTree.
+:type model: <span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>
+:param model: StructuralModel instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The computed flow utility matrix.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Float[Array, “num_states num_actions”]</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>jaxtyping.PyTree</em>)</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="econox.logic.utility.utility">
+<span class="sig-prename descclassname"><span class="pre">econox.logic.utility.</span></span><span class="sig-name descname"><span class="pre">utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/utility.html#utility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.utility.utility" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator to convert a function into a Utility module.</p>
+<p>This allows you to define a utility function with the standard signature and
+automatically wrap it as a module compatible with the Econox framework.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>func</strong> (<em>Callable</em>) – A function with signature <cite>(params: PyTree, model: StructuralModel) -&gt; Float[Array, “num_states num_actions”]</cite>.
+The function should compute and return the flow utility matrix for the given parameters and model.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An object with a <cite>compute_flow_utility(params, model)</cite> method that calls the provided function.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#econox.logic.utility.FunctionUtility" title="econox.logic.utility.FunctionUtility">FunctionUtility</a></p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">econox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ecx</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a custom utility function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@ecx</span><span class="o">.</span><span class="n">utility</span>
+<span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">my_utility</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="c1"># params[&quot;beta&quot;] is a scalar, model.data[&quot;x&quot;] is (num_states, num_actions)</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># my_utility is now a FunctionUtility instance</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">my_utility</span><span class="o">.</span><span class="n">compute_flow_utility</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">u</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(num_states, num_actions)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -2532,6 +2664,12 @@ V = H^{-1} / N</p>
 <li><a class="reference internal" href="#econox.logic.utility.LinearUtility.compute_flow_utility"><code class="docutils literal notranslate"><span class="pre">LinearUtility.compute_flow_utility()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#econox.logic.utility.FunctionUtility"><code class="docutils literal notranslate"><span class="pre">FunctionUtility</span></code></a><ul>
+<li><a class="reference internal" href="#econox.logic.utility.FunctionUtility.func"><code class="docutils literal notranslate"><span class="pre">FunctionUtility.func</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.utility.FunctionUtility.compute_flow_utility"><code class="docutils literal notranslate"><span class="pre">FunctionUtility.compute_flow_utility()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#econox.logic.utility.utility"><code class="docutils literal notranslate"><span class="pre">utility()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-econox.logic.distribution">Probability Distributions</a><ul>

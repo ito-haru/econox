@@ -419,7 +419,8 @@ def joint_market_clearing(params, result, model):
     new_data["rent"] = jnp.exp(ln_rent)
     
     # Use eqx.tree_at to return the new StructuralModel safely
-    return eqx.tree_at(lambda m: m.data, model, new_data)
+    model = model.replace_data("wage", jnp.exp(ln_wage)).replace_data("rent", jnp.exp(ln_rent))
+    return model
 
 
 def test_custom_model_feedback_logic(ge_model, ge_components, ge_data_bundle):
@@ -471,4 +472,3 @@ def test_custom_model_feedback_logic(ge_model, ge_components, ge_data_bundle):
     assert jnp.allclose(final_wage, recalc_model.data["wage"], atol=1e-5)
     final_rent = final_data["rent"]
     assert jnp.allclose(final_rent, recalc_model.data["rent"], atol=1e-5)
-    

@@ -9,7 +9,7 @@ import equinox as eqx
 from typing import Any
 from jaxtyping import PyTree, Array, Int
 
-from econox.protocols import StructuralModel, Utility, Distribution, FeedbackMechanism
+from econox.protocols import StructuralModel, Utility, Distribution
 from econox.optim import FixedPoint, FixedPointResult
 from econox.structures import SolverResult
 from econox.utils import get_from_pytree
@@ -20,8 +20,10 @@ class ValueIterationSolver(eqx.Module):
     Fixed-point solver using value function iteration.
     
     Attributes:
+        utility (Utility): Utility function to compute flow utilities.
+        dist (Distribution): Probability distribution for choice modeling.
+        discount_factor (float): Discount factor for future utilities.
         numerical_solver: FixedPoint
-        discount_factor: float
 
     Optional Data Keys:
         The solver looks for the following keys in `model.data` to enable 
@@ -31,17 +33,17 @@ class ValueIterationSolver(eqx.Module):
         * "previous_state_indices" (Int[Array, "n"]): Indices of states at T-1 to copy from.
         
         If provided, both must be present and have the same shape.
+    
     """
+    utility: Utility
+    dist: Distribution
+    discount_factor: float
     numerical_solver: FixedPoint = eqx.field(default_factory=FixedPoint)
-    discount_factor: float = 0.90
 
     def solve(
         self,
         params: PyTree,
-        model: StructuralModel, 
-        utility: Utility, 
-        dist: Distribution, 
-        feedback: FeedbackMechanism | None = None
+        model: StructuralModel
     ) -> Any:
         """
         Solves for the fixed point of the structural model using value iteration.
@@ -52,19 +54,15 @@ class ValueIterationSolver(eqx.Module):
             Model parameters.
         model : StructuralModel
             The structural model instance.
-        utility : Utility
-            Utility function instance.
-        dist : Distribution
-            Distribution of agents in the model.
-        feedback : FeedbackMechanism | None
-            Feedback mechanism (not used in this solver).
 
         Returns
         -------
         SolverResult
             The result of the solver containing the solution and additional info.
         """
-        
+        utility = self.utility
+        dist = self.dist
+
         data: PyTree = model.data
         transitions: Any = model.transitions
 

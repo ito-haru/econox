@@ -17,27 +17,43 @@ from econox.solvers.dynamic_programming import ValueIterationSolver
 
 class EquilibriumSolver(eqx.Module):
     """
-    Fixed-point solver using equilibrium conditions.
+    Fixed-point solver for General Equilibrium (GE) or Stationary Equilibrium.
+
+    This solver searches for a distribution of agents (or prices) :math:`D^*` such that:
     
+    .. math:: D^* = \\Phi(D^*, \\theta)
+
+    where :math:`\\Phi` represents the compound operator of:
+    1. Updating the environment (Feedback): :math:`\\Omega' = \\Gamma(D, \\Omega)`
+    2. Solving the agent's problem (Inner Solver): :math:`\\sigma^* = \\text{argmax} \\, V(s; \\Omega')`
+    3. Applying the law of motion (Dynamics): :math:`D' = f(D, \\sigma^*)`
+
     Attributes:
-        numerical_solver: FixedPoint
-        inner_solver: Solver (typically ValueIterationSolver)
+        inner_solver (Solver): The solver used to compute the optimal policy given a fixed environment.
+        feedback (FeedbackMechanism): Logic to update model data based on aggregate results.
+        dynamics (Dynamics): Law of motion describing how the distribution evolves.
+        numerical_solver (FixedPoint): The numerical algorithm for the outer loop (e.g., Anderson Acceleration).
+        damping (float): Damping factor for the update step :math:`D_{k+1} = (1-\\lambda)D_k + \\lambda D_{new}`.
+        initial_distribution (Array | None): Initial guess for the distribution.
     """
+    # ---------------------------------------------------------------
+    # 1. Structural Components (The "What")
+    # ---------------------------------------------------------------
+    inner_solver: Solver          # The Agent (holds Utility/Dist)
+    feedback: FeedbackMechanism   # The Market Clearing logic
+    dynamics: Dynamics            # The Law of Motion
+
+    # ---------------------------------------------------------------
+    # 2. Solver Configuration (The "How")
+    # ---------------------------------------------------------------
     numerical_solver: FixedPoint = eqx.field(default_factory=FixedPoint)
-    inner_solver: Solver = eqx.field(default_factory=ValueIterationSolver)
-    default_initial_distribution: Float[Array, "num_states"] | None = None
-    default_dynamics: Dynamics | None = None
+    damping: float = 1.0
+    initial_distribution: Float[Array, "num_states"] | None = None
 
     def solve(
         self,
         params: PyTree,
         model: StructuralModel,
-        utility: Utility,
-        dist: Distribution,
-        feedback: FeedbackMechanism | None = None,
-        dynamics: Dynamics | None = None,
-        initial_distribution: Float[Array, "num_states"] | None = None,
-        damping: float = 1.0
     ) -> SolverResult:
         """
         Solves for the fixed point of the structural model using equilibrium conditions.
@@ -48,19 +64,6 @@ class EquilibriumSolver(eqx.Module):
             Model parameters.
         model : StructuralModel
             The structural model instance.
-        utility : Utility
-            Utility function instance.
-        dist : Distribution
-            Distribution of agents in the model.
-        feedback : FeedbackMechanism | None = None
-            Feedback mechanism (updates model based on distribution).
-            If None, raises ValueError.
-        dynamics : Dynamics | None
-            Dynamics logic for distribution evolution. If None, SimpleDynamics is used.
-        initial_distribution : Float[Array, "num_states"] | None
-            Initial guess for the distribution. If None, uses uniform distribution.
-        damping : float
-            Damping factor for fixed-point updates (0 < damping <= 1).
 
         Returns
         -------
@@ -69,6 +72,10 @@ class EquilibriumSolver(eqx.Module):
             profile: Equilibrium Policy P*
             inner_result: Full result from the inner solver (Value Function etc.)
         """
+        feedback = self.feedback
+        dynamics = self.dynamics
+        damping = self.damping
+        initial_distribution = self.initial_distribution
 
         # Validate damping
         if not (0 < damping <= 1.0):
@@ -79,12 +86,6 @@ class EquilibriumSolver(eqx.Module):
         
         num_states = model.num_states
 
-        if dynamics is None:
-            dynamics = self.default_dynamics
-        apply_dynamics = dynamics if dynamics is not None else SimpleDynamics()
-
-        if initial_distribution is None:
-            initial_distribution = self.default_initial_distribution
         if initial_distribution is None:
             initial_distribution = jnp.ones(num_states) / num_states
         
@@ -94,15 +95,14 @@ class EquilibriumSolver(eqx.Module):
 
             inner_result: SolverResult = self.inner_solver.solve(
                 params=params, 
-                model=model_updated, 
-                utility=utility, 
-                dist=dist)
+                model=model_updated
+                )
 
             policy: Array | None = inner_result.profile
             if policy is None:
                 raise ValueError("Inner solver must return a policy (profile) for equilibrium computation.")
             
-            new_dist = apply_dynamics(
+            new_dist = dynamics(
                 distribution=current_dist, 
                 policy=policy, 
                 model=model_updated)
@@ -121,9 +121,7 @@ class EquilibriumSolver(eqx.Module):
         final_model: StructuralModel = feedback.update(params, final_result, model)
         final_inner_result = self.inner_solver.solve(
             params=params, 
-            model=final_model, 
-            utility=utility, 
-            dist=dist
+            model=final_model
         )
 
         return SolverResult(

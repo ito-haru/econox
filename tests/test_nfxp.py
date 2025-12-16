@@ -104,10 +104,14 @@ def synthetic_data(nfxp_model, true_parameters) -> Dict[str, Any]:
     # 1. Setup Logic
     utility = LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features")
     dist = GumbelDistribution()
-    solver = ValueIterationSolver(discount_factor=0.9)
+    solver = ValueIterationSolver(
+        utility=utility,
+        dist=dist,
+        discount_factor=0.9
+        )
 
     # 2. Solve for True Policy
-    result_true = solver.solve(true_parameters, nfxp_model, utility, dist)
+    result_true = solver.solve(true_parameters, nfxp_model)
     choice_prob_true = result_true.profile  # (S, A)
 
     # 3. Generate Samples
@@ -166,9 +170,10 @@ def test_estimator_execution(nfxp_model, synthetic_data):
     estimator = Estimator(
         model=nfxp_model,
         param_space=param_space,
-        solver=ValueIterationSolver(discount_factor=0.9),
-        utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
-        dist=GumbelDistribution(),
+        solver=ValueIterationSolver(
+            utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
+            dist=GumbelDistribution(),
+            discount_factor=0.9),
         method=MaximumLikelihood(),
         verbose=False
     )
@@ -191,9 +196,10 @@ def test_parameter_recovery(nfxp_model, true_parameters, synthetic_data):
     estimator = Estimator(
         model=nfxp_model,
         param_space=ParameterSpace.create(initial_params=initial_params),
-        solver=ValueIterationSolver(discount_factor=0.9),
-        utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
-        dist=GumbelDistribution(),
+        solver=ValueIterationSolver(
+            utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
+            dist=GumbelDistribution(),
+            discount_factor=0.9),
         method=MaximumLikelihood(),
         verbose=True
     )
@@ -222,9 +228,10 @@ def test_standard_errors(nfxp_model, synthetic_data):
     estimator = Estimator(
         model=nfxp_model,
         param_space=ParameterSpace.create(initial_params=initial_params),
-        solver=ValueIterationSolver(discount_factor=0.9),
-        utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
-        dist=GumbelDistribution(),
+        solver=ValueIterationSolver(
+            utility=LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features"),
+            dist=GumbelDistribution(),
+            discount_factor=0.9),
         method=MaximumLikelihood(),
         verbose=False
     )

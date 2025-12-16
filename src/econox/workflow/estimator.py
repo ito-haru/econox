@@ -36,10 +36,7 @@ class Estimator(eqx.Module):
         param_space: ParameterSpace - Parameter transformation and constraints.
         method: EstimationMethod - Strategy for estimation (Loss definition & Inference).
         solver: Solver | None - Solver to compute model solutions. Not required for reduced-form estimation.
-        utility: Utility | None - Utility specification for the model.
-        dist: Distribution | None - Distribution specification for the model.
         optimizer: Minimizer - Optimization strategy for minimizing the loss.
-        feedback: FeedbackMechanism | None - Optional feedback mechanism during solving.
         verbose: bool - If True, enables detailed logging for debugging.
     """
     model: StructuralModel
@@ -47,10 +44,7 @@ class Estimator(eqx.Module):
     method: EstimationMethod
 
     solver: Solver | None = None
-    utility: Utility | None = None
-    dist: Distribution | None = None
     optimizer: Minimizer = eqx.field(default_factory=Minimizer)
-    feedback: FeedbackMechanism | None = None
     
     # Debugging
     verbose: bool = eqx.field(default=False, static=True)
@@ -93,14 +87,6 @@ class Estimator(eqx.Module):
         # 2. Numerical Optimization (Structural Route)
         # =========================================================
         solver = self.solver
-        utility = self.utility
-        dist = self.dist
-
-        if solver is not None:
-            if utility is None or dist is None:
-                raise ValueError(
-                     "Structural estimation (with solver) requires 'utility' and 'dist' components."
-                )
 
         # Prepare Initial Parameters
         # Convert constrained initial params to raw (unconstrained) space for the optimizer
@@ -153,14 +139,9 @@ class Estimator(eqx.Module):
             # B. Solve the Model
             # Case1: Structural (With Solver)
             if solver is not None:
-                assert utility is not None
-                assert dist is not None
                 result = solver.solve(
                         params, 
-                        self.model, 
-                        utility, 
-                        dist,
-                        feedback=self.feedback
+                        self.model
                     )
             # Case2: Reduced Form (No Solver)
             else:
@@ -188,9 +169,9 @@ class Estimator(eqx.Module):
         final_constrained_params = self.param_space.transform(final_raw_params)
         final_loss = opt_result.loss
         
-        if solver is not None and utility is not None and dist is not None:
+        if solver is not None:
             final_solver_result = solver.solve(
-                final_constrained_params, self.model, utility, dist, self.feedback
+                final_constrained_params, self.model
             )
         else:
             final_solver_result = None

@@ -283,20 +283,22 @@ def test_equilibrium_stability(ge_model, ge_components, ge_data_bundle):
     """
     Verify that the EquilibriumSolver converges to a stable distribution.
     """
-    inner_solver = ecx.ValueIterationSolver(discount_factor=0.95)
+    inner_solver = ecx.ValueIterationSolver(
+        utility=ge_components["utility"],
+        dist=ge_components["dist"],
+        discount_factor=0.95
+        )
     equilibrium_solver = ecx.EquilibriumSolver(
         inner_solver=inner_solver,
-        default_initial_distribution=ge_data_bundle["data"]["pop_dist"],
-        default_dynamics=ge_components["dynamics"]
+        feedback=ge_components["feedback"],
+        dynamics=ge_components["dynamics"],
+        damping=0.5,
+        initial_distribution=ge_data_bundle["data"]["pop_dist"]
     )
     
     result: ecx.SolverResult = equilibrium_solver.solve(
         params=ge_components["param_space"].initial_params,
-        model=ge_model,
-        utility=ge_components["utility"],
-        dist=ge_components["dist"],
-        feedback=ge_components["feedback"],
-        damping=0.5  # Higher damping for stability in test
+        model=ge_model
     )
     
     assert result.success, f"Equilibrium solver failed. Steps: {result.aux.get('steps')}"
@@ -314,20 +316,23 @@ def test_ge_estimation(ge_model, ge_components, ge_data_bundle):
     so we focus on execution success and gradient availability.
     """
     # 1. Run Equilibrium once to generate "observed" weights
-    inner_solver = ecx.ValueIterationSolver(discount_factor=0.95)
+    inner_solver = ecx.ValueIterationSolver(
+        utility=ge_components["utility"],
+        dist=ge_components["dist"],
+        discount_factor=0.95
+        )
+
     equilibrium_solver = ecx.EquilibriumSolver(
         inner_solver=inner_solver,
-        default_initial_distribution=ge_data_bundle["data"]["pop_dist"],
-        default_dynamics=ge_components["dynamics"]
+        feedback=ge_components["feedback"],
+        dynamics=ge_components["dynamics"],
+        damping=0.5,
+        initial_distribution=ge_data_bundle["data"]["pop_dist"]
     )
     
     solve_result = equilibrium_solver.solve(
         params=ge_components["param_space"].initial_params,
-        model=ge_model,
-        utility=ge_components["utility"],
-        dist=ge_components["dist"],
-        feedback=ge_components["feedback"],
-        damping=0.5
+        model=ge_model
     )
     
     # 2. Construct Observations
@@ -352,10 +357,7 @@ def test_ge_estimation(ge_model, ge_components, ge_data_bundle):
     estimator = ecx.Estimator(
         model=ge_model,
         param_space=ge_components["param_space"],
-        utility=ge_components["utility"],
         solver=equilibrium_solver,
-        dist=ge_components["dist"],
-        feedback=ge_components["feedback"],
         method=objective,
         verbose=True
     )
@@ -428,21 +430,22 @@ def test_custom_model_feedback_logic(ge_model, ge_components, ge_data_bundle):
     Test ensuring that @ecx.model_feedback works correctly by performing
     a simultaneous update of multiple model variables.
     """
-    inner_solver = ecx.ValueIterationSolver(discount_factor=0.95)
+    inner_solver = ecx.ValueIterationSolver(
+        utility=ge_components["utility"],
+        dist=ge_components["dist"],
+        discount_factor=0.95
+        )
     equilibrium_solver = ecx.EquilibriumSolver(
         inner_solver=inner_solver,
-        default_initial_distribution=ge_data_bundle["data"]["pop_dist"],
-        default_dynamics=ge_components["dynamics"]
+        feedback=joint_market_clearing,
+        dynamics=ge_components["dynamics"],
+        initial_distribution=ge_data_bundle["data"]["pop_dist"]
     )
     
     # Run solver using the JOINT feedback mechanism defined above
     result: ecx.SolverResult = equilibrium_solver.solve(
         params=ge_components["param_space"].initial_params,
         model=ge_model,
-        utility=ge_components["utility"],
-        dist=ge_components["dist"],
-        feedback=joint_market_clearing,  # Use the custom model feedback here
-        damping=0.5
     )
     
     assert result.success, "Equilibrium solver with @model_feedback failed."

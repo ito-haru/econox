@@ -96,7 +96,11 @@ model = ecx.Model.from_data(
 utility = ecx.LinearUtility(param_keys=("beta",), feature_key="x")
 
 # 3. [Algorithm] Define Solver
-solver = ecx.ValueIterationSolver(discount_factor=0.95)
+solver = ecx.ValueIterationSolver(
+    utility=utility,
+    dist=ecx.GumbelDistribution(), # Logit
+    discount_factor=0.95
+)
 
 # 4. [Interface] Assemble the Estimator
 param_space = ecx.ParameterSpace.create(initial_params={"beta": jnp.array([0.0])})
@@ -105,9 +109,7 @@ estimator = ecx.Estimator(
     model=model,
     param_space=param_space,
     method=ecx.MaximumLikelihood(),  # Use MLE
-    solver=solver,
-    utility=utility,
-    dist=ecx.GumbelDistribution()    # Type-I Extreme Value shocks
+    solver=solver
 )
 
 # 5. Estimate!

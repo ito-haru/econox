@@ -44,6 +44,7 @@ from econox.solvers import ValueIterationSolver, EquilibriumSolver
 # 4. Workflow (High-level APIs)
 from econox.workflow import Estimator      #, Simulator
 
+# 5. Methods (Estimation Techniques)
 from econox.methods import MaximumLikelihood, GaussianMomentMatch, CompositeMethod, LeastSquares, TwoStageLeastSquares
 
 __all__ = [

@@ -255,12 +255,23 @@
 <h2>Core Interfaces (Protocols)<a class="headerlink" href="#core-interfaces-protocols" title="Link to this heading">¶</a></h2>
 <p>Abstract base classes and protocols defining the contract for custom components.</p>
 <p id="module-econox.protocols">Protocol definitions for the Econox framework.</p>
+<p>This module defines the core interfaces (contracts) that enable modularity.
+By adhering to these protocols, users can swap out components (e.g., changing
+utility functions or solver algorithms) without modifying the rest of the workflow.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.protocols.StructuralModel">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.protocols.</span></span><span class="sig-name descname"><span class="pre">StructuralModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#StructuralModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.StructuralModel" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
-<p>Container that holds the “environment” of an economic model.
-Contains state space, transition probabilities, constant data, etc.</p>
+<p>Represents the economic environment (State Space and Constraints).</p>
+<p>In structural estimation, a model <span class="math notranslate nohighlight">\(M\)</span> is defined by the tuple
+<span class="math notranslate nohighlight">\((S, A, T, \Omega)\)</span>, where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(S\)</span>: State space (num_states)</p></li>
+<li><p><span class="math notranslate nohighlight">\(A\)</span>: Action space (num_actions)</p></li>
+<li><p><span class="math notranslate nohighlight">\(T\)</span>: Time horizon (num_periods)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\Omega\)</span>: Information set / Data constants (data)</p></li>
+</ul>
+<p>This protocol abstracts away the storage details of these elements.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="econox.protocols.StructuralModel.num_states">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_states</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#econox.protocols.StructuralModel.num_states" title="Link to this definition">¶</a></dt>
@@ -274,27 +285,28 @@ Contains state space, transition probabilities, constant data, etc.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="econox.protocols.StructuralModel.num_periods">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_periods</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#econox.protocols.StructuralModel.num_periods" title="Link to this definition">¶</a></dt>
-<dd><p>Number of periods in the model.
+<dd><p>Number of periods <cite>T</cite> in the model.
 Should be a positive integer for finite horizon or <cite>np.inf</cite> for infinite horizon.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="econox.protocols.StructuralModel.data">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">jaxtyping.PyTree</span></em><a class="headerlink" href="#econox.protocols.StructuralModel.data" title="Link to this definition">¶</a></dt>
-<dd><p>Holds environment constants (features, matrices, etc.).
-Ideally a PyTree (dict, NamedTuple, etc.).</p>
+<dd><p>Immutable constants <span class="math notranslate nohighlight">\(\Omega\)</span> (features, matrices, etc.).</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="econox.protocols.StructuralModel.transitions">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transitions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PyTree</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#econox.protocols.StructuralModel.transitions" title="Link to this definition">¶</a></dt>
-<dd><p>Transition logic or matrix (e.g., P(s’<a href="#id1"><span class="problematic" id="id2">|</span></a>s,a) or Adjacency).</p>
+<dd><p>Transition structure (e.g., transition matrix or adjacency).
+Corresponds to <span class="math notranslate nohighlight">\(P(s' | s, a)\)</span>.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="econox.protocols.StructuralModel.availability">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">availability</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PyTree</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#econox.protocols.StructuralModel.availability" title="Link to this definition">¶</a></dt>
-<dd><p>Availability mask for actions.</p>
+<dd><p>Feasible action set <span class="math notranslate nohighlight">\(A(s)\)</span>.
+Boolean mask of shape (num_states, num_actions).</p>
 </dd></dl>
 
 <dl class="py method">
@@ -324,12 +336,14 @@ Required for Feedback mechanisms to update the environment (e.g., prices).</p>
 <dt class="sig sig-object py" id="econox.protocols.Utility">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.protocols.</span></span><span class="sig-name descname"><span class="pre">Utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#Utility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.Utility" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
-<p>Utility function (Instantaneous Utility / Reward).
-Takes parameters and data, returns a utility matrix of shape (n_states, n_actions).</p>
+<p>Structural Utility Function <span class="math notranslate nohighlight">\(u(s, a; \theta)\)</span>.</p>
+<p>Defines the instantaneous payoff an agent receives from taking action <span class="math notranslate nohighlight">\(a\)</span>
+in state <span class="math notranslate nohighlight">\(s\)</span>.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.protocols.Utility.compute_flow_utility">
 <span class="sig-name descname"><span class="pre">compute_flow_utility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#Utility.compute_flow_utility"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.Utility.compute_flow_utility" title="Link to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Calculates the utility matrix given parameters and model state.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'n_states</span> <span class="pre">n_actions')</span></code></span></p>
 </dd>
@@ -348,12 +362,15 @@ Takes parameters and data, returns a utility matrix of shape (n_states, n_action
 <dt class="sig sig-object py" id="econox.protocols.Distribution">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.protocols.</span></span><span class="sig-name descname"><span class="pre">Distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#Distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.Distribution" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
-<p>Distribution of error terms (Stochasticity).
-Provides computation logic for expected maximum value (Emax) and choice probabilities (P).</p>
+<p>Stochastic Shock Distribution <span class="math notranslate nohighlight">\(F(\epsilon)\)</span>.</p>
+<p>Defines the properties of the unobserved state variables (error terms).
+Handles the smoothing of the max operator (Emax) and choice probabilities (CCP).</p>
+<p>Common examples: Type-I Extreme Value (Logit), Normal (Probit).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.protocols.Distribution.expected_max">
 <span class="sig-name descname"><span class="pre">expected_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#Distribution.expected_max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.Distribution.expected_max" title="Link to this definition">¶</a></dt>
-<dd><p>E[max(v + epsilon)]</p>
+<dd><p>Computes the expected maximum value:
+<span class="math notranslate nohighlight">\(E[\max_a (v(s, a) + \epsilon(a))]\)</span></p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'n_states')</span></code></span></p>
@@ -367,7 +384,8 @@ Provides computation logic for expected maximum value (Emax) and choice probabil
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.protocols.Distribution.choice_probabilities">
 <span class="sig-name descname"><span class="pre">choice_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#Distribution.choice_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.Distribution.choice_probabilities" title="Link to this definition">¶</a></dt>
-<dd><p>P(a|s)</p>
+<dd><p>Computes conditional choice probabilities (CCP):
+<span class="math notranslate nohighlight">\(P(a | s) = P(v(s, a) + \epsilon(a) \ge v(s, a') + \epsilon(a'), \forall a')\)</span></p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'n_states</span> <span class="pre">n_actions')</span></code></span></p>
@@ -384,12 +402,16 @@ Provides computation logic for expected maximum value (Emax) and choice probabil
 <dt class="sig sig-object py" id="econox.protocols.FeedbackMechanism">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.protocols.</span></span><span class="sig-name descname"><span class="pre">FeedbackMechanism</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#FeedbackMechanism"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.FeedbackMechanism" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
-<p>Equilibrium feedback (General Equilibrium / Game Interaction).
-Receives aggregated results and updates model state (such as prices).</p>
+<p>Equilibrium/Market Clearing Condition.</p>
+<dl class="simple">
+<dt>Defines how aggregate agent behaviors affect the environment (e.g., prices, congestion).</dt><dd><p>Mathematically: <span class="math notranslate nohighlight">\(\Omega' = \Gamma(\sigma, \Omega)\)</span>, where <span class="math notranslate nohighlight">\(\sigma\)</span> is the policy.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.protocols.FeedbackMechanism.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#FeedbackMechanism.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.FeedbackMechanism.update" title="Link to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Updates the model environment based on the current solution.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span></p>
 </dd>
@@ -409,31 +431,39 @@ Receives aggregated results and updates model state (such as prices).</p>
 <dt class="sig sig-object py" id="econox.protocols.Dynamics">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.protocols.</span></span><span class="sig-name descname"><span class="pre">Dynamics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#Dynamics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.Dynamics" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
-<p>Protocol for the Law of Motion logic.
-Physics: D_{t+1} = f(D_t, Policy_t, Model)</p>
+<p>State Transition Law of Motion <span class="math notranslate nohighlight">\(s' = f(s, a, \xi)\)</span>.</p>
+<p>Defines how the distribution of agents over states evolves over time.
+Used for simulation and calculating steady-state distributions.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.protocols.Solver">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.protocols.</span></span><span class="sig-name descname"><span class="pre">Solver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#Solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.Solver" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
-<p>Computational engine.
-Uses Utility and Distribution to solve for fixed points or optimal policies.</p>
+<p>Computational Engine for the Model.</p>
+<p>A Solver finds the solution (Policy function / Value function) that satisfies
+the optimality conditions defined by the Model Primitives.</p>
+<dl class="simple">
+<dt>Implementation Note:</dt><dd><p>Concrete solvers should store their specific logic (Utility, Distribution)
+internally. The <cite>solve</cite> method strictly takes the parameters and the environment.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.protocols.Solver.solve">
-<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#Solver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.Solver.solve" title="Link to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
-</dd>
-<dt class="field-even">Parameters<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>params</strong> (<em>jaxtyping.PyTree</em>)</p></li>
-<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
-<li><p><strong>utility</strong> (<a class="reference internal" href="#econox.protocols.Utility" title="econox.protocols.Utility"><em>Utility</em></a>)</p></li>
-<li><p><strong>dist</strong> (<a class="reference internal" href="#econox.protocols.Distribution" title="econox.protocols.Distribution"><em>Distribution</em></a>)</p></li>
-<li><p><strong>feedback</strong> (<a class="reference internal" href="#econox.protocols.FeedbackMechanism" title="econox.protocols.FeedbackMechanism"><em>FeedbackMechanism</em></a><em> | </em><em>None</em>)</p></li>
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#Solver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.Solver.solve" title="Link to this definition">¶</a></dt>
+<dd><p>Executes the solution algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyTree</span></code></span>) – Structural parameters <span class="math notranslate nohighlight">\(\theta\)</span>.</p></li>
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – The economic environment <span class="math notranslate nohighlight">\((S, A, ...)\)</span>.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A result object (e.g., SolverResult) containing the solution.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1440,8 +1470,10 @@ Can be used for static models as well by setting discount_factor=0.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>utility</strong> (<a class="reference internal" href="#econox.protocols.Utility" title="econox.protocols.Utility"><em>Utility</em></a>) – Utility function to compute flow utilities.</p></li>
+<li><p><strong>dist</strong> (<a class="reference internal" href="#econox.protocols.Distribution" title="econox.protocols.Distribution"><em>Distribution</em></a>) – Probability distribution for choice modeling.</p></li>
+<li><p><strong>discount_factor</strong> (<em>float</em>) – Discount factor for future utilities.</p></li>
 <li><p><strong>numerical_solver</strong> – FixedPoint</p></li>
-<li><p><strong>discount_factor</strong> – float</p></li>
 </ul>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
@@ -1465,13 +1497,23 @@ terminal state approximation (EV(T-1) = EV(T)):</p>
 </dd>
 </dl>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.utility">
+<span class="sig-name descname"><span class="pre">utility</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.protocols.Utility" title="econox.protocols.Utility"><code class="xref py py-class docutils literal notranslate"><span class="pre">Utility</span></code></a></em><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.utility" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.dist">
+<span class="sig-name descname"><span class="pre">dist</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.protocols.Distribution" title="econox.protocols.Distribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">Distribution</span></code></a></em><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.dist" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.discount_factor">
-<span class="sig-name descname"><span class="pre">discount_factor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.9</span></em><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.discount_factor" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">discount_factor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.discount_factor" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.solve">
-<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/dynamic_programming.html#ValueIterationSolver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.solve" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/dynamic_programming.html#ValueIterationSolver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.solve" title="Link to this definition">¶</a></dt>
 <dd><p>Solves for the fixed point of the structural model using value iteration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1481,29 +1523,20 @@ terminal state approximation (EV(T-1) = EV(T)):</p>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>params</strong> (<em>jaxtyping.PyTree</em>)</p></li>
 <li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
-<li><p><strong>utility</strong> (<a class="reference internal" href="#econox.protocols.Utility" title="econox.protocols.Utility"><em>Utility</em></a>)</p></li>
-<li><p><strong>dist</strong> (<a class="reference internal" href="#econox.protocols.Distribution" title="econox.protocols.Distribution"><em>Distribution</em></a>)</p></li>
-<li><p><strong>feedback</strong> (<a class="reference internal" href="#econox.protocols.FeedbackMechanism" title="econox.protocols.FeedbackMechanism"><em>FeedbackMechanism</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
-<section id="id3">
-<h4>Parameters<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h4>
+<section id="id1">
+<h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
 <dl class="simple">
 <dt>params<span class="classifier">PyTree</span></dt><dd><p>Model parameters.</p>
 </dd>
 <dt>model<span class="classifier">StructuralModel</span></dt><dd><p>The structural model instance.</p>
 </dd>
-<dt>utility<span class="classifier">Utility</span></dt><dd><p>Utility function instance.</p>
-</dd>
-<dt>dist<span class="classifier">Distribution</span></dt><dd><p>Distribution of agents in the model.</p>
-</dd>
-<dt>feedback<span class="classifier">FeedbackMechanism | None</span></dt><dd><p>Feedback mechanism (not used in this solver).</p>
-</dd>
 </dl>
 </section>
-<section id="id4">
-<h4>Returns<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h4>
+<section id="id2">
+<h4>Returns<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h4>
 <dl class="simple">
 <dt>SolverResult</dt><dd><p>The result of the solver containing the solution and additional info.</p>
 </dd>
@@ -1520,48 +1553,73 @@ terminal state approximation (EV(T-1) = EV(T)):</p>
 Can be used for static models as well by setting discount_factor=0.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.solvers.equilibrium.</span></span><span class="sig-name descname"><span class="pre">EquilibriumSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">numerical_solver=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_solver=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_initial_distribution=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_dynamics=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/equilibrium.html#EquilibriumSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">econox.solvers.equilibrium.</span></span><span class="sig-name descname"><span class="pre">EquilibriumSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inner_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping=1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_distribution=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/equilibrium.html#EquilibriumSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Fixed-point solver using equilibrium conditions.</p>
+<p>Fixed-point solver for General Equilibrium (GE) or Stationary Equilibrium.</p>
+<p>This solver searches for a distribution of agents (or prices) <span class="math notranslate nohighlight">\(D^*\)</span> such that:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[D^* = \Phi(D^*, \theta)\]</div>
+</div>
+<p>where <span class="math notranslate nohighlight">\(\Phi\)</span> represents the compound operator of:
+1. Updating the environment (Feedback): <span class="math notranslate nohighlight">\(\Omega' = \Gamma(D, \Omega)\)</span>
+2. Solving the agent’s problem (Inner Solver): <span class="math notranslate nohighlight">\(\sigma^* = \text{argmax} \, V(s; \Omega')\)</span>
+3. Applying the law of motion (Dynamics): <span class="math notranslate nohighlight">\(D' = f(D, \sigma^*)\)</span></p>
 <dl class="field-list simple">
 <dt class="field-odd">Variables<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>numerical_solver</strong> – FixedPoint</p></li>
-<li><p><strong>inner_solver</strong> – Solver (typically ValueIterationSolver)</p></li>
+<li><p><strong>inner_solver</strong> (<a class="reference internal" href="#econox.protocols.Solver" title="econox.protocols.Solver"><em>Solver</em></a>) – The solver used to compute the optimal policy given a fixed environment.</p></li>
+<li><p><strong>feedback</strong> (<a class="reference internal" href="#econox.protocols.FeedbackMechanism" title="econox.protocols.FeedbackMechanism"><em>FeedbackMechanism</em></a>) – Logic to update model data based on aggregate results.</p></li>
+<li><p><strong>dynamics</strong> (<a class="reference internal" href="#econox.protocols.Dynamics" title="econox.protocols.Dynamics"><em>Dynamics</em></a>) – Law of motion describing how the distribution evolves.</p></li>
+<li><p><strong>numerical_solver</strong> (<em>FixedPoint</em>) – The numerical algorithm for the outer loop (e.g., Anderson Acceleration).</p></li>
+<li><p><strong>damping</strong> (<em>float</em>) – Damping factor for the update step <span class="math notranslate nohighlight">\(D_{k+1} = (1-\lambda)D_k + \lambda D_{new}\)</span>.</p></li>
+<li><p><strong>initial_distribution</strong> (<em>Array</em><em> | </em><em>None</em>) – Initial guess for the distribution.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>numerical_solver</strong> (<em>FixedPoint</em>)</p></li>
 <li><p><strong>inner_solver</strong> (<a class="reference internal" href="#econox.protocols.Solver" title="econox.protocols.Solver"><em>Solver</em></a>)</p></li>
-<li><p><strong>default_initial_distribution</strong> (<em>Float</em><em>[</em><em>Array</em><em>, </em><em>'num_states'</em><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>default_dynamics</strong> (<a class="reference internal" href="#econox.protocols.Dynamics" title="econox.protocols.Dynamics"><em>Dynamics</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>feedback</strong> (<a class="reference internal" href="#econox.protocols.FeedbackMechanism" title="econox.protocols.FeedbackMechanism"><em>FeedbackMechanism</em></a>)</p></li>
+<li><p><strong>dynamics</strong> (<a class="reference internal" href="#econox.protocols.Dynamics" title="econox.protocols.Dynamics"><em>Dynamics</em></a>)</p></li>
+<li><p><strong>numerical_solver</strong> (<em>FixedPoint</em>)</p></li>
+<li><p><strong>damping</strong> (<em>float</em>)</p></li>
+<li><p><strong>initial_distribution</strong> (<em>Float</em><em>[</em><em>Array</em><em>, </em><em>'num_states'</em><em>] </em><em>| </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.numerical_solver">
-<span class="sig-name descname"><span class="pre">numerical_solver</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedPoint</span></code></em><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.numerical_solver" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.inner_solver">
 <span class="sig-name descname"><span class="pre">inner_solver</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.protocols.Solver" title="econox.protocols.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a></em><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.inner_solver" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.default_initial_distribution">
-<span class="sig-name descname"><span class="pre">default_initial_distribution</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Float[Array,</span> <span class="pre">'num_states']</span></code> <span class="pre">|</span> <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.default_initial_distribution" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.feedback">
+<span class="sig-name descname"><span class="pre">feedback</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.protocols.FeedbackMechanism" title="econox.protocols.FeedbackMechanism"><code class="xref py py-class docutils literal notranslate"><span class="pre">FeedbackMechanism</span></code></a></em><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.feedback" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.default_dynamics">
-<span class="sig-name descname"><span class="pre">default_dynamics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.protocols.Dynamics" title="econox.protocols.Dynamics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dynamics</span></code></a> <span class="pre">|</span> <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.default_dynamics" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.dynamics">
+<span class="sig-name descname"><span class="pre">dynamics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.protocols.Dynamics" title="econox.protocols.Dynamics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dynamics</span></code></a></em><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.dynamics" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.numerical_solver">
+<span class="sig-name descname"><span class="pre">numerical_solver</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedPoint</span></code></em><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.numerical_solver" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.damping">
+<span class="sig-name descname"><span class="pre">damping</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.damping" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.initial_distribution">
+<span class="sig-name descname"><span class="pre">initial_distribution</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Float[Array,</span> <span class="pre">'num_states']</span></code> <span class="pre">|</span> <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.initial_distribution" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.solve">
-<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/equilibrium.html#EquilibriumSolver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.solve" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/equilibrium.html#EquilibriumSolver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.solve" title="Link to this definition">¶</a></dt>
 <dd><p>Solves for the fixed point of the structural model using equilibrium conditions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1571,39 +1629,20 @@ Can be used for static models as well by setting discount_factor=0.</p>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>params</strong> (<em>PyTree</em>)</p></li>
 <li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
-<li><p><strong>utility</strong> (<a class="reference internal" href="#econox.protocols.Utility" title="econox.protocols.Utility"><em>Utility</em></a>)</p></li>
-<li><p><strong>dist</strong> (<a class="reference internal" href="#econox.protocols.Distribution" title="econox.protocols.Distribution"><em>Distribution</em></a>)</p></li>
-<li><p><strong>feedback</strong> (<a class="reference internal" href="#econox.protocols.FeedbackMechanism" title="econox.protocols.FeedbackMechanism"><em>FeedbackMechanism</em></a><em> | </em><em>None</em>)</p></li>
-<li><p><strong>dynamics</strong> (<a class="reference internal" href="#econox.protocols.Dynamics" title="econox.protocols.Dynamics"><em>Dynamics</em></a><em> | </em><em>None</em>)</p></li>
-<li><p><strong>initial_distribution</strong> (<em>Float</em><em>[</em><em>Array</em><em>, </em><em>'num_states'</em><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>damping</strong> (<em>float</em>)</p></li>
 </ul>
 </dd>
 </dl>
-<section id="id5">
-<h4>Parameters<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h4>
+<section id="id3">
+<h4>Parameters<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h4>
 <dl class="simple">
 <dt>params<span class="classifier">PyTree</span></dt><dd><p>Model parameters.</p>
 </dd>
 <dt>model<span class="classifier">StructuralModel</span></dt><dd><p>The structural model instance.</p>
 </dd>
-<dt>utility<span class="classifier">Utility</span></dt><dd><p>Utility function instance.</p>
-</dd>
-<dt>dist<span class="classifier">Distribution</span></dt><dd><p>Distribution of agents in the model.</p>
-</dd>
-<dt>feedback<span class="classifier">FeedbackMechanism | None = None</span></dt><dd><p>Feedback mechanism (updates model based on distribution).
-If None, raises ValueError.</p>
-</dd>
-<dt>dynamics<span class="classifier">Dynamics | None</span></dt><dd><p>Dynamics logic for distribution evolution. If None, SimpleDynamics is used.</p>
-</dd>
-<dt>initial_distribution<span class="classifier">Float[Array, “num_states”] | None</span></dt><dd><p>Initial guess for the distribution. If None, uses uniform distribution.</p>
-</dd>
-<dt>damping<span class="classifier">float</span></dt><dd><p>Damping factor for fixed-point updates (0 &lt; damping &lt;= 1).</p>
-</dd>
 </dl>
 </section>
-<section id="id6">
-<h4>Returns<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h4>
+<section id="id4">
+<h4>Returns<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h4>
 <dl class="simple">
 <dt>SolverResult</dt><dd><p>solution: Equilibrium Distribution D*
 profile: Equilibrium Policy P*
@@ -1615,14 +1654,16 @@ inner_result: Full result from the inner solver (Value Function etc.)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.solvers.equilibrium.EquilibriumSolver.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">numerical_solver=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_solver=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_initial_distribution=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_dynamics=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inner_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping=1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_distribution=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.solvers.equilibrium.EquilibriumSolver.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>numerical_solver</strong> (<em>FixedPoint</em>)</p></li>
 <li><p><strong>inner_solver</strong> (<a class="reference internal" href="#econox.protocols.Solver" title="econox.protocols.Solver"><em>Solver</em></a>)</p></li>
-<li><p><strong>default_initial_distribution</strong> (<em>Float</em><em>[</em><em>Array</em><em>, </em><em>'num_states'</em><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>default_dynamics</strong> (<a class="reference internal" href="#econox.protocols.Dynamics" title="econox.protocols.Dynamics"><em>Dynamics</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>feedback</strong> (<a class="reference internal" href="#econox.protocols.FeedbackMechanism" title="econox.protocols.FeedbackMechanism"><em>FeedbackMechanism</em></a>)</p></li>
+<li><p><strong>dynamics</strong> (<a class="reference internal" href="#econox.protocols.Dynamics" title="econox.protocols.Dynamics"><em>Dynamics</em></a>)</p></li>
+<li><p><strong>numerical_solver</strong> (<em>FixedPoint</em>)</p></li>
+<li><p><strong>damping</strong> (<em>float</em>)</p></li>
+<li><p><strong>initial_distribution</strong> (<em>Float</em><em>[</em><em>Array</em><em>, </em><em>'num_states'</em><em>] </em><em>| </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -2712,6 +2753,8 @@ V = H^{-1} / N</p>
 <li><a class="reference internal" href="#solvers-algorithms">Solvers (Algorithms)</a><ul>
 <li><a class="reference internal" href="#module-econox.solvers.dynamic_programming">Dynamic Programming</a><ul>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver</span></code></a><ul>
+<li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.utility"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.utility</span></code></a></li>
+<li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.dist"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.dist</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.discount_factor"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.discount_factor</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.solve"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.solve()</span></code></a></li>
 </ul>
@@ -2720,10 +2763,12 @@ V = H^{-1} / N</p>
 </li>
 <li><a class="reference internal" href="#module-econox.solvers.equilibrium">Equilibrium Solvers</a><ul>
 <li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver</span></code></a><ul>
-<li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.numerical_solver"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.numerical_solver</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.inner_solver"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.inner_solver</span></code></a></li>
-<li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.default_initial_distribution"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.default_initial_distribution</span></code></a></li>
-<li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.default_dynamics"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.default_dynamics</span></code></a></li>
+<li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.feedback"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.feedback</span></code></a></li>
+<li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.dynamics"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.dynamics</span></code></a></li>
+<li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.numerical_solver"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.numerical_solver</span></code></a></li>
+<li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.damping"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.damping</span></code></a></li>
+<li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.initial_distribution"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.initial_distribution</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.solve"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.solve()</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.equilibrium.EquilibriumSolver.__init__"><code class="docutils literal notranslate"><span class="pre">EquilibriumSolver.__init__()</span></code></a></li>
 </ul>

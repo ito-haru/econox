@@ -258,16 +258,38 @@
 <a class="viewcode-back" href="../../../api_reference.html#econox.solvers.equilibrium.EquilibriumSolver">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EquilibriumSolver</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Fixed-point solver using equilibrium conditions.</span>
+<span class="sd">    Fixed-point solver for General Equilibrium (GE) or Stationary Equilibrium.</span>
+
+<span class="sd">    This solver searches for a distribution of agents (or prices) :math:`D^*` such that:</span>
 <span class="sd">    </span>
+<span class="sd">    .. math:: D^* = \\Phi(D^*, \\theta)</span>
+
+<span class="sd">    where :math:`\\Phi` represents the compound operator of:</span>
+<span class="sd">    1. Updating the environment (Feedback): :math:`\\Omega&#39; = \\Gamma(D, \\Omega)`</span>
+<span class="sd">    2. Solving the agent&#39;s problem (Inner Solver): :math:`\\sigma^* = \\text{argmax} \\, V(s; \\Omega&#39;)`</span>
+<span class="sd">    3. Applying the law of motion (Dynamics): :math:`D&#39; = f(D, \\sigma^*)`</span>
+
 <span class="sd">    Attributes:</span>
-<span class="sd">        numerical_solver: FixedPoint</span>
-<span class="sd">        inner_solver: Solver (typically ValueIterationSolver)</span>
+<span class="sd">        inner_solver (Solver): The solver used to compute the optimal policy given a fixed environment.</span>
+<span class="sd">        feedback (FeedbackMechanism): Logic to update model data based on aggregate results.</span>
+<span class="sd">        dynamics (Dynamics): Law of motion describing how the distribution evolves.</span>
+<span class="sd">        numerical_solver (FixedPoint): The numerical algorithm for the outer loop (e.g., Anderson Acceleration).</span>
+<span class="sd">        damping (float): Damping factor for the update step :math:`D_{k+1} = (1-\\lambda)D_k + \\lambda D_{new}`.</span>
+<span class="sd">        initial_distribution (Array | None): Initial guess for the distribution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ---------------------------------------------------------------</span>
+    <span class="c1"># 1. Structural Components (The &quot;What&quot;)</span>
+    <span class="c1"># ---------------------------------------------------------------</span>
+    <span class="n">inner_solver</span><span class="p">:</span> <span class="n">Solver</span>          <span class="c1"># The Agent (holds Utility/Dist)</span>
+    <span class="n">feedback</span><span class="p">:</span> <span class="n">FeedbackMechanism</span>   <span class="c1"># The Market Clearing logic</span>
+    <span class="n">dynamics</span><span class="p">:</span> <span class="n">Dynamics</span>            <span class="c1"># The Law of Motion</span>
+
+    <span class="c1"># ---------------------------------------------------------------</span>
+    <span class="c1"># 2. Solver Configuration (The &quot;How&quot;)</span>
+    <span class="c1"># ---------------------------------------------------------------</span>
     <span class="n">numerical_solver</span><span class="p">:</span> <span class="n">FixedPoint</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">FixedPoint</span><span class="p">)</span>
-    <span class="n">inner_solver</span><span class="p">:</span> <span class="n">Solver</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">ValueIterationSolver</span><span class="p">)</span>
-    <span class="n">default_initial_distribution</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;num_states&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">default_dynamics</span><span class="p">:</span> <span class="n">Dynamics</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">damping</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">initial_distribution</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;num_states&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="EquilibriumSolver.solve">
 <a class="viewcode-back" href="../../../api_reference.html#econox.solvers.equilibrium.EquilibriumSolver.solve">[docs]</a>
@@ -275,12 +297,6 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span><span class="p">,</span>
-        <span class="n">utility</span><span class="p">:</span> <span class="n">Utility</span><span class="p">,</span>
-        <span class="n">dist</span><span class="p">:</span> <span class="n">Distribution</span><span class="p">,</span>
-        <span class="n">feedback</span><span class="p">:</span> <span class="n">FeedbackMechanism</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">dynamics</span><span class="p">:</span> <span class="n">Dynamics</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">initial_distribution</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;num_states&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">damping</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SolverResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Solves for the fixed point of the structural model using equilibrium conditions.</span>
@@ -291,19 +307,6 @@
 <span class="sd">            Model parameters.</span>
 <span class="sd">        model : StructuralModel</span>
 <span class="sd">            The structural model instance.</span>
-<span class="sd">        utility : Utility</span>
-<span class="sd">            Utility function instance.</span>
-<span class="sd">        dist : Distribution</span>
-<span class="sd">            Distribution of agents in the model.</span>
-<span class="sd">        feedback : FeedbackMechanism | None = None</span>
-<span class="sd">            Feedback mechanism (updates model based on distribution).</span>
-<span class="sd">            If None, raises ValueError.</span>
-<span class="sd">        dynamics : Dynamics | None</span>
-<span class="sd">            Dynamics logic for distribution evolution. If None, SimpleDynamics is used.</span>
-<span class="sd">        initial_distribution : Float[Array, &quot;num_states&quot;] | None</span>
-<span class="sd">            Initial guess for the distribution. If None, uses uniform distribution.</span>
-<span class="sd">        damping : float</span>
-<span class="sd">            Damping factor for fixed-point updates (0 &lt; damping &lt;= 1).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -312,6 +315,10 @@
 <span class="sd">            profile: Equilibrium Policy P*</span>
 <span class="sd">            inner_result: Full result from the inner solver (Value Function etc.)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">feedback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feedback</span>
+        <span class="n">dynamics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamics</span>
+        <span class="n">damping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">damping</span>
+        <span class="n">initial_distribution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_distribution</span>
 
         <span class="c1"># Validate damping</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="n">damping</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">):</span>
@@ -322,12 +329,6 @@
         
         <span class="n">num_states</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">num_states</span>
 
-        <span class="k">if</span> <span class="n">dynamics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">dynamics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_dynamics</span>
-        <span class="n">apply_dynamics</span> <span class="o">=</span> <span class="n">dynamics</span> <span class="k">if</span> <span class="n">dynamics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">SimpleDynamics</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="n">initial_distribution</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">initial_distribution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_initial_distribution</span>
         <span class="k">if</span> <span class="n">initial_distribution</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">initial_distribution</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_states</span><span class="p">)</span> <span class="o">/</span> <span class="n">num_states</span>
         
@@ -337,15 +338,14 @@
 
             <span class="n">inner_result</span><span class="p">:</span> <span class="n">SolverResult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
                 <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> 
-                <span class="n">model</span><span class="o">=</span><span class="n">model_updated</span><span class="p">,</span> 
-                <span class="n">utility</span><span class="o">=</span><span class="n">utility</span><span class="p">,</span> 
-                <span class="n">dist</span><span class="o">=</span><span class="n">dist</span><span class="p">)</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">model_updated</span>
+                <span class="p">)</span>
 
             <span class="n">policy</span><span class="p">:</span> <span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">inner_result</span><span class="o">.</span><span class="n">profile</span>
             <span class="k">if</span> <span class="n">policy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inner solver must return a policy (profile) for equilibrium computation.&quot;</span><span class="p">)</span>
             
-            <span class="n">new_dist</span> <span class="o">=</span> <span class="n">apply_dynamics</span><span class="p">(</span>
+            <span class="n">new_dist</span> <span class="o">=</span> <span class="n">dynamics</span><span class="p">(</span>
                 <span class="n">distribution</span><span class="o">=</span><span class="n">current_dist</span><span class="p">,</span> 
                 <span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">,</span> 
                 <span class="n">model</span><span class="o">=</span><span class="n">model_updated</span><span class="p">)</span>
@@ -364,9 +364,7 @@
         <span class="n">final_model</span><span class="p">:</span> <span class="n">StructuralModel</span> <span class="o">=</span> <span class="n">feedback</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">final_result</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
         <span class="n">final_inner_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
             <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> 
-            <span class="n">model</span><span class="o">=</span><span class="n">final_model</span><span class="p">,</span> 
-            <span class="n">utility</span><span class="o">=</span><span class="n">utility</span><span class="p">,</span> 
-            <span class="n">dist</span><span class="o">=</span><span class="n">dist</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">final_model</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">SolverResult</span><span class="p">(</span>

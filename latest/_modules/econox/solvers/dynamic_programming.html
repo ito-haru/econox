@@ -248,7 +248,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Int</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">econox.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralModel</span><span class="p">,</span> <span class="n">Utility</span><span class="p">,</span> <span class="n">Distribution</span><span class="p">,</span> <span class="n">FeedbackMechanism</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">econox.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralModel</span><span class="p">,</span> <span class="n">Utility</span><span class="p">,</span> <span class="n">Distribution</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">FixedPoint</span><span class="p">,</span> <span class="n">FixedPointResult</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.structures</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolverResult</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_from_pytree</span>
@@ -261,8 +261,10 @@
 <span class="sd">    Fixed-point solver using value function iteration.</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes:</span>
+<span class="sd">        utility (Utility): Utility function to compute flow utilities.</span>
+<span class="sd">        dist (Distribution): Probability distribution for choice modeling.</span>
+<span class="sd">        discount_factor (float): Discount factor for future utilities.</span>
 <span class="sd">        numerical_solver: FixedPoint</span>
-<span class="sd">        discount_factor: float</span>
 
 <span class="sd">    Optional Data Keys:</span>
 <span class="sd">        The solver looks for the following keys in `model.data` to enable </span>
@@ -272,19 +274,19 @@
 <span class="sd">        * &quot;previous_state_indices&quot; (Int[Array, &quot;n&quot;]): Indices of states at T-1 to copy from.</span>
 <span class="sd">        </span>
 <span class="sd">        If provided, both must be present and have the same shape.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">utility</span><span class="p">:</span> <span class="n">Utility</span>
+    <span class="n">dist</span><span class="p">:</span> <span class="n">Distribution</span>
+    <span class="n">discount_factor</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">numerical_solver</span><span class="p">:</span> <span class="n">FixedPoint</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">FixedPoint</span><span class="p">)</span>
-    <span class="n">discount_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.90</span>
 
 <div class="viewcode-block" id="ValueIterationSolver.solve">
 <a class="viewcode-back" href="../../../api_reference.html#econox.solvers.dynamic_programming.ValueIterationSolver.solve">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span>
-        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span><span class="p">,</span> 
-        <span class="n">utility</span><span class="p">:</span> <span class="n">Utility</span><span class="p">,</span> 
-        <span class="n">dist</span><span class="p">:</span> <span class="n">Distribution</span><span class="p">,</span> 
-        <span class="n">feedback</span><span class="p">:</span> <span class="n">FeedbackMechanism</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Solves for the fixed point of the structural model using value iteration.</span>
@@ -295,19 +297,15 @@
 <span class="sd">            Model parameters.</span>
 <span class="sd">        model : StructuralModel</span>
 <span class="sd">            The structural model instance.</span>
-<span class="sd">        utility : Utility</span>
-<span class="sd">            Utility function instance.</span>
-<span class="sd">        dist : Distribution</span>
-<span class="sd">            Distribution of agents in the model.</span>
-<span class="sd">        feedback : FeedbackMechanism | None</span>
-<span class="sd">            Feedback mechanism (not used in this solver).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        SolverResult</span>
 <span class="sd">            The result of the solver containing the solution and additional info.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
+        <span class="n">utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">utility</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span>
+
         <span class="n">data</span><span class="p">:</span> <span class="n">PyTree</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">data</span>
         <span class="n">transitions</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">transitions</span>
 

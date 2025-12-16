@@ -286,7 +286,7 @@ def test_equilibrium_stability(ge_model, ge_components, ge_data_bundle):
     inner_solver = ecx.ValueIterationSolver(
         utility=ge_components["utility"],
         dist=ge_components["dist"],
-        discount_factor=0.95
+        discount_factor=0.95,
         )
     equilibrium_solver = ecx.EquilibriumSolver(
         inner_solver=inner_solver,
@@ -319,7 +319,7 @@ def test_ge_estimation(ge_model, ge_components, ge_data_bundle):
     inner_solver = ecx.ValueIterationSolver(
         utility=ge_components["utility"],
         dist=ge_components["dist"],
-        discount_factor=0.95
+        discount_factor=0.95,
         )
 
     equilibrium_solver = ecx.EquilibriumSolver(
@@ -433,7 +433,7 @@ def test_custom_model_feedback_logic(ge_model, ge_components, ge_data_bundle):
     inner_solver = ecx.ValueIterationSolver(
         utility=ge_components["utility"],
         dist=ge_components["dist"],
-        discount_factor=0.95
+        discount_factor=0.95,
         )
     equilibrium_solver = ecx.EquilibriumSolver(
         inner_solver=inner_solver,

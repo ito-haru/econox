@@ -100,7 +100,8 @@ def solver_run(request, nfxp_example_data) -> Tuple[SolverResult, float, Dict[st
     solver = ValueIterationSolver(
         utility=utility_logic,
         dist=distribution_logic,
-        discount_factor=discount_factor)
+        discount_factor=discount_factor,
+    )
     params = {"coeffs": data["coeffs"]}
 
     logger.debug(f"Running solver with beta={discount_factor}...")

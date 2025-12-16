@@ -107,7 +107,7 @@ def synthetic_data(nfxp_model, true_parameters) -> Dict[str, Any]:
     solver = ValueIterationSolver(
         utility=utility,
         dist=dist,
-        discount_factor=0.9
+        discount_factor=0.9,
         )
 
     # 2. Solve for True Policy

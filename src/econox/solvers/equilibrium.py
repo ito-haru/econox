@@ -4,7 +4,6 @@ Equilibrium solver module for dynamic economic models.
 Can be used for static models as well by setting discount_factor=0.
 """
 
-from operator import eq
 import jax.numpy as jnp
 import equinox as eqx
 from jaxtyping import PyTree, Float, Array

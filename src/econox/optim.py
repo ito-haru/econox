@@ -57,19 +57,16 @@ class Minimizer(eqx.Module):
         """
         Minimizes the loss function using the specified method and tolerances.
 
-        Parameters
-        ----------
-        loss_fn : Callable[[PyTree, Any], Scalar]
-            The loss function to minimize. Takes parameters and additional arguments, returns a scalar loss.
-        init_params : PyTree
-            Initial parameter values for optimization.
-        args : Any, optional
-            Additional arguments passed to the loss function (not used here).
-    
-        Returns
-        -------
-        MinimizerResult
-            Contains the optimized parameters, final loss, success status, and iteration count.
+        Args:
+            loss_fn (Callable[[PyTree, Any], Scalar]): The loss function to minimize.
+                Takes parameters and additional arguments, returns a scalar loss.
+            init_params (PyTree): Initial parameter values for optimization.
+            args (Any, optional): Additional arguments passed to the loss function.
+                Defaults to None.
+
+        Returns:
+            MinimizerResult: Contains the optimized parameters, final loss, 
+            success status, and iteration count.
         """
         def wrapped_loss_fn(params, args) -> tuple[Scalar, Scalar]:
             loss = loss_fn(params, args)
@@ -139,23 +136,17 @@ class FixedPoint(eqx.Module):
         init_val: PyTree,
         args: Any = None
     ) -> FixedPointResult:
-        """
-        Solves for y such that y = step_fn(y, args).
+        r"""
+        Solves for :math:`y` such that :math:`y = \text{step\_fn}(y, \text{args})`.
         Returns a FixedPointResult containing the solution and status.
 
-        Parameters
-        ----------
-        step_fn : Callable[[PyTree, Any], PyTree]
-            The fixed-point function. Takes current value and args, returns next value.
-        init_val : PyTree
-            Initial guess for the fixed-point iteration.
-        args : Any, optional
-            Additional arguments passed to the fixed-point function.
+        Args:
+            step_fn (Callable[[PyTree, Any], PyTree]): The fixed-point function. Takes current value and args, returns next value.
+            init_val (PyTree): Initial guess for the fixed-point iteration.
+            args (Any, optional): Additional arguments passed to the fixed-point function.
         
-        Returns
-        -------
-        FixedPointResult
-            Contains the fixed-point value, success status, and iteration count.
+        Returns:
+            FixedPointResult: Contains the fixed-point value, success status, and iteration count.
         """
         
         sol = optx.fixed_point(

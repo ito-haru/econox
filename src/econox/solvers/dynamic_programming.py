@@ -27,12 +27,31 @@ class ValueIterationSolver(eqx.Module):
 
     Optional Data Keys:
         The solver looks for the following keys in `model.data` to enable 
-        terminal state approximation (EV(T-1) = EV(T)):
+        terminal state approximation (:math:`EV(T-1) = EV(T)`):
         
-        * "terminal_state_indices" (Int[Array, "n"]): Indices of states at T.
-        * "previous_state_indices" (Int[Array, "n"]): Indices of states at T-1 to copy from.
+        * **terminal_state_indices** (Int[Array, "n"]): Indices of states at :math:`T`.
+        * **previous_state_indices** (Int[Array, "n"]): Indices of states at :math:`T-1` to copy from.
         
         If provided, both must be present and have the same shape.
+    
+    Examples:
+        >>> # Define structural components
+        >>> utility = MyUtilityFunction()
+        >>> dist = Type1ExtremeValue()
+        
+        >>> # Initialize solver
+        >>> solver = ValueIterationSolver(
+        ...     utility=utility,
+        ...     dist=dist,
+        ...     discount_factor=0.99
+        ... )
+        
+        >>> # Solve the model
+        >>> result = solver.solve(params, model)
+        
+        >>> # Access results
+        >>> EV = result.solution  # Expected Value Function EV(s)
+        >>> P = result.profile    # Choice Probabilities P(a|s)
     
     """
     utility: Utility
@@ -48,17 +67,17 @@ class ValueIterationSolver(eqx.Module):
         """
         Solves for the fixed point of the structural model using value iteration.
 
-        Parameters
-        ----------
-        params : PyTree
-            Model parameters.
-        model : StructuralModel
-            The structural model instance.
+        Args:
+            params (PyTree): Model parameters.
+            model (StructuralModel): The structural model instance.
 
-        Returns
-        -------
-        SolverResult
-            The result of the solver containing the solution and additional info.
+        Returns:
+            SolverResult: The result of the solver containing the solution and additional information containing:
+
+            * **solution** (Array): The computed Expected Value Function :math:`EV(s)` (Integrated Value Function / Emax).
+            * **profile** (Array): The Conditional Choice Probabilities (CCP) :math:`P(a|s)` derived from the value function.
+            * **success** (Bool): Whether the solver converged successfully.
+            * **aux** (Dict): Auxiliary information, including number of steps taken.
         """
         utility = self.utility
         dist = self.dist

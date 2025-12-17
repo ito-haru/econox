@@ -35,6 +35,27 @@ class EquilibriumSolver(eqx.Module):
         numerical_solver (FixedPoint): The numerical algorithm for the outer loop (e.g., Anderson Acceleration).
         damping (float): Damping factor for the update step :math:`D_{k+1} = (1-\\lambda)D_k + \\lambda D_{new}`.
         initial_distribution (Array | None): Initial guess for the distribution.
+    
+    Examples:
+        >>> # 1. Inner agent problem (e.g., Household optimization)
+        >>> inner_solver = ValueIterationSolver(...)
+        
+        >>> # 2. Market clearing logic (e.g., Supply = Demand)
+        >>> feedback = FunctionFeedback(func=WageFeedback, target_key="wage")
+        
+        >>> # 3. Dynamics (Law of Motion)
+        >>> dynamics = SimpleDynamics()
+        
+        >>> # 4. Equilibrium Solver
+        >>> eq_solver = EquilibriumSolver(
+        ...     inner_solver=inner_solver,
+        ...     feedback=feedback,
+        ...     dynamics=dynamics,
+        ...     damping=0.5
+        ... )
+        
+        >>> # Solve for stationary equilibrium
+        >>> result = eq_solver.solve(params, model)
     """
     # ---------------------------------------------------------------
     # 1. Structural Components (The "What")
@@ -58,19 +79,16 @@ class EquilibriumSolver(eqx.Module):
         """
         Solves for the fixed point of the structural model using equilibrium conditions.
 
-        Parameters
-        ----------
-        params : PyTree
-            Model parameters.
-        model : StructuralModel
-            The structural model instance.
+        Args:
+            params (PyTree): Model parameters.
+            model (StructuralModel): The structural model instance.
 
-        Returns
-        -------
-        SolverResult
-            solution: Equilibrium Distribution D*
-            profile: Equilibrium Policy P*
-            inner_result: Full result from the inner solver (Value Function etc.)
+        Returns:
+            SolverResult: The result object containing:
+
+            * **solution**: Equilibrium Distribution :math:`D^*`
+            * **profile**: Equilibrium Policy :math:`P^*`
+            * **inner_result**: Full result from the inner solver (Value Function etc.)
         """
         feedback = self.feedback
         dynamics = self.dynamics

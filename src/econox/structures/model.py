@@ -25,10 +25,10 @@ class Model(eqx.Module):
     # ---Required Fields (Protocol: StructuralModel)---
     
     num_states: int = eqx.field(static=True)
-    """Total cardinality of the state space ($S$). Used to determine array shapes."""
+    """Total cardinality of the state space (:math:`S`). Used to determine array shapes."""
     
     num_actions: int = eqx.field(static=True)
-    """Total cardinality of the action space ($A$)."""
+    """Total cardinality of the action space (:math:`A`)."""
     
     data: Dict[str, Float[Array, "..."]]
     """
@@ -36,14 +36,14 @@ class Model(eqx.Module):
     
     Keys are identifiers (e.g., 'wage', 'distance', 'rent') that must match 
     the keys expected by the `Utility` component. Values are typically JAX arrays 
-    of shape $(S, A)$, $(S,)$, or scalars.
+    of shape (:math:`S`, :math:`A`), (:math:`S`,), or scalars.
     """
 
     # ---Optional Fields & Protocol Extensions---
     
     num_periods: int | float = eqx.field(default=np.inf, static=True)
     """
-    Time horizon ($T$) of the model.
+    Time horizon (:math:`T`) of the model.
     
     * `np.inf`: Infinite horizon (default).
     * `int`: Finite horizon.
@@ -52,7 +52,7 @@ class Model(eqx.Module):
     availability: Int[Array, "num_states num_actions"] | None = None
     """
     Binary mask indicating feasible actions. 
-    Shape $(S, A)$. `1` (or `True`) indicates action $a$ is available in state $s$, 
+    Shape (:math:`S`, :math:`A`). `1` (or `True`) indicates action :math:`a` is available in state :math:`s`, 
     while `0` (or `False`) indicates it is physically impossible.
     """
     
@@ -61,7 +61,7 @@ class Model(eqx.Module):
     Exogenous transition structure.
     
     Depending on the model type, this could be:
-    * Transition Probability Matrix: $P(s' | s, a)$
+    * Transition Probability Matrix: :math:`P(s' | s, a)`
     * Adjacency Matrix (for spatial models)
     * Deterministic mapping logic
     """
@@ -89,8 +89,8 @@ class Model(eqx.Module):
         with JIT compilation.
 
         Args:
-            num_states: Total number of states ($S$). Must be positive.
-            num_actions: Total number of actions ($A$). Must be positive.
+            num_states: Total number of states (:math:`S`). Must be positive.
+            num_actions: Total number of actions (:math:`A`). Must be positive.
             data: Dictionary of feature matrices (e.g., `{'wage': [...]}`).
                   Keys should be strings, values can be lists, NumPy arrays, or JAX arrays.
             availability: Optional mask for feasible actions. Shape must be (num_states, num_actions).

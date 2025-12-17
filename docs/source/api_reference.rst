@@ -97,6 +97,24 @@ Equilibrium Solvers
    :undoc-members:
    :show-inheritance:
 
+Optimization Backends
+^^^^^^^^^^^^^^^^^^^^^
+
+.. note::
+   **Import Note**: This module is not exposed in the top-level ``econox`` namespace.
+   You must access it via the submodule:
+
+   .. code-block:: python
+
+      from econox.optim import Minimizer
+      # or
+      import econox.optim as opt
+
+.. automodule:: econox.optim
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Methods (Estimation Techniques)
 -------------------------------
 Strategies for estimating model parameters from data (Inverse Problems).
@@ -125,6 +143,41 @@ Numerical Methods (MLE/GMM)
 Variance & Inference
 ^^^^^^^^^^^^^^^^^^^^
 .. automodule:: econox.methods.variance
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Configuration
+-------------
+
+.. note::
+   **Import Note**: Configuration constants are located in the ``econox.config`` submodule.
+
+   .. code-block:: python
+
+      from econox import config
+      print(config.NUMERICAL_EPSILON)
+
+Global settings and constants used throughout the library.
+
+.. automodule:: econox.config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Utilities
+---------
+
+.. note::
+   **Import Note**: Helper functions are located in the ``econox.utils`` submodule.
+
+   .. code-block:: python
+
+      from econox.utils import get_from_pytree
+
+General utility functions for array manipulation and PyTree handling.
+
+.. automodule:: econox.utils
    :members:
    :undoc-members:
    :show-inheritance:

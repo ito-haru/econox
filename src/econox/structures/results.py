@@ -42,21 +42,12 @@ class ResultMixin:
         """
         Save the result object to a directory using the 'Directory Bundle' strategy.  
 
-        Parameters  
-        ----------  
-        path : Union[str, Path]  
-            The target directory path where the result will be saved.  
-        overwrite : bool, optional  
-            If True, overwrite the directory if it already exists. Default is False.  
+        Args: 
+            path (Union[str, Path]): The target directory path where the result will be saved.  
+            overwrite (bool, optional): If True, overwrite the directory if it already exists. Default is False.   
 
-        Returns  
-        -------  
-        None  
-
-        Raises  
-        ------  
-        FileExistsError  
-            If the target directory already exists and `overwrite` is False.  
+        Raises: 
+            FileExistsError: If the target directory already exists and `overwrite` is False.  
         """
         base_path = Path(path)
         if base_path.exists():
@@ -202,19 +193,13 @@ class ResultMixin:
         """
         Helper to save arrays to CSV using Pandas.
         
-        Parameters
-        ----------
-        arr : jax.Array or numpy.ndarray
-            The array to save. Must be a JAX array or NumPy array.
-        path : Path
-            The file path where the CSV will be saved.
+        Args:
+            arr (jax.Array or numpy.ndarray): The array to save. Must be a JAX array or NumPy array.
+            path (Path): The file path where the CSV will be saved.
             
-        Raises
-        ------
-        TypeError
-            If arr is not a JAX array or NumPy array.
-        ValueError
-            If arr is empty or has invalid dimensions.
+        Raises:
+            TypeError: If arr is not a JAX array or NumPy array.
+            ValueError: If arr is empty or has invalid dimensions.
         """
         # Validate input type
         if not isinstance(arr, (jax.Array, jnp.ndarray, np.ndarray)):
@@ -245,16 +230,20 @@ class SolverResult(ResultMixin, eqx.Module):
     """
 
     solution: PyTree
-    """
+    r"""
     Main solution returned by the solver (the fixed point).
-    - **DP**: Value function $V(s)$.
-    - **GE**: Equilibrium allocations (e.g., Population Distribution $D$) or Prices $P$.
+
+    - **DP**: Expected Value Function :math:`EV(s)` (Integrated Value Function / Emax).
+      Represents the expected value *before* the realization of the shock :math:`\epsilon`.
+    - **GE**: Equilibrium allocations (e.g., Population Distribution :math:`D`) or Prices :math:`P`.
     """
 
     profile: PyTree | None = None
     """
     Associated profile information derived from the solution.
-    - **DP**: Policy function / Choice probabilities $P(a|s)$.
+
+    - **DP**: Conditional Choice Probabilities (CCP) :math:`P(a|s)`.
+      The probability of choosing action :math:`a` given state :math:`s`.
     - **GE**: Market prices (Wage, Rent) or aggregate states corresponding to the solution.
     """
 

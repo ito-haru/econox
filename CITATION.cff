@@ -5,8 +5,8 @@ authors:
     given-names: "Haruto"
     affiliation: "The University of Tokyo"
 title: "Econox: A JAX-based toolkit for structural modeling and estimation"
-version: 0.1.1
-date-released: 2025-12-11
+version: 0.1.2
+date-released: 2025-12-17
 url: "https://github.com/ito-haru/econox"
 repository-code: "https://github.com/ito-haru/econox"
 license: Apache-2.0

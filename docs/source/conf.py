@@ -44,23 +44,6 @@ extensions = [
     'sphinx_autodoc_typehints', 
 ]
 
-# Mock imports for autodoc
-autodoc_mock_imports = [
-    "jax",
-    "jax.numpy",
-    "jax.scipy",
-    "jax.flatten_util",
-    "jax.experimental",
-    "equinox",
-    "jaxtyping",
-    "numpy",
-    "pandas",
-    "optax",
-    "optimistix",
-    "lineax",
-    "scipy",
-]
-
 templates_path = ['_templates']
 exclude_patterns = []
 

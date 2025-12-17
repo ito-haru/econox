@@ -49,7 +49,7 @@ class Hessian(Variance):
     
     Standard approach for Maximum Likelihood Estimation (MLE).
     Assumes the loss function is the negative log-likelihood.
-    V = H^{-1} / N
+    :math:`V = H^{-1} / N`
     """
     
     def compute(
@@ -61,15 +61,19 @@ class Hessian(Variance):
     ) -> tuple[PyTree | None, Float[Array, "n_params n_params"] | None]:
         """
         Calculates standard errors and variance-covariance matrix using the Hessian.
+
         Args:
             loss_fn: A differentiable function `f(params) -> loss`.
             params: The estimated optimal parameters.
             observations: The observed data.
             num_observations: Number of data points (N).
+
         Returns:
-            - std_errors: Standard errors matching the structure of the input `params`.
-                          (If input params are flattened, this will be a 1D array)
-            - vcov: Variance-covariance matrix.
+            tuple: A tuple containing:
+
+            * **std_errors**: Standard errors matching the structure of the input `params`.
+              (If input params are flattened, this will be a 1D array)
+            * **vcov**: Variance-covariance matrix.
         """
         
         try:

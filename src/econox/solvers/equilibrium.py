@@ -58,19 +58,16 @@ class EquilibriumSolver(eqx.Module):
         """
         Solves for the fixed point of the structural model using equilibrium conditions.
 
-        Parameters
-        ----------
-        params : PyTree
-            Model parameters.
-        model : StructuralModel
-            The structural model instance.
+        Args:
+            params (PyTree): Model parameters.
+            model (StructuralModel): The structural model instance.
 
-        Returns
-        -------
-        SolverResult
-            solution: Equilibrium Distribution D*
-            profile: Equilibrium Policy P*
-            inner_result: Full result from the inner solver (Value Function etc.)
+        Returns:
+            SolverResult: The result object containing:
+
+            * **solution**: Equilibrium Distribution :math:`D^*`
+            * **profile**: Equilibrium Policy :math:`P^*`
+            * **inner_result**: Full result from the inner solver (Value Function etc.)
         """
         feedback = self.feedback
         dynamics = self.dynamics

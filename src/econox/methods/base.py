@@ -78,9 +78,10 @@ class EstimationMethod(eqx.Module):
             param_space: The parameter space definition.
 
         Returns:
-            - `EstimationResult`: If an analytical solution is found.
-            - `None`: If no analytical solution exists (default). 
-                      The Estimator will fall back to numerical optimization using `compute_loss`.
+            EstimationResult | None:
+            Returns an ``EstimationResult`` if an analytical solution is found.
+            Returns ``None`` otherwise (default), and the Estimator will fall back 
+            to numerical optimization using `compute_loss`.
         """
         return None
 

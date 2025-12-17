@@ -48,17 +48,16 @@ class ValueIterationSolver(eqx.Module):
         """
         Solves for the fixed point of the structural model using value iteration.
 
-        Parameters
-        ----------
-        params : PyTree
-            Model parameters.
-        model : StructuralModel
-            The structural model instance.
+        Args:
+            params (PyTree): Model parameters.
+            model (StructuralModel): The structural model instance.
 
-        Returns
-        -------
-        SolverResult
-            The result of the solver containing the solution and additional info.
+        Returns:
+            SolverResult: The result of the solver containing the solution and additional information containing:
+            * **solution** (Array): The computed Expected Value Function :math:`EV(s)` (Integrated Value Function / Emax).
+            * **profile** (Array): The Conditional Choice Probabilities (CCP) :math:`P(a|s)` derived from the value function.
+            * **success** (Bool): Whether the solver converged successfully.
+            * **aux** (Dict): Auxiliary information, including number of steps taken.
         """
         utility = self.utility
         dist = self.dist

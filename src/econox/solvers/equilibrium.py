@@ -35,6 +35,27 @@ class EquilibriumSolver(eqx.Module):
         numerical_solver (FixedPoint): The numerical algorithm for the outer loop (e.g., Anderson Acceleration).
         damping (float): Damping factor for the update step :math:`D_{k+1} = (1-\\lambda)D_k + \\lambda D_{new}`.
         initial_distribution (Array | None): Initial guess for the distribution.
+    
+    Examples:
+        >>> # 1. Inner agent problem (e.g., Household optimization)
+        >>> inner_solver = ValueIterationSolver(...)
+        
+        >>> # 2. Market clearing logic (e.g., Supply = Demand)
+        >>> feedback = FunctionFeedback(func=WageFeedback, target_key="wage")
+        
+        >>> # 3. Dynamics (Law of Motion)
+        >>> dynamics = SimpleDynamics()
+        
+        >>> # 4. Equilibrium Solver
+        >>> eq_solver = EquilibriumSolver(
+        ...     inner_solver=inner_solver,
+        ...     feedback=feedback,
+        ...     dynamics=dynamics,
+        ...     damping=0.5
+        ... )
+        
+        >>> # Solve for stationary equilibrium
+        >>> result = eq_solver.solve(params, model)
     """
     # ---------------------------------------------------------------
     # 1. Structural Components (The "What")

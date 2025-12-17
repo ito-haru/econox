@@ -34,6 +34,25 @@ class ValueIterationSolver(eqx.Module):
         
         If provided, both must be present and have the same shape.
     
+    Examples:
+        >>> # Define structural components
+        >>> utility = MyUtilityFunction()
+        >>> dist = Type1ExtremeValue()
+        
+        >>> # Initialize solver
+        >>> solver = ValueIterationSolver(
+        ...     utility=utility,
+        ...     dist=dist,
+        ...     discount_factor=0.99
+        ... )
+        
+        >>> # Solve the model
+        >>> result = solver.solve(params, model)
+        
+        >>> # Access results
+        >>> EV = result.solution  # Expected Value Function EV(s)
+        >>> P = result.profile    # Choice Probabilities P(a|s)
+    
     """
     utility: Utility
     dist: Distribution

@@ -12,7 +12,7 @@ from jax.flatten_util import ravel_pytree
 from typing import Any
 from jaxtyping import PyTree, Scalar, Array
 
-from econox.protocols import FeedbackMechanism, StructuralModel, Solver, Utility, Distribution
+from econox.protocols import StructuralModel, Solver
 from econox.methods.base import EstimationMethod
 from econox.structures import ParameterSpace, EstimationResult
 from econox.optim import Minimizer, MinimizerResult
@@ -38,6 +38,25 @@ class Estimator(eqx.Module):
         solver: Solver | None - Solver to compute model solutions. Not required for reduced-form estimation.
         optimizer: Minimizer - Optimization strategy for minimizing the loss.
         verbose: bool - If True, enables detailed logging for debugging.
+    
+    Examples:
+        >>> # 1. Setup components
+        >>> model = Model.from_data(...)
+        >>> param_space = ParameterSpace.create(...)
+        >>> solver = ValueIterationSolver(utility=..., dist=..., discount_factor=0.95)
+        >>> method = MaximumLikelihood(model_key="choice_probs", obs_key="actions")
+        
+        >>> # 2. Initialize Estimator
+        >>> estimator = Estimator(
+        ...     model=model,
+        ...     param_space=param_space,
+        ...     solver=solver,
+        ...     method=method
+        ... )
+        
+        >>> # 3. Run estimation
+        >>> result = estimator.fit(observations=data)
+        >>> print(result.params)
     """
     model: StructuralModel
     param_space: ParameterSpace
@@ -70,7 +89,14 @@ class Estimator(eqx.Module):
             force_numerical: If True, forces numerical optimization even if an analytical solution is available.
 
         Returns:
-            EstimationResult containing estimated parameters, final loss, and details.
+            EstimationResult containing:
+            * **params**: Estimated parameters (Constrained space).
+            * **loss**: Final loss value.
+            * **success**: Whether optimization was successful.
+            * **std_errors**: Standard errors of estimates (if computed).
+            * **vcov**: Variance-covariance matrix (if computed).
+            * **t_values**: t-statistics of estimates (if computed).
+            * **solver_result**: Final solver result (if applicable).
         """
         # =========================================================
         # 1. Try Analytical Solution (Priority)

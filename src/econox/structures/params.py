@@ -39,6 +39,26 @@ class ParameterSpace(eqx.Module):
     Handles the mapping between:
     1. Raw Parameters (Real space, R^n): For the optimizer.
     2. Model Parameters (Constrained space): For the economic model.
+
+    Examples:
+        >>> # Define initial values
+        >>> init_params = {
+        ...     "beta": 0.95,
+        ...     "sigma": 1.0,
+        ...     "alpha": 0.5,
+        ...     "gamma": 2.0
+        ... }
+        
+        >>> # Define constraints
+        >>> constraints = {
+        ...     "beta": "fixed",          # Not optimized
+        ...     "sigma": "positive",      # Domain: (0, inf)
+        ...     "alpha": "probability",   # Domain: (0, 1)
+        ...     "gamma": "free"           # Domain: (-inf, inf) (Default)
+        ... }
+        
+        >>> # Create the parameter space
+        >>> pspace = ParameterSpace.create(init_params, constraints)
     """
     
     # ---Fields (Immutable)---
@@ -72,6 +92,11 @@ class ParameterSpace(eqx.Module):
         """
         Factory method to initialize ParameterSpace.
         Validates keys, bounds, and fills default constraints ('free').
+
+        Args:
+            initial_params (Dict[str, Any]): Dictionary of initial parameter values.
+            constraints (Dict[str, ConstraintKind] | None): Optional dictionary specifying constraints for each parameter. Defaults to 'free' for unspecified parameters.
+            bounds (Dict[str, tuple[float, float]] | None): Optional dictionary specifying (lower, upper) bounds for 'bounded' parameters.
         """
         # Validate inputs
         if not initial_params:

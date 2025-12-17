@@ -142,7 +142,6 @@ class FixedPoint(eqx.Module):
 
         Args:
             step_fn (Callable[[PyTree, Any], PyTree]): The fixed-point function. Takes current value and args, returns next value.
-                The fixed-point function. Takes current value and args, returns next value.
             init_val (PyTree): Initial guess for the fixed-point iteration.
             args (Any, optional): Additional arguments passed to the fixed-point function.
         

@@ -27,10 +27,10 @@ class ValueIterationSolver(eqx.Module):
 
     Optional Data Keys:
         The solver looks for the following keys in `model.data` to enable 
-        terminal state approximation (EV(T-1) = EV(T)):
+        terminal state approximation (:math:`EV(T-1) = EV(T)`):
         
-        * "terminal_state_indices" (Int[Array, "n"]): Indices of states at T.
-        * "previous_state_indices" (Int[Array, "n"]): Indices of states at T-1 to copy from.
+        * **terminal_state_indices** (Int[Array, "n"]): Indices of states at :math:`T`.
+        * **previous_state_indices** (Int[Array, "n"]): Indices of states at :math:`T-1` to copy from.
         
         If provided, both must be present and have the same shape.
     
@@ -73,6 +73,7 @@ class ValueIterationSolver(eqx.Module):
 
         Returns:
             SolverResult: The result of the solver containing the solution and additional information containing:
+
             * **solution** (Array): The computed Expected Value Function :math:`EV(s)` (Integrated Value Function / Emax).
             * **profile** (Array): The Conditional Choice Probabilities (CCP) :math:`P(a|s)` derived from the value function.
             * **success** (Bool): Whether the solver converged successfully.

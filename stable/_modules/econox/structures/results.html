@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
-        <title>econox.structures.results - Econox 0.1.1 documentation</title>
+        <title>econox.structures.results - Econox 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.1 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.2 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.1 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.2 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -285,21 +285,12 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the result object to a directory using the &#39;Directory Bundle&#39; strategy.  </span>
 
-<span class="sd">        Parameters  </span>
-<span class="sd">        ----------  </span>
-<span class="sd">        path : Union[str, Path]  </span>
-<span class="sd">            The target directory path where the result will be saved.  </span>
-<span class="sd">        overwrite : bool, optional  </span>
-<span class="sd">            If True, overwrite the directory if it already exists. Default is False.  </span>
+<span class="sd">        Args: </span>
+<span class="sd">            path (Union[str, Path]): The target directory path where the result will be saved.  </span>
+<span class="sd">            overwrite (bool, optional): If True, overwrite the directory if it already exists. Default is False.   </span>
 
-<span class="sd">        Returns  </span>
-<span class="sd">        -------  </span>
-<span class="sd">        None  </span>
-
-<span class="sd">        Raises  </span>
-<span class="sd">        ------  </span>
-<span class="sd">        FileExistsError  </span>
-<span class="sd">            If the target directory already exists and `overwrite` is False.  </span>
+<span class="sd">        Raises: </span>
+<span class="sd">            FileExistsError: If the target directory already exists and `overwrite` is False.  </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">base_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">base_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -446,19 +437,13 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper to save arrays to CSV using Pandas.</span>
 <span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        arr : jax.Array or numpy.ndarray</span>
-<span class="sd">            The array to save. Must be a JAX array or NumPy array.</span>
-<span class="sd">        path : Path</span>
-<span class="sd">            The file path where the CSV will be saved.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            arr (jax.Array or numpy.ndarray): The array to save. Must be a JAX array or NumPy array.</span>
+<span class="sd">            path (Path): The file path where the CSV will be saved.</span>
 <span class="sd">            </span>
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        TypeError</span>
-<span class="sd">            If arr is not a JAX array or NumPy array.</span>
-<span class="sd">        ValueError</span>
-<span class="sd">            If arr is empty or has invalid dimensions.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: If arr is not a JAX array or NumPy array.</span>
+<span class="sd">            ValueError: If arr is empty or has invalid dimensions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Validate input type</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
@@ -492,16 +477,20 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">solution</span><span class="p">:</span> <span class="n">PyTree</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Main solution returned by the solver (the fixed point).</span>
-<span class="sd">    - **DP**: Value function $V(s)$.</span>
-<span class="sd">    - **GE**: Equilibrium allocations (e.g., Population Distribution $D$) or Prices $P$.</span>
+
+<span class="sd">    - **DP**: Expected Value Function :math:`EV(s)` (Integrated Value Function / Emax).</span>
+<span class="sd">      Represents the expected value *before* the realization of the shock :math:`\epsilon`.</span>
+<span class="sd">    - **GE**: Equilibrium allocations (e.g., Population Distribution :math:`D`) or Prices :math:`P`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">profile</span><span class="p">:</span> <span class="n">PyTree</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Associated profile information derived from the solution.</span>
-<span class="sd">    - **DP**: Policy function / Choice probabilities $P(a|s)$.</span>
+
+<span class="sd">    - **DP**: Conditional Choice Probabilities (CCP) :math:`P(a|s)`.</span>
+<span class="sd">      The probability of choosing action :math:`a` given state :math:`s`.</span>
 <span class="sd">    - **GE**: Market prices (Wage, Rent) or aggregate states corresponding to the solution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -585,7 +574,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a58bc63e"></script>
+</div><script src="../../../_static/documentation_options.js?v=92734c54"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

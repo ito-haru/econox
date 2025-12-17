@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
-        <title>econox.protocols - Econox 0.1.1 documentation</title>
+        <title>econox.protocols - Econox 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">Econox 0.1.1 documentation</div></a>
+      <a href="../../index.html"><div class="brand">Econox 0.1.2 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.1 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.2 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -240,10 +240,14 @@
 <span></span><span class="c1"># src/econox/protocols.py</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Protocol definitions for the Econox framework.</span>
+
+<span class="sd">This module defines the core interfaces (contracts) that enable modularity.</span>
+<span class="sd">By adhering to these protocols, users can swap out components (e.g., changing </span>
+<span class="sd">utility functions or solver algorithms) without modifying the rest of the workflow.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeAlias</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">runtime_checkable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeAlias</span><span class="p">,</span> <span class="n">runtime_checkable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">PyTree</span>
 
 <span class="n">Scalar</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
@@ -257,8 +261,17 @@
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">StructuralModel</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Container that holds the &quot;environment&quot; of an economic model.</span>
-<span class="sd">    Contains state space, transition probabilities, constant data, etc.</span>
+<span class="sd">    Represents the economic environment (State Space and Constraints).</span>
+<span class="sd">    </span>
+<span class="sd">    In structural estimation, a model :math:`M` is defined by the tuple </span>
+<span class="sd">    :math:`(S, A, T, \\Omega)`, where:</span>
+<span class="sd">    </span>
+<span class="sd">    * :math:`S`: State space (num_states)</span>
+<span class="sd">    * :math:`A`: Action space (num_actions)</span>
+<span class="sd">    * :math:`T`: Time horizon (num_periods)</span>
+<span class="sd">    * :math:`\\Omega`: Information set / Data constants (data)</span>
+
+<span class="sd">    This protocol abstracts away the storage details of these elements.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span> <span class="o">...</span>
@@ -269,27 +282,30 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_periods</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Number of periods in the model.</span>
+<span class="sd">        Number of periods `T` in the model.</span>
 <span class="sd">        Should be a positive integer for finite horizon or `np.inf` for infinite horizon.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="o">...</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PyTree</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Holds environment constants (features, matrices, etc.).</span>
-<span class="sd">        Ideally a PyTree (dict, NamedTuple, etc.).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Immutable constants :math:`\\Omega` (features, matrices, etc.).&quot;&quot;&quot;</span>
         <span class="o">...</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PyTree</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transition logic or matrix (e.g., P(s&#39;|s,a) or Adjacency).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transition structure (e.g., transition matrix or adjacency).</span>
+<span class="sd">        Corresponds to :math:`P(s&#39; | s, a)`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="o">...</span>
         
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">availability</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PyTree</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Availability mask for actions.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Feasible action set :math:`A(s)`.</span>
+<span class="sd">        Boolean mask of shape (num_states, num_actions).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="o">...</span>
     <span class="c1"># ----------------------------------------------------------------</span>
 
@@ -320,12 +336,15 @@
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Utility</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Utility function (Instantaneous Utility / Reward).</span>
-<span class="sd">    Takes parameters and data, returns a utility matrix of shape (n_states, n_actions).</span>
+<span class="sd">    Structural Utility Function :math:`u(s, a; \\theta)`.</span>
+<span class="sd">    </span>
+<span class="sd">    Defines the instantaneous payoff an agent receives from taking action :math:`a`</span>
+<span class="sd">    in state :math:`s`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Utility.compute_flow_utility">
 <a class="viewcode-back" href="../../api_reference.html#econox.protocols.Utility.compute_flow_utility">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compute_flow_utility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;n_states n_actions&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates the utility matrix given parameters and model state.&quot;&quot;&quot;</span>
         <span class="o">...</span></div>
 </div>
 
@@ -335,20 +354,30 @@
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Distribution</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Distribution of error terms (Stochasticity).</span>
-<span class="sd">    Provides computation logic for expected maximum value (Emax) and choice probabilities (P).</span>
+<span class="sd">    Stochastic Shock Distribution :math:`F(\\epsilon)`.</span>
+<span class="sd">    </span>
+<span class="sd">    Defines the properties of the unobserved state variables (error terms).</span>
+<span class="sd">    Handles the smoothing of the max operator (Emax) and choice probabilities (CCP).</span>
+<span class="sd">    </span>
+<span class="sd">    Common examples: Type-I Extreme Value (Logit), Normal (Probit).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Distribution.expected_max">
 <a class="viewcode-back" href="../../api_reference.html#econox.protocols.Distribution.expected_max">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">expected_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;n_states n_actions&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;n_states&quot;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;E[max(v + epsilon)]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the expected maximum value: </span>
+<span class="sd">        :math:`E[\\max_a (v(s, a) + \\epsilon(a))]`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="o">...</span></div>
 
 
 <div class="viewcode-block" id="Distribution.choice_probabilities">
 <a class="viewcode-back" href="../../api_reference.html#econox.protocols.Distribution.choice_probabilities">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">choice_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;n_states n_actions&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;n_states n_actions&quot;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;P(a|s)&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes conditional choice probabilities (CCP):</span>
+<span class="sd">        :math:`P(a | s) = P(v(s, a) + \\epsilon(a) \\ge v(s, a&#39;) + \\epsilon(a&#39;), \\forall a&#39;)`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="o">...</span></div>
 </div>
 
@@ -358,12 +387,15 @@
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">FeedbackMechanism</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Equilibrium feedback (General Equilibrium / Game Interaction).</span>
-<span class="sd">    Receives aggregated results and updates model state (such as prices).</span>
+<span class="sd">    Equilibrium/Market Clearing Condition.</span>
+<span class="sd">    </span>
+<span class="sd">    Defines how aggregate agent behaviors affect the environment (e.g., prices, congestion).</span>
+<span class="sd">     Mathematically: :math:`\\Omega&#39; = \\Gamma(\\sigma, \\Omega)`, where :math:`\\sigma` is the policy.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="FeedbackMechanism.update">
 <a class="viewcode-back" href="../../api_reference.html#econox.protocols.FeedbackMechanism.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">current_result</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StructuralModel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the model environment based on the current solution.&quot;&quot;&quot;</span>
         <span class="o">...</span></div>
 </div>
 
@@ -373,8 +405,10 @@
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Dynamics</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Protocol for the Law of Motion logic.</span>
-<span class="sd">    Physics: D_{t+1} = f(D_t, Policy_t, Model)</span>
+<span class="sd">    State Transition Law of Motion :math:`s&#39; = f(s, a, \\xi)`.</span>
+<span class="sd">    </span>
+<span class="sd">    Defines how the distribution of agents over states evolves over time.</span>
+<span class="sd">    Used for simulation and calculating steady-state distributions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> 
@@ -382,6 +416,7 @@
         <span class="n">policy</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;num_states num_actions&quot;</span><span class="p">],</span> 
         <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;num_states&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes :math:`D_{t+1}` given :math:`D_t` and Policy.&quot;&quot;&quot;</span>
         <span class="o">...</span></div>
 
 
@@ -394,8 +429,14 @@
 <span class="nd">@runtime_checkable</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Solver</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computational engine.</span>
-<span class="sd">    Uses Utility and Distribution to solve for fixed points or optimal policies.</span>
+<span class="sd">    Computational Engine for the Model.</span>
+<span class="sd">    </span>
+<span class="sd">    A Solver finds the solution (Policy function / Value function) that satisfies</span>
+<span class="sd">    the optimality conditions defined by the Model Primitives.</span>
+<span class="sd">    </span>
+<span class="sd">    Implementation Note:</span>
+<span class="sd">        Concrete solvers should store their specific logic (Utility, Distribution)</span>
+<span class="sd">        internally. The `solve` method strictly takes the parameters and the environment.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Solver.solve">
 <a class="viewcode-back" href="../../api_reference.html#econox.protocols.Solver.solve">[docs]</a>
@@ -403,10 +444,17 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span><span class="p">,</span> 
-        <span class="n">utility</span><span class="p">:</span> <span class="n">Utility</span><span class="p">,</span> 
-        <span class="n">dist</span><span class="p">:</span> <span class="n">Distribution</span><span class="p">,</span> 
-        <span class="n">feedback</span><span class="p">:</span> <span class="n">FeedbackMechanism</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the solution algorithm.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params: Structural parameters :math:`\\theta`.</span>
+<span class="sd">            model: The economic environment :math:`(S, A, ...)`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Any: A result object (e.g., SolverResult) containing the solution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="o">...</span></div>
 </div>
 
@@ -442,7 +490,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=a58bc63e"></script>
+</div><script src="../../_static/documentation_options.js?v=92734c54"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

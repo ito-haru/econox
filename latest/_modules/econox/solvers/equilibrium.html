@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
-        <title>econox.solvers.equilibrium - Econox 0.0.post1.dev1 documentation</title>
+        <title>econox.solvers.equilibrium - Econox 0.1.1.post1.dev4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.0.post1.dev1)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.1.post1.dev4)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.0.post1.dev1 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.1.post1.dev4 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.0.post1.dev1 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.1.post1.dev4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,6 +276,27 @@
 <span class="sd">        numerical_solver (FixedPoint): The numerical algorithm for the outer loop (e.g., Anderson Acceleration).</span>
 <span class="sd">        damping (float): Damping factor for the update step :math:`D_{k+1} = (1-\\lambda)D_k + \\lambda D_{new}`.</span>
 <span class="sd">        initial_distribution (Array | None): Initial guess for the distribution.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # 1. Inner agent problem (e.g., Household optimization)</span>
+<span class="sd">        &gt;&gt;&gt; inner_solver = ValueIterationSolver(...)</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; # 2. Market clearing logic (e.g., Supply = Demand)</span>
+<span class="sd">        &gt;&gt;&gt; feedback = FunctionFeedback(func=WageFeedback, target_key=&quot;wage&quot;)</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; # 3. Dynamics (Law of Motion)</span>
+<span class="sd">        &gt;&gt;&gt; dynamics = SimpleDynamics()</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; # 4. Equilibrium Solver</span>
+<span class="sd">        &gt;&gt;&gt; eq_solver = EquilibriumSolver(</span>
+<span class="sd">        ...     inner_solver=inner_solver,</span>
+<span class="sd">        ...     feedback=feedback,</span>
+<span class="sd">        ...     dynamics=dynamics,</span>
+<span class="sd">        ...     damping=0.5</span>
+<span class="sd">        ... )</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; # Solve for stationary equilibrium</span>
+<span class="sd">        &gt;&gt;&gt; result = eq_solver.solve(params, model)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># ---------------------------------------------------------------</span>
     <span class="c1"># 1. Structural Components (The &quot;What&quot;)</span>
@@ -301,19 +322,16 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Solves for the fixed point of the structural model using equilibrium conditions.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        params : PyTree</span>
-<span class="sd">            Model parameters.</span>
-<span class="sd">        model : StructuralModel</span>
-<span class="sd">            The structural model instance.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            params (PyTree): Model parameters.</span>
+<span class="sd">            model (StructuralModel): The structural model instance.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        SolverResult</span>
-<span class="sd">            solution: Equilibrium Distribution D*</span>
-<span class="sd">            profile: Equilibrium Policy P*</span>
-<span class="sd">            inner_result: Full result from the inner solver (Value Function etc.)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            SolverResult: The result object containing:</span>
+
+<span class="sd">            * **solution**: Equilibrium Distribution :math:`D^*`</span>
+<span class="sd">            * **profile**: Equilibrium Policy :math:`P^*`</span>
+<span class="sd">            * **inner_result**: Full result from the inner solver (Value Function etc.)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">feedback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feedback</span>
         <span class="n">dynamics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamics</span>
@@ -410,7 +428,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=42336cb0"></script>
+</div><script src="../../../_static/documentation_options.js?v=101ae65c"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

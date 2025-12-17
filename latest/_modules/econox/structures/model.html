@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
-        <title>econox.structures.model - Econox 0.0.post1.dev1 documentation</title>
+        <title>econox.structures.model - Econox 0.1.1.post1.dev4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.0.post1.dev1)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.1.post1.dev4)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.0.post1.dev1 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.1.post1.dev4 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.0.post1.dev1 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.1.post1.dev4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -266,10 +266,10 @@
     <span class="c1"># ---Required Fields (Protocol: StructuralModel)---</span>
     
     <span class="n">num_states</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total cardinality of the state space ($S$). Used to determine array shapes.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total cardinality of the state space (:math:`S`). Used to determine array shapes.&quot;&quot;&quot;</span>
     
     <span class="n">num_actions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total cardinality of the action space ($A$).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total cardinality of the action space (:math:`A`).&quot;&quot;&quot;</span>
     
     <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;...&quot;</span><span class="p">]]</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -277,14 +277,14 @@
 <span class="sd">    </span>
 <span class="sd">    Keys are identifiers (e.g., &#39;wage&#39;, &#39;distance&#39;, &#39;rent&#39;) that must match </span>
 <span class="sd">    the keys expected by the `Utility` component. Values are typically JAX arrays </span>
-<span class="sd">    of shape $(S, A)$, $(S,)$, or scalars.</span>
+<span class="sd">    of shape (:math:`S`, :math:`A`), (:math:`S`,), or scalars.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># ---Optional Fields &amp; Protocol Extensions---</span>
     
     <span class="n">num_periods</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Time horizon ($T$) of the model.</span>
+<span class="sd">    Time horizon (:math:`T`) of the model.</span>
 <span class="sd">    </span>
 <span class="sd">    * `np.inf`: Infinite horizon (default).</span>
 <span class="sd">    * `int`: Finite horizon.</span>
@@ -293,7 +293,7 @@
     <span class="n">availability</span><span class="p">:</span> <span class="n">Int</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;num_states num_actions&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Binary mask indicating feasible actions. </span>
-<span class="sd">    Shape $(S, A)$. `1` (or `True`) indicates action $a$ is available in state $s$, </span>
+<span class="sd">    Shape (:math:`S`, :math:`A`). `1` (or `True`) indicates action :math:`a` is available in state :math:`s`, </span>
 <span class="sd">    while `0` (or `False`) indicates it is physically impossible.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
@@ -302,7 +302,7 @@
 <span class="sd">    Exogenous transition structure.</span>
 <span class="sd">    </span>
 <span class="sd">    Depending on the model type, this could be:</span>
-<span class="sd">    * Transition Probability Matrix: $P(s&#39; | s, a)$</span>
+<span class="sd">    * Transition Probability Matrix: :math:`P(s&#39; | s, a)`</span>
 <span class="sd">    * Adjacency Matrix (for spatial models)</span>
 <span class="sd">    * Deterministic mapping logic</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -332,8 +332,8 @@
 <span class="sd">        with JIT compilation.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            num_states: Total number of states ($S$). Must be positive.</span>
-<span class="sd">            num_actions: Total number of actions ($A$). Must be positive.</span>
+<span class="sd">            num_states: Total number of states (:math:`S`). Must be positive.</span>
+<span class="sd">            num_actions: Total number of actions (:math:`A`). Must be positive.</span>
 <span class="sd">            data: Dictionary of feature matrices (e.g., `{&#39;wage&#39;: [...]}`).</span>
 <span class="sd">                  Keys should be strings, values can be lists, NumPy arrays, or JAX arrays.</span>
 <span class="sd">            availability: Optional mask for feasible actions. Shape must be (num_states, num_actions).</span>
@@ -506,7 +506,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=42336cb0"></script>
+</div><script src="../../../_static/documentation_options.js?v=101ae65c"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

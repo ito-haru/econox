@@ -8,7 +8,16 @@ Workflow (High-Level API)
 -------------------------
 The primary interface for managing the estimation workflow.
 
+Estimator
+^^^^^^^^^^^^^^^^
 .. automodule:: econox.workflow.estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Simulator
+^^^^^^^^^^^^^^^^
+.. automodule:: econox.workflow.simulator
    :members:
    :undoc-members:
    :show-inheritance:

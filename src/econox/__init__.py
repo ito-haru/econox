@@ -42,7 +42,7 @@ from econox.logic import (
 from econox.solvers import ValueIterationSolver, EquilibriumSolver
 
 # 4. Workflow (High-level APIs)
-from econox.workflow import Estimator      #, Simulator
+from econox.workflow import Estimator, Simulator, simulator_objective_from_func, SimulatorObjective, Scenario
 
 # 5. Methods (Estimation Techniques)
 from econox.methods import MaximumLikelihood, GaussianMomentMatch, CompositeMethod, LeastSquares, TwoStageLeastSquares
@@ -70,6 +70,10 @@ __all__ = [
     "EquilibriumSolver",
     # Workflow
     "Estimator",
+    "Scenario",
+    "SimulatorObjective",
+    "Simulator",
+    "simulator_objective_from_func",
     # Methods
     "MaximumLikelihood",
     "GaussianMomentMatch",

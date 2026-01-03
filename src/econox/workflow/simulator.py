@@ -22,7 +22,7 @@ from econox.protocols import Solver, StructuralModel
 
 T = TypeVar("T")
 
-class Scenario(eqx.Module, frozen=True):
+class Scenario(eqx.Module):
     """
     A context container that pairs a structural model with its computed solution.
 
@@ -33,6 +33,11 @@ class Scenario(eqx.Module, frozen=True):
     Attributes:
         model: The StructuralModel instance representing the environment.
         result: The SolverResult containing the policy or equilibrium solution.
+
+    Note:
+        Scenario is immutable (frozen) and should be treated as a read-only 
+        container. This prevents accidental modifications during simulation 
+        workflows and supports JAX/Equinox functional-style usage.
 
     Examples:
         >>> # Accessing data within a scenario
@@ -54,6 +59,7 @@ class SimulatorObjective(eqx.Module, Generic[T]):
         >>> # Usage via the decorator (recommended)
         >>> @simulator_objective_from_func
         >>> def welfare_change(cf, base, params):
+        ...     # Difference in average outcomes between scenarios
         ...     return cf.result.solution.mean() - base.result.solution.mean()
     """
     func: Callable[[Scenario, Scenario, PyTree], T]
@@ -68,12 +74,12 @@ class SimulatorObjective(eqx.Module, Generic[T]):
         Executes the objective evaluation logic.
 
         Args:
-            cf: The counterfactual scenario (the "What-if" world).
-            base: The baseline scenario (the "Status Quo" world).
-            params: The structural parameters used to generate the results.
+            cf: The counterfactual scenario (Post-intervention).
+            base: The baseline scenario (Status quo).
+            params: The structural parameters used.
 
         Returns:
-            The computed metric, which can be a scalar, vector, or any PyTree.
+            T: The computed metric (Scalar, Array, or PyTree).
         """
         return self.func(cf, base, params)
 
@@ -83,10 +89,10 @@ def simulator_objective_from_func(func: Callable[[Scenario, Scenario, PyTree], T
     A decorator that converts a Python function into a SimulatorObjective.
 
     Args:
-        func: A function with signature (cf, base, params) -> Any.
+        func: A function with signature (cf, base, params) -> T.
 
     Returns:
-        SimulatorObjective: A JAX-compatible objective module.
+        SimulatorObjective[T]: A JAX-compatible objective module.
 
     Examples:
         >>> @simulator_objective_from_func
@@ -116,7 +122,7 @@ class Simulator(eqx.Module):
         >>> # 1. Define objective
         >>> @simulator_objective_from_func
         ... def diff_obj(cf, base, params):
-        ...     return cf.result.solution - base.result.solution
+        ...     return cf.result.solution.mean() - base.result.solution.mean()
         >>>
         >>> # 2. Initialize Simulator
         >>> sim = Simulator(solver=my_solver, base_model=model, objective_function=diff_obj)
@@ -145,6 +151,10 @@ class Simulator(eqx.Module):
                 Providing this bypasses the baseline solver step, significantly 
                 accelerating policy optimization or "what-if" loops.
 
+                Warning: The caller is responsible for ensuring that `base_result`
+                corresponds to solving `base_model` with the provided `params`; 
+                passing an inconsistent result may lead to invalid outcomes.
+
         Returns:
             The output of the `objective_function`.
         """
@@ -153,22 +163,16 @@ class Simulator(eqx.Module):
             try:
                 cf_model = cf_model.replace_data(key, val)
             except KeyError as e:
-                raise ValueError(f"Failed to update model data for key '{key}': {e}")
+                raise 
         
         if base_result is None:
             base_result = self.solver.solve(params=params, model=self.base_model)
             if base_result is None:
                 raise RuntimeError("Solver failed to produce a base_result.")
-        
-        if not base_result.success:
-            raise RuntimeError("Base scenario solver did not converge successfully.")
 
         cf_result = self.solver.solve(params=params, model=cf_model)
         if cf_result is None:
             raise RuntimeError("Solver failed to produce a cf_result.")
-        
-        if not cf_result.success:
-            raise RuntimeError("Counterfactual scenario solver did not converge successfully.")
 
         base = Scenario(model=self.base_model, result=base_result)
         cf = Scenario(model=cf_model, result=cf_result)

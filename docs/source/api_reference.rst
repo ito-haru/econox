@@ -13,6 +13,11 @@ The primary interface for managing the estimation workflow.
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: econox.workflow.simulator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Core Interfaces (Protocols)
 ---------------------------
 Abstract base classes and protocols defining the contract for custom components.

@@ -243,7 +243,7 @@ def test_fixed_parameter_with_variance_dynamic_model():
         "choice_indices": jnp.array(choices)
     }
     
-    # Estimation with fixed discount factor
+    # Estimation with fixed beta_2
     initial_params = {"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1}
     param_space = ParameterSpace.create(
         initial_params=initial_params,
@@ -284,12 +284,6 @@ def test_fixed_parameter_with_variance_dynamic_model():
     
     # Verify fixed parameter has zero or near-zero std error
     assert result.std_errors["beta_2"] < 1e-6, "Fixed parameter should have zero std error"
-    
-    print(f"\nEstimated Parameters: {result.params}")
-    print(f"Standard Errors: {result.std_errors}")
-    print(f"beta_0: {result.params['beta_0']:.4f} ± {result.std_errors['beta_0']:.4f}")
-    print(f"beta_1: {result.params['beta_1']:.4f} ± {result.std_errors['beta_1']:.4f}")
-    print(f"beta_2: {result.params['beta_2']:.4f} ± {result.std_errors['beta_2']:.4f}")
 
 # =============================================================================
 # 2SLS Tests

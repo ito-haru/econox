@@ -9,6 +9,7 @@ Focuses on:
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 import pytest
 
 from econox import (
@@ -17,8 +18,13 @@ from econox import (
     Estimator,
     LeastSquares,
     CompositeMethod,
-    TwoStageLeastSquares
+    TwoStageLeastSquares,
+    MaximumLikelihood,
+    ValueIterationSolver,
+    LinearUtility,
+    GumbelDistribution,
 )
+from econox.methods.variance import Hessian
 
 # =============================================================================
 # Fixtures
@@ -173,6 +179,111 @@ def test_fixed_parameter(simple_model, linear_data):
     # Verification
     assert result.params["intercept"] == 10.0, "Fixed parameter 'intercept' changed!"
     assert result.params["beta_0"] != 0.0, "Free parameter 'beta_0' did not update."
+
+
+def test_fixed_parameter_with_variance_dynamic_model():
+    """
+    Test variance calculation (Hessian) with fixed parameters in dynamic discrete choice model.
+    Uses MaximumLikelihood to ensure Hessian-based variance is computed.
+    Verifies that:
+    1. Fixed parameters have zero standard errors
+    2. Free parameters have non-zero standard errors
+    3. No shape mismatch errors occur during variance computation
+    """
+    # Simple 2-state, 2-action model
+    num_states = 2
+    num_actions = 2
+    
+    features = jnp.array([
+        [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],  # State 0
+        [[1.0, 1.0, 0.0], [0.0, 0.5, 0.0]],  # State 1
+    ])
+    
+    transitions = jnp.array([
+        [0.7, 0.3],  # State 0, Action 0
+        [0.4, 0.6],  # State 0, Action 1
+        [0.6, 0.4],  # State 1, Action 0
+        [0.3, 0.7],  # State 1, Action 1
+    ])
+    
+    model = Model.from_data(
+        num_states=num_states,
+        num_actions=num_actions,
+        data={"features": features},
+        transitions=transitions,
+        num_periods=np.inf
+    )
+    
+    # True parameters
+    true_params = {"beta_0": 1.0, "beta_1": 0.5, "beta_2": 0.1}
+    
+    # Generate synthetic data
+    utility = LinearUtility(param_keys=("beta_0", "beta_1", "beta_2"), feature_key="features")
+    dist = GumbelDistribution()
+    solver = ValueIterationSolver(
+        utility=utility,
+        dist=dist,
+        discount_factor=0.9
+    )
+    
+    result_true = solver.solve(true_params, model)
+    choice_probs = result_true.profile
+    
+    # Generate observations
+    np.random.seed(42)
+    n_obs = 5000
+    states = np.random.randint(0, num_states, size=n_obs)
+    choices = np.array([
+        np.random.choice(num_actions, p=np.array(choice_probs[s]))
+        for s in states
+    ])
+    
+    observations = {
+        "state_indices": jnp.array(states),
+        "choice_indices": jnp.array(choices)
+    }
+    
+    # Estimation with fixed beta_2
+    initial_params = {"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1}
+    param_space = ParameterSpace.create(
+        initial_params=initial_params,
+        constraints={"beta_2": "fixed"}
+    )
+    
+    method = MaximumLikelihood(variance=Hessian())
+    
+    estimator = Estimator(
+        model=model,
+        param_space=param_space,
+        solver=ValueIterationSolver(
+            utility=LinearUtility(param_keys=("beta_0", "beta_1", "beta_2"), feature_key="features"),
+            dist=GumbelDistribution(),
+            discount_factor=0.9
+        ),
+        method=method
+    )
+    
+    result = estimator.fit(observations, sample_size=n_obs)
+    
+    # Verify estimation success
+    assert result.success, "Estimation failed"
+    assert result.std_errors is not None, "Standard errors not computed"
+    assert result.vcov is not None, "Variance-covariance matrix not computed"
+    
+    # Verify fixed parameter constraint
+    assert result.params["beta_2"] == 0.1, "Fixed parameter changed"
+    
+    # Verify standard errors structure
+    assert "beta_0" in result.std_errors, "Missing std error for beta_0"
+    assert "beta_1" in result.std_errors, "Missing std error for beta_1"
+    assert "beta_2" in result.std_errors, "Missing std error for beta_2"
+    
+    # Verify free parameters have positive std errors
+    assert result.std_errors["beta_0"] > 0.0, "Free parameter should have positive std error"
+    assert result.std_errors["beta_1"] > 0.0, "Free parameter should have positive std error"
+    
+    # Verify fixed parameter has zero or near-zero std error
+    assert result.std_errors["beta_2"] == 0, "Fixed parameter should have zero std error"
 
 # =============================================================================
 # 2SLS Tests

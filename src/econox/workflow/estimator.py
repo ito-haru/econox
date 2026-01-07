@@ -191,8 +191,8 @@ class Estimator(eqx.Module):
         )
 
         # 4. Process Results
-        final_raw_params = opt_result.params
-        final_constrained_params = self.param_space.transform(final_raw_params)
+        final_raw_params_free = opt_result.params
+        final_constrained_params = self.param_space.transform(final_raw_params_free)
         final_loss = opt_result.loss
         
         if solver is not None:
@@ -205,66 +205,52 @@ class Estimator(eqx.Module):
         # =========================================================
         # 3. Statistical Inference (Variance Calculation)
         # =========================================================
-
         std_errors = None
         vcov = None
 
         if opt_result.success and final_N is not None and self.method.variance is not None:
             try:
-                # A. Flatten Raw Params
-                flat_raw_params, unravel_fn = ravel_pytree(final_raw_params)
-                
-                # B. Handle Fixed Parameters Masking
-                fixed_mask_pytree = self.param_space.fixed_mask
-                flat_fixed_mask, _ = ravel_pytree(fixed_mask_pytree)
-                is_free = jnp.logical_not(flat_fixed_mask)
-                flat_free_params = flat_raw_params[is_free]
-                
-                # C. Define wrapper loss for free params only (for Hessian)
+                # A. Create separate unravel functions for raw and constrained spaces
+                # Use the actual optimization results as templates to ensure structure matching
+                _, unravel_raw_fn = ravel_pytree(final_raw_params_free)
+                _, unravel_constrained_fn = ravel_pytree(final_constrained_params)
+
+                # B. Get flat vector of free parameters (optimizer output)
+                flat_raw_params_free, _ = ravel_pytree(final_raw_params_free)
+
+                # C. Define wrapper loss for free params only
+                # Must match the structure used during JIT-compilation of loss_fn
                 def loss_fn_for_inference(free_params_vec: Array) -> Scalar:
-                    full_params_vec = flat_raw_params.at[is_free].set(free_params_vec)
-                    raw_pytree = unravel_fn(full_params_vec)
+                    raw_pytree = unravel_raw_fn(free_params_vec)
                     return loss_fn(raw_pytree, observations)
 
-                # D. Compute Variance in FREE Raw Space using Method's Variance Logic
-                # Note: We mainly need the covariance matrix (vcov_free) to propagate via Delta Method
+                # D. Compute variance in the free raw space
                 _, vcov_free = self.method.variance.compute(
                     loss_fn=loss_fn_for_inference,
-                    params=flat_free_params,
+                    params=flat_raw_params_free,
                     observations=observations,
                     num_observations=final_N
-                )
+                    )
 
                 if vcov_free is not None:
-                    # E. Expand to Full Raw Space (N x N) - Fill fixed params with 0
-                    n_total = flat_raw_params.shape[0]
-                    vcov_raw = jnp.zeros((n_total, n_total))
-                    
-                    free_indices = jnp.where(is_free)[0]
-                    ix_grid, iy_grid = jnp.meshgrid(free_indices, free_indices, indexing='ij')
-                    vcov_raw = vcov_raw.at[ix_grid, iy_grid].set(vcov_free)
-
-                    # F. Delta Method: Raw Space -> Constrained (Model) Space
-                    # Cov(Model) = J @ Cov(Raw) @ J.T
-                    def transform_flat(flat_raw_vec):
-                        p_raw = unravel_fn(flat_raw_vec)
-                        p_model = self.param_space.transform(p_raw)
+                    # E. Delta method: Map free raw vector -> full constrained vector
+                    # This handles the transformation and internal fixed-parameter filling
+                    def transform_flat(free_vec):
+                        p_raw = unravel_raw_fn(free_vec)
+                        p_model = self.param_space.transform(p_raw) # Fills fixed params internally
                         p_model_flat, _ = ravel_pytree(p_model)
                         return p_model_flat
-                    
-                    # Calculate Jacobian of the transformation
-                    J = jax.jacfwd(transform_flat)(flat_raw_params)
-                    
-                    # Apply transformation
-                    vcov_model_flat = J @ vcov_raw @ J.T
+
+                    # Jacobian of the transformation: (n_total, n_free)
+                    J = jax.jacfwd(transform_flat)(flat_raw_params_free)
+            
+                    # Project variance to constrained space
+                    vcov_model_flat = J @ vcov_free @ J.T
                     vcov = vcov_model_flat
-                    
-                    # Extract Standard Errors (sqrt of diagonal)
+            
+                    # Extract standard errors and unravel to constrained PyTree structure
                     std_errors_flat = jnp.sqrt(jnp.maximum(jnp.diag(vcov_model_flat), 0.0))
-                    
-                    # Reshape back to PyTree
-                    _, unravel_model_fn = ravel_pytree(final_constrained_params)
-                    std_errors = unravel_model_fn(std_errors_flat)
+                    std_errors = unravel_constrained_fn(std_errors_flat)
                 
                 else:
                     if self.verbose:

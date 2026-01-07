@@ -283,7 +283,7 @@ def test_fixed_parameter_with_variance_dynamic_model():
     assert result.std_errors["beta_1"] > 0.0, "Free parameter should have positive std error"
     
     # Verify fixed parameter has zero or near-zero std error
-    assert result.std_errors["beta_2"] < 1e-6, "Fixed parameter should have zero std error"
+    assert result.std_errors["beta_2"] == 0, "Fixed parameter should have zero std error"
 
 # =============================================================================
 # 2SLS Tests

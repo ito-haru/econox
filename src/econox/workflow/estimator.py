@@ -191,8 +191,8 @@ class Estimator(eqx.Module):
         )
 
         # 4. Process Results
-        final_raw_params = opt_result.params
-        final_constrained_params = self.param_space.transform(final_raw_params)
+        final_raw_params_free = opt_result.params
+        final_constrained_params = self.param_space.transform(final_raw_params_free)
         final_loss = opt_result.loss
         
         if solver is not None:
@@ -212,11 +212,11 @@ class Estimator(eqx.Module):
             try:
                 # A. Create separate unravel functions for raw and constrained spaces
                 # Use the actual optimization results as templates to ensure structure matching
-                _, unravel_raw_fn = ravel_pytree(final_raw_params)
+                _, unravel_raw_fn = ravel_pytree(final_raw_params_free)
                 _, unravel_constrained_fn = ravel_pytree(final_constrained_params)
 
                 # B. Get flat vector of free parameters (optimizer output)
-                flat_raw_params_free, _ = ravel_pytree(final_raw_params)
+                flat_raw_params_free, _ = ravel_pytree(final_raw_params_free)
 
                 # C. Define wrapper loss for free params only
                 # Must match the structure used during JIT-compilation of loss_fn

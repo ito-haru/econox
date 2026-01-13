@@ -211,7 +211,7 @@ class LinearMethod(EstimationMethod):
             success=jnp.array(True),
             std_errors=self._format_params(std_errors, p_names),
             vcov=vcov_final,
-            r_squared=r_squared,
+            diagnostics={"r_squared": r_squared},
             meta={
                 "estimator": self.__class__.__name__, 
                 "method": "analytical", 

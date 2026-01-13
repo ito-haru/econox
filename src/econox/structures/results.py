@@ -23,7 +23,6 @@ from econox.config import (
     SUMMARY_STRING_MAX_LENGTH,
     FLATTEN_MULTIDIM_ARRAYS,
     SUMMARY_FIELD_WIDTH,
-    SUMMARY_DICT_KEY_WIDTH,
     SUMMARY_SEPARATOR_LENGTH,
 )
 
@@ -38,6 +37,48 @@ class ResultMixin:
     Provides a generic `save()` method for Result objects.
     Implements the 'Directory Bundle' strategy.
     """
+    def __repr__(self) -> str:
+        return self.summary(short=True, print_summary=False)
+
+    def summary(self, short: bool = False, print_summary: bool = True) -> str:
+        """
+        Generate a summary string of the result object.
+        Args:
+            short (bool, optional): If True, generate a shorter summary. Default is False.
+            print_summary (bool, optional): If True, print the summary to console. Default is True.
+        Returns:
+            str: The summary string.
+        """
+        lines = []
+        lines.append("=" * SUMMARY_SEPARATOR_LENGTH)
+        lines.append(f"{self.__class__.__name__} Summary".center(SUMMARY_SEPARATOR_LENGTH))
+        lines.append("=" * SUMMARY_SEPARATOR_LENGTH)
+
+        # Get all field names from eqx.Module (which is a dataclass)
+        field_names = []
+        if dataclasses.is_dataclass(self):
+            field_names = [f.name for f in dataclasses.fields(self)]
+        else:
+            # Fallback for non-dataclass objects
+            field_names = list(vars(self).keys())
+        
+        if short:
+            parts = [f"{self.__class__.__name__}(success={getattr(self, 'success', 'N/A')})"]
+            summary_text = " ".join(parts)
+        
+        else:
+            for field_name in field_names:
+                value = getattr(self, field_name)
+                display_str, _ = self._format_field_value(field_name, value)
+                lines.append(f"{field_name:<{SUMMARY_FIELD_WIDTH}} : {display_str}")
+
+            summary_text = "\n".join(lines)
+
+        if print_summary:
+            print(summary_text)
+
+        return summary_text
+        
     def save(self, path: Union[str, Path], overwrite: bool = False) -> None:
         """
         Save the result object to a directory using the 'Directory Bundle' strategy.  
@@ -62,15 +103,7 @@ class ResultMixin:
         base_path.mkdir(parents=True, exist_ok=True)
         data_dir = base_path / "data"
         data_dir.mkdir(exist_ok=True)
-
-        summary_lines = []
         metadata = {}
-        
-        # Header
-        class_name = self.__class__.__name__
-        summary_lines.append("=" * SUMMARY_SEPARATOR_LENGTH)
-        summary_lines.append(f"Result Report: {class_name}")
-        summary_lines.append("=" * SUMMARY_SEPARATOR_LENGTH + "\n")
 
         # Get all field names from eqx.Module (which is a dataclass)
         field_names = []
@@ -82,112 +115,100 @@ class ResultMixin:
 
         for field_name in field_names:
             value = getattr(self, field_name)
+            _, meta_value = self._format_field_value(field_name, value)
+
+            # Nested Result
+            if isinstance(value, ResultMixin):
+                value.save(base_path / field_name, overwrite=overwrite)
             
-            # 1. Nested Result (Recursive Save)
-            if hasattr(value, 'save') and isinstance(value, ResultMixin):
-                sub_path = base_path / field_name
-                value.save(sub_path, overwrite=overwrite)
-                summary_lines.append(f"{field_name:<{SUMMARY_FIELD_WIDTH}}: [Nested result saved in ./{field_name}/]")
-                metadata[field_name] = f"./{field_name}/"
-                continue
+            # Dictionary
+            elif isinstance(value, dict) and value:
+                dict_dir = base_path / field_name
+                dict_dir.mkdir(exist_ok=True)
+                metadata[field_name] = meta_value
             
-            # 2. Dictionary Fields (aux, meta)
-            if isinstance(value, dict):
-                if not value:
-                    summary_lines.append(f"{field_name:<{SUMMARY_FIELD_WIDTH}}: {{}}")
-                    metadata[field_name] = {}
-                else:
-                    dict_dir = base_path / field_name
-                    dict_dir.mkdir(exist_ok=True)
-
-                    summary_lines.append(f"{field_name:<{SUMMARY_FIELD_WIDTH}}: [Saved as dir ./{field_name}/]")
-                    dict_metadata = {}
-
-                    for k, v in value.items():
-                        # Handle nested arrays in dictionaries
-                        if isinstance(v, jax.Array):
-                            arr = jax.device_get(v)
-                            if arr.size < INLINE_ARRAY_SIZE_THRESHOLD and arr.ndim <= 1:
-                                arr_list = arr.tolist()
-                                summary_lines.append(f"  - {k:<{SUMMARY_DICT_KEY_WIDTH}}: {str(arr_list)[:SUMMARY_STRING_MAX_LENGTH]}")
-                                dict_metadata[k] = arr_list
-                            else:
-                                csv_name = f"{k}.csv"
-                                csv_path = dict_dir / csv_name
-                                self._save_array_to_csv(arr, csv_path)
-                                shape_str = str(arr.shape)
-                                summary_lines.append(f"  - {k:<{SUMMARY_DICT_KEY_WIDTH}}: [./{field_name}/{csv_name}] Shape={shape_str}")
-                                dict_metadata[k] = f"./{field_name}/{csv_name}"
-                        else:
-                            # Primitive values
-                            val_str = str(v)
-                            if len(val_str) > SUMMARY_STRING_MAX_LENGTH:
-                                val_str = val_str[:SUMMARY_STRING_MAX_LENGTH - 3] + "..."
-                            summary_lines.append(f"  - {k:<{SUMMARY_DICT_KEY_WIDTH}}: {val_str}")
-                            try:
-                                json.dumps(v)
-                                dict_metadata[k] = v
-                            except (TypeError, OverflowError):
-                                dict_metadata[k] = str(v)
-
-                    metadata[field_name] = dict_metadata
-                continue
-            
-            # 3. JAX Arrays
-            if isinstance(value, jax.Array):
-                arr = jax.device_get(value)
-                
-                # Scalar or Small Array -> Save in Text/JSON
-                if arr.size < INLINE_ARRAY_SIZE_THRESHOLD and arr.ndim <= 1:
-                    arr_list = arr.tolist()
-                    val_str = str(arr_list)
-                    summary_lines.append(f"{field_name:<{SUMMARY_FIELD_WIDTH}}: {val_str}")
-                    metadata[field_name] = arr_list
-                
-                # Large Array -> Save as CSV
-                else:
-                    csv_name = f"{field_name}.csv"
-                    csv_path = data_dir / csv_name
-                    self._save_array_to_csv(arr, csv_path)
-                    
-                    shape_str = str(arr.shape)
-                    summary_lines.append(f"{field_name:<{SUMMARY_FIELD_WIDTH}}: [Saved as data/{csv_name}] Shape={shape_str}")
-                    metadata[field_name] = f"data/{csv_name}"
-
-            # 4. Boolean values
-            elif isinstance(value, (bool, jnp.bool_)):
-                bool_val = bool(value)
-                summary_lines.append(f"{field_name:<{SUMMARY_FIELD_WIDTH}}: {bool_val}")
-                metadata[field_name] = bool_val
-
-            # 5. None or Primitives
-            elif value is None:
-                summary_lines.append(f"{field_name:<{SUMMARY_FIELD_WIDTH}}: None")
-                metadata[field_name] = None
+            # Long Arrays saved to CSV
+            elif isinstance(value, jax.Array) and "data/" in str(meta_value):
+                array_path = data_dir / f"{field_name}.csv"
+                self._save_array_to_csv(value, array_path)
+                metadata[field_name] = meta_value
             
             else:
-                # Python primitives (int, float, str)
-                val_str = str(value)
-                if len(val_str) > SUMMARY_STRING_MAX_LENGTH:
-                    val_str = val_str[:SUMMARY_STRING_MAX_LENGTH - 3] + "..."
-                summary_lines.append(f"{field_name:<{SUMMARY_FIELD_WIDTH}}: {val_str}")
-                
-                # Try to add to metadata if JSON serializable
-                try:
-                    json.dumps(value)
-                    metadata[field_name] = value
-                except (TypeError, OverflowError):
-                    metadata[field_name] = str(value)
+                metadata[field_name] = meta_value
+           
 
         # Write Summary Text
         with open(base_path / "summary.txt", "w", encoding="utf-8") as f:
-            f.write("\n".join(summary_lines))
+            f.write(self.summary(short=False, print_summary=False))
         
         # Write Metadata JSON
         with open(base_path / "metadata.json", "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=4)
-
+        
         logger.info(f"Results saved to: {base_path}")
+        
+        to_latex_method = getattr(self, "to_latex", None)
+        
+        if callable(to_latex_method):
+            contents = to_latex_method()
+            if isinstance(contents, str):
+                latex_path = base_path / "result_table.tex"
+                with open(latex_path, "w", encoding="utf-8") as f:
+                    f.write(contents)
+                logger.info(f"LaTeX table saved to: {latex_path}")
+
+    def _format_field_value(self, name: str, value: Any) -> tuple[str, Any]:
+        """
+        Helper to format a field value for summary display and metadata.
+        
+        Args:
+            name (str): The field name.
+            value (Any): The field value.
+        Returns:
+            tuple[str, Any]: Formatted string for summary and value for metadata.
+        """
+        # 1. Nested Result
+        if isinstance(value, ResultMixin):
+            return f"[Nested result saved in ./{name}/]", f"./{name}/"
+        
+        # 2. Dictionary
+        if isinstance(value, dict):
+            if not value:
+                return "{}", {}
+            else:
+                return f"[Saved as dir ./{name}/]", "DIR_PLACEHOLDER"
+        
+        # 3. JAX Array
+        if isinstance(value, jax.Array):
+            arr = jax.device_get(value)
+            if arr.size < INLINE_ARRAY_SIZE_THRESHOLD and arr.ndim <= 1:
+                arr_list = arr.tolist()
+                return str(arr_list)[:SUMMARY_STRING_MAX_LENGTH], arr_list
+            else:
+                shape_str = str(arr.shape)
+                path = f"data/{name}.csv"
+                return f"[Saved as {path}] Shape={shape_str}", path
+        
+        # 4. Boolean
+        if isinstance(value, (bool, jnp.bool_)):
+            return str(bool(value)), bool(value)
+        
+        # 5. None
+        if value is None:
+            return "None", None
+        
+        # 6. Primitive
+        val_str = str(value)
+        if len(val_str) > SUMMARY_STRING_MAX_LENGTH:
+            val_str = val_str[:SUMMARY_STRING_MAX_LENGTH - 3] + "..."
+        
+        try:
+            json.dumps(value)
+            meta = value
+        except (TypeError, OverflowError):
+            meta = str(value)
+        
+        return val_str, meta
 
     def _save_array_to_csv(self, arr, path: Path) -> None:
         """
@@ -275,8 +296,8 @@ class EstimationResult(ResultMixin, eqx.Module):
     """Standard errors of the estimated parameters, if available."""
     vcov: Float[Array, "n_params n_params"] | None = None
     """Variance-covariance matrix of the estimated parameters, if available."""
-    r_squared: Scalar | None = None
-    """R-squared statistic for goodness-of-fit, if available."""
+    diagnostics: Dict[str, Any] = eqx.field(default_factory=dict)
+    """Additional diagnostics about the estimation process."""
     meta: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
     """Additional metadata about the estimation process (e.g., convergence criteria, iteration counts, duration)."""
 
@@ -291,3 +312,113 @@ class EstimationResult(ResultMixin, eqx.Module):
             self.params,
             self.std_errors
         )
+
+    def to_dataframe(self) -> pd.DataFrame:
+        """
+        Convert the estimation results to a Pandas DataFrame for easy analysis.
+        
+        Returns:
+            pd.DataFrame: DataFrame containing parameters, standard errors, and t-values.
+        """
+        def flatten_ordered(tree):
+            if isinstance(tree, dict):
+                items = []
+                for k, v in tree.items():
+                    if isinstance(v, (dict, list, tuple)):
+                        for sub_k, sub_v in flatten_ordered(v):
+                            items.append((f"{k}.{sub_k}", sub_v))
+                    else:
+                        items.append((k, v))
+                return items
+            return [("", tree)]
+
+        ordered_items = flatten_ordered(self.params)
+        names = [item[0] for item in ordered_items]
+        vals = [item[1] for item in ordered_items]
+
+        se_dict = {}
+        if self.std_errors is not None:
+            flat_ses_with_path, _ = jax.tree_util.tree_flatten_with_path(self.std_errors)
+            def path_to_str(path):
+                return ".".join(str(p.key) if hasattr(p, 'key') else str(p) for p in path)
+            se_dict = {path_to_str(p): v for p, v in flat_ses_with_path}
+
+        ses = [se_dict.get(name, jnp.nan) for name in names]
+
+        df = pd.DataFrame({
+            "Estimate": vals,
+            "Std. Error": ses,
+        }, index=pd.Index(names, name="Parameter"))
+
+        df["t-stat"] = df["Estimate"] / df["Std. Error"]
+        p_values = 2 * (1 - jax.scipy.stats.norm.cdf(jnp.abs(df["t-stat"].to_numpy())))
+        df["p-value"] = p_values
+
+        def get_stars(p):
+            if p < 0.01: return "***"
+            if p < 0.05: return "**"
+            if p < 0.1:  return "*"
+            return ""
+        df["Sig"] = [get_stars(p) for p in p_values]
+
+        return df
+    
+    def to_latex(self) -> str:
+        """
+        Convert the estimation results to a LaTeX table.
+        Returns:
+            str: LaTeX table as a string.
+        """
+        df = self.to_dataframe()
+        
+        formatted_rows = []
+        for name, row in df.iterrows():
+            coef_str = f"{row['Estimate']:.4f}{row['Sig']}"
+            formatted_rows.append({"Parameter": name, "Value": coef_str})
+            se_str = f"({row['Std. Error']:.4f})"
+            formatted_rows.append({"Parameter": "", "Value": se_str})
+        
+        latex_df = pd.DataFrame(formatted_rows)
+        
+        return latex_df.to_latex(
+            index=False, 
+            header=True, 
+            column_format="lr", # Left align Parameter, Right align Value
+            caption=f"Estimation Results (Loss: {self.loss:.4f})",
+            label="tab:results",
+            escape=False # Allow LaTeX formatting in cells
+        )
+    
+    def summary(self, short: bool = False, print_summary: bool = True) -> str:
+        """
+        Generate a summary string of the estimation result.
+        Args:
+            short (bool, optional): If True, generate a shorter summary. Default is False.
+            print_summary (bool, optional): If True, print the summary to console. Default is True.
+        Returns:
+            str: The summary string.
+        """
+        if short:
+            return super().summary(short=True, print_summary=print_summary)
+        
+        df = self.to_dataframe()
+        header = f"Estimation Result Summary (Loss: {self.loss}, Success: {self.success})"
+        table_str = df.to_string(index=True, justify='right', 
+                                formatters={'Estimate': '{: .4f}'.format, 'Std. Error': '{: .4f}'.format, 't-stat': '{: .2f}'.format})
+
+        lines = [header, "-" * len(header), table_str]
+
+        # Diagnostics
+        if self.diagnostics:
+            lines.append("\nDiagnostics:")
+            for k, v in self.diagnostics.items():
+                if isinstance(v, (float, np.floating)) or (isinstance(v, jax.Array) and v.ndim == 0):
+                    val_str = f"{float(v):.4f}"
+                else:
+                    val_str = str(v)
+                lines.append(f"  {k:<{SUMMARY_FIELD_WIDTH}}: {val_str}")
+
+        summary_text = "\n".join(lines)
+        if print_summary:
+            print(summary_text)
+        return summary_text

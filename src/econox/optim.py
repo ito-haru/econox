@@ -93,6 +93,11 @@ class Minimizer(eqx.Module):
             steps=steps
         )
         return result
+    
+    @property
+    def method_name(self) -> str:
+        """Returns the name of the optimization method used."""
+        return self.method.__class__.__name__
 
 
 # =============================================================================

@@ -34,9 +34,6 @@ FLATTEN_MULTIDIM_ARRAYS: bool = True
 SUMMARY_FIELD_WIDTH: int = 25
 """Width for field name padding in summary.txt."""
 
-SUMMARY_DICT_KEY_WIDTH: int = 21
-"""Width for dictionary key padding in summary.txt."""
-
 SUMMARY_SEPARATOR_LENGTH: int = 60
 """Length of separator lines (=== bars) in summary.txt."""
 

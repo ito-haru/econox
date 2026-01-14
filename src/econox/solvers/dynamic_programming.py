@@ -9,11 +9,11 @@ import equinox as eqx
 from typing import Any
 from jaxtyping import PyTree, Array, Int
 
-from econox.protocols import StructuralModel, Utility, Distribution
+from econox.protocols import StructuralModel, Utility, Distribution, TerminalApproximator
 from econox.optim import FixedPoint, FixedPointResult
 from econox.structures import SolverResult
-from econox.utils import get_from_pytree
-
+from econox.logic import IdentityTerminal
+from econox.utils import get_from_pytree    
 
 class ValueIterationSolver(eqx.Module):
     """
@@ -23,16 +23,8 @@ class ValueIterationSolver(eqx.Module):
         utility (Utility): Utility function to compute flow utilities.
         dist (Distribution): Probability distribution for choice modeling.
         discount_factor (float): Discount factor for future utilities.
-        numerical_solver: FixedPoint
+        numerical_solver: FixedPoint,
 
-    Optional Data Keys:
-        The solver looks for the following keys in `model.data` to enable 
-        terminal state approximation (:math:`EV(T-1) = EV(T)`):
-        
-        * **terminal_state_indices** (Int[Array, "n"]): Indices of states at :math:`T`.
-        * **previous_state_indices** (Int[Array, "n"]): Indices of states at :math:`T-1` to copy from.
-        
-        If provided, both must be present and have the same shape.
     
     Examples:
         >>> # Define structural components
@@ -43,7 +35,8 @@ class ValueIterationSolver(eqx.Module):
         >>> solver = ValueIterationSolver(
         ...     utility=utility,
         ...     dist=dist,
-        ...     discount_factor=0.99
+        ...     discount_factor=0.99,
+        ...     terminal_approximator=ExponentialTrendTerminal(growth_rate_keys=["gdp_growth"]),
         ... )
         
         >>> # Solve the model
@@ -57,6 +50,7 @@ class ValueIterationSolver(eqx.Module):
     utility: Utility
     dist: Distribution
     discount_factor: float
+    terminal_approximator: TerminalApproximator = eqx.field(default_factory=IdentityTerminal)
     numerical_solver: FixedPoint = eqx.field(default_factory=FixedPoint)
 
     def solve(

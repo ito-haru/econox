@@ -88,6 +88,13 @@ Transition Dynamics
    :undoc-members:
    :show-inheritance:
 
+Terminal Approximators
+^^^^^^^^^^^^^^^^^^^^^^
+.. automodule:: econox.logic.terminal
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Solvers (Algorithms)
 --------------------
 Numerical algorithms for solving economic models (Forward Problems).

@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="Welcome to Econox’s documentation!" href="index.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>API Reference - Econox 0.1.2.post1.dev2 documentation</title>
+        <title>API Reference - Econox 0.1.2.post1.dev3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -159,7 +159,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.2.post1.dev2)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.2.post1.dev3)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -171,7 +171,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">Econox 0.1.2.post1.dev2 documentation</div></a>
+      <a href="index.html"><div class="brand">Econox 0.1.2.post1.dev3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev2 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1133,6 +1133,12 @@ Compliant with the ParameterSpace protocol.</p>
 <dd><p>Minimum value for log transformations.</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.params.ParameterSpace.log_clip_max">
+<span class="sig-name descname"><span class="pre">log_clip_max</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20.0</span></span><a class="headerlink" href="#econox.structures.params.ParameterSpace.log_clip_max" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum value for log transformations.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.structures.params.ParameterSpace.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_clip_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_clip_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.structures.params.ParameterSpace.__init__" title="Link to this definition">¶</a></dt>
@@ -1151,12 +1157,6 @@ Compliant with the ParameterSpace protocol.</p>
 <dd class="field-even"><p>None</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.structures.params.ParameterSpace.log_clip_max">
-<span class="sig-name descname"><span class="pre">log_clip_max</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20.0</span></span><a class="headerlink" href="#econox.structures.params.ParameterSpace.log_clip_max" title="Link to this definition">¶</a></dt>
-<dd><p>Maximum value for log transformations.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1235,6 +1235,18 @@ Constraints are enforced via the ‘transform’ method, not by the optimizer’
 Useful for masking gradients in the Estimator.</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="econox.structures.params.ParameterSpace.num_total_params">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_total_params</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#econox.structures.params.ParameterSpace.num_total_params" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the number of all parameters.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="econox.structures.params.ParameterSpace.num_free_params">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">num_free_params</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#econox.structures.params.ParameterSpace.num_free_params" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the number of free (non-fixed) parameters.</p>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -1248,6 +1260,32 @@ Uses Equinox modules to allow mixins and PyTree registration.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Provides a generic <cite>save()</cite> method for Result objects.
 Implements the ‘Directory Bundle’ strategy.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.structures.results.ResultMixin.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">short</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/results.html#ResultMixin.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.results.ResultMixin.summary" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a summary string of the result object.
+:type short: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>
+:param short: If True, generate a shorter summary. Default is False.
+:type short: bool, optional
+:type print_summary: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>
+:param print_summary: If True, print the summary to console. Default is True.
+:type print_summary: bool, optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The summary string.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>short</strong> (<em>bool</em>)</p></li>
+<li><p><strong>print_summary</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.structures.results.ResultMixin.save">
 <span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/results.html#ResultMixin.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.results.ResultMixin.save" title="Link to this definition">¶</a></dt>
@@ -1349,7 +1387,7 @@ The probability of choosing action <span class="math notranslate nohighlight">\(
 
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.structures.results.EstimationResult">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.structures.results.</span></span><span class="sig-name descname"><span class="pre">EstimationResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_squared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/results.html#EstimationResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.results.EstimationResult" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.structures.results.</span></span><span class="sig-name descname"><span class="pre">EstimationResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagnostics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/results.html#EstimationResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.results.EstimationResult" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#econox.structures.results.ResultMixin" title="econox.structures.results.ResultMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResultMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>Container for the output of an Estimator.</p>
 <dl class="field-list simple">
@@ -1361,8 +1399,10 @@ The probability of choosing action <span class="math notranslate nohighlight">\(
 <li><p><strong>solver_result</strong> (<a class="reference internal" href="#econox.structures.results.SolverResult" title="econox.structures.results.SolverResult"><em>SolverResult</em></a><em> | </em><em>None</em>)</p></li>
 <li><p><strong>std_errors</strong> (<em>PyTree</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>vcov</strong> (<em>Float</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>'n_params n_params'</em><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>r_squared</strong> (<em>Shaped</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>''</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>diagnostics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
 <li><p><strong>meta</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>initial_params</strong> (<em>PyTree</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>fixed_mask</strong> (<em>PyTree</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1378,28 +1418,6 @@ The probability of choosing action <span class="math notranslate nohighlight">\(
 <dd><p>Final value of the loss function (e.g., negative log-likelihood).</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="econox.structures.results.EstimationResult.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_squared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.structures.results.EstimationResult.__init__" title="Link to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>params</strong> (<em>PyTree</em>)</p></li>
-<li><p><strong>loss</strong> (<em>Shaped</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>''</em><em>] </em><em>| </em><em>float</em>)</p></li>
-<li><p><strong>success</strong> (<em>Bool</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>''</em><em>] </em><em>| </em><em>bool</em>)</p></li>
-<li><p><strong>solver_result</strong> (<a class="reference internal" href="#econox.structures.results.SolverResult" title="econox.structures.results.SolverResult"><em>SolverResult</em></a><em> | </em><em>None</em>)</p></li>
-<li><p><strong>std_errors</strong> (<em>PyTree</em><em> | </em><em>None</em>)</p></li>
-<li><p><strong>vcov</strong> (<em>Float</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>'n_params n_params'</em><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>r_squared</strong> (<em>Shaped</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>''</em><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>meta</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="econox.structures.results.EstimationResult.success">
 <span class="sig-name descname"><span class="pre">success</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Bool</span><span class="p"><span class="pre">[</span></span><span class="pre">jaxlib._jax.Array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">''</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#econox.structures.results.EstimationResult.success" title="Link to this definition">¶</a></dt>
@@ -1410,6 +1428,30 @@ The probability of choosing action <span class="math notranslate nohighlight">\(
 <dt class="sig sig-object py" id="econox.structures.results.EstimationResult.solver_result">
 <span class="sig-name descname"><span class="pre">solver_result</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.structures.results.SolverResult" title="econox.structures.results.SolverResult"><span class="pre">SolverResult</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.structures.results.EstimationResult.solver_result" title="Link to this definition">¶</a></dt>
 <dd><p>Associated (outermost) solver result used during estimation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.structures.results.EstimationResult.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagnostics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.structures.results.EstimationResult.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>PyTree</em>)</p></li>
+<li><p><strong>loss</strong> (<em>Shaped</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>''</em><em>] </em><em>| </em><em>float</em>)</p></li>
+<li><p><strong>success</strong> (<em>Bool</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>''</em><em>] </em><em>| </em><em>bool</em>)</p></li>
+<li><p><strong>solver_result</strong> (<a class="reference internal" href="#econox.structures.results.SolverResult" title="econox.structures.results.SolverResult"><em>SolverResult</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>std_errors</strong> (<em>PyTree</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>vcov</strong> (<em>Float</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>'n_params n_params'</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>diagnostics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>meta</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>initial_params</strong> (<em>PyTree</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>fixed_mask</strong> (<em>PyTree</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1425,9 +1467,9 @@ The probability of choosing action <span class="math notranslate nohighlight">\(
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="econox.structures.results.EstimationResult.r_squared">
-<span class="sig-name descname"><span class="pre">r_squared</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Shaped</span><span class="p"><span class="pre">[</span></span><span class="pre">jaxlib._jax.Array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">''</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.structures.results.EstimationResult.r_squared" title="Link to this definition">¶</a></dt>
-<dd><p>R-squared statistic for goodness-of-fit, if available.</p>
+<dt class="sig sig-object py" id="econox.structures.results.EstimationResult.diagnostics">
+<span class="sig-name descname"><span class="pre">diagnostics</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.structures.results.EstimationResult.diagnostics" title="Link to this definition">¶</a></dt>
+<dd><p>Additional diagnostics about the estimation process.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1436,10 +1478,81 @@ The probability of choosing action <span class="math notranslate nohighlight">\(
 <dd><p>Additional metadata about the estimation process (e.g., convergence criteria, iteration counts, duration).</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.results.EstimationResult.initial_params">
+<span class="sig-name descname"><span class="pre">initial_params</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PyTree</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.structures.results.EstimationResult.initial_params" title="Link to this definition">¶</a></dt>
+<dd><p>Initial parameters used for estimation, if available.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.results.EstimationResult.fixed_mask">
+<span class="sig-name descname"><span class="pre">fixed_mask</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PyTree</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.structures.results.EstimationResult.fixed_mask" title="Link to this definition">¶</a></dt>
+<dd><p>Boolean mask indicating which parameters were fixed during estimation.</p>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="econox.structures.results.EstimationResult.t_values">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">t_values</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PyTree</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.structures.results.EstimationResult.t_values" title="Link to this definition">¶</a></dt>
 <dd><p>Compute t-values if standard errors are available.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.structures.results.EstimationResult.to_dataframe">
+<span class="sig-name descname"><span class="pre">to_dataframe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/results.html#EstimationResult.to_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.results.EstimationResult.to_dataframe" title="Link to this definition">¶</a></dt>
+<dd><p>Convert the estimation results to a Pandas DataFrame for easy analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame containing parameters, standard errors, and t-values.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.structures.results.EstimationResult.to_latex">
+<span class="sig-name descname"><span class="pre">to_latex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split_cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/results.html#EstimationResult.to_latex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.results.EstimationResult.to_latex" title="Link to this definition">¶</a></dt>
+<dd><p>Convert the estimation results to a LaTeX table.
+:returns: LaTeX table as a string.
+:rtype: str</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>split_cols</strong> (<em>bool</em>)</p></li>
+<li><p><strong>threshold</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.structures.results.EstimationResult.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">short</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/results.html#EstimationResult.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.results.EstimationResult.summary" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a summary string of the estimation result.
+:type short: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>
+:param short: If True, generate a shorter summary. Default is False.
+:type short: bool, optional
+:type print_summary: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>
+:param print_summary: If True, print the summary to console. Default is True.
+:type print_summary: bool, optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The summary string.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>short</strong> (<em>bool</em>)</p></li>
+<li><p><strong>print_summary</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -2461,6 +2574,12 @@ success status, and iteration count.</p>
 <dd class="field-odd"><p><a class="reference internal" href="#econox.optim.MinimizerResult" title="econox.optim.MinimizerResult">MinimizerResult</a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="econox.optim.Minimizer.method_name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">method_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#econox.optim.Minimizer.method_name" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the name of the optimization method used.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3528,12 +3647,6 @@ Assumes the loss function is the negative log-likelihood.
 </dd></dl>
 
 <dl class="py data">
-<dt class="sig sig-object py" id="econox.config.SUMMARY_DICT_KEY_WIDTH">
-<span class="sig-prename descclassname"><span class="pre">econox.config.</span></span><span class="sig-name descname"><span class="pre">SUMMARY_DICT_KEY_WIDTH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">21</span></span><a class="headerlink" href="#econox.config.SUMMARY_DICT_KEY_WIDTH" title="Link to this definition">¶</a></dt>
-<dd><p>Width for dictionary key padding in summary.txt.</p>
-</dd></dl>
-
-<dl class="py data">
 <dt class="sig sig-object py" id="econox.config.SUMMARY_SEPARATOR_LENGTH">
 <span class="sig-prename descclassname"><span class="pre">econox.config.</span></span><span class="sig-name descname"><span class="pre">SUMMARY_SEPARATOR_LENGTH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">60</span></span><a class="headerlink" href="#econox.config.SUMMARY_SEPARATOR_LENGTH" title="Link to this definition">¶</a></dt>
 <dd><p>Length of separator lines (=== bars) in summary.txt.</p>
@@ -3735,19 +3848,22 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.bounds"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.bounds</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.eps"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.eps</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.log_clip_min"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.log_clip_min</span></code></a></li>
-<li><a class="reference internal" href="#econox.structures.params.ParameterSpace.__init__"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.__init__()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.log_clip_max"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.log_clip_max</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ParameterSpace.__init__"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.__init__()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.create"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.create()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.transform"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.transform()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.inverse_transform"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.inverse_transform()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.get_bounds"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.get_bounds()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.fixed_mask"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.fixed_mask</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ParameterSpace.num_total_params"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.num_total_params</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ParameterSpace.num_free_params"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.num_free_params</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-econox.structures.results">Result Containers</a><ul>
 <li><a class="reference internal" href="#econox.structures.results.ResultMixin"><code class="docutils literal notranslate"><span class="pre">ResultMixin</span></code></a><ul>
+<li><a class="reference internal" href="#econox.structures.results.ResultMixin.summary"><code class="docutils literal notranslate"><span class="pre">ResultMixin.summary()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.results.ResultMixin.save"><code class="docutils literal notranslate"><span class="pre">ResultMixin.save()</span></code></a></li>
 </ul>
 </li>
@@ -3763,14 +3879,19 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.structures.results.EstimationResult"><code class="docutils literal notranslate"><span class="pre">EstimationResult</span></code></a><ul>
 <li><a class="reference internal" href="#econox.structures.results.EstimationResult.params"><code class="docutils literal notranslate"><span class="pre">EstimationResult.params</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.results.EstimationResult.loss"><code class="docutils literal notranslate"><span class="pre">EstimationResult.loss</span></code></a></li>
-<li><a class="reference internal" href="#econox.structures.results.EstimationResult.__init__"><code class="docutils literal notranslate"><span class="pre">EstimationResult.__init__()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.results.EstimationResult.success"><code class="docutils literal notranslate"><span class="pre">EstimationResult.success</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.results.EstimationResult.solver_result"><code class="docutils literal notranslate"><span class="pre">EstimationResult.solver_result</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.results.EstimationResult.__init__"><code class="docutils literal notranslate"><span class="pre">EstimationResult.__init__()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.results.EstimationResult.std_errors"><code class="docutils literal notranslate"><span class="pre">EstimationResult.std_errors</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.results.EstimationResult.vcov"><code class="docutils literal notranslate"><span class="pre">EstimationResult.vcov</span></code></a></li>
-<li><a class="reference internal" href="#econox.structures.results.EstimationResult.r_squared"><code class="docutils literal notranslate"><span class="pre">EstimationResult.r_squared</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.results.EstimationResult.diagnostics"><code class="docutils literal notranslate"><span class="pre">EstimationResult.diagnostics</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.results.EstimationResult.meta"><code class="docutils literal notranslate"><span class="pre">EstimationResult.meta</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.results.EstimationResult.initial_params"><code class="docutils literal notranslate"><span class="pre">EstimationResult.initial_params</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.results.EstimationResult.fixed_mask"><code class="docutils literal notranslate"><span class="pre">EstimationResult.fixed_mask</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.results.EstimationResult.t_values"><code class="docutils literal notranslate"><span class="pre">EstimationResult.t_values</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.results.EstimationResult.to_dataframe"><code class="docutils literal notranslate"><span class="pre">EstimationResult.to_dataframe()</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.results.EstimationResult.to_latex"><code class="docutils literal notranslate"><span class="pre">EstimationResult.to_latex()</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.results.EstimationResult.summary"><code class="docutils literal notranslate"><span class="pre">EstimationResult.summary()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -3885,6 +4006,7 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.optim.Minimizer.max_steps"><code class="docutils literal notranslate"><span class="pre">Minimizer.max_steps</span></code></a></li>
 <li><a class="reference internal" href="#econox.optim.Minimizer.throw"><code class="docutils literal notranslate"><span class="pre">Minimizer.throw</span></code></a></li>
 <li><a class="reference internal" href="#econox.optim.Minimizer.minimize"><code class="docutils literal notranslate"><span class="pre">Minimizer.minimize()</span></code></a></li>
+<li><a class="reference internal" href="#econox.optim.Minimizer.method_name"><code class="docutils literal notranslate"><span class="pre">Minimizer.method_name</span></code></a></li>
 <li><a class="reference internal" href="#econox.optim.Minimizer.__init__"><code class="docutils literal notranslate"><span class="pre">Minimizer.__init__()</span></code></a></li>
 </ul>
 </li>
@@ -4005,7 +4127,6 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.config.SUMMARY_STRING_MAX_LENGTH"><code class="docutils literal notranslate"><span class="pre">SUMMARY_STRING_MAX_LENGTH</span></code></a></li>
 <li><a class="reference internal" href="#econox.config.FLATTEN_MULTIDIM_ARRAYS"><code class="docutils literal notranslate"><span class="pre">FLATTEN_MULTIDIM_ARRAYS</span></code></a></li>
 <li><a class="reference internal" href="#econox.config.SUMMARY_FIELD_WIDTH"><code class="docutils literal notranslate"><span class="pre">SUMMARY_FIELD_WIDTH</span></code></a></li>
-<li><a class="reference internal" href="#econox.config.SUMMARY_DICT_KEY_WIDTH"><code class="docutils literal notranslate"><span class="pre">SUMMARY_DICT_KEY_WIDTH</span></code></a></li>
 <li><a class="reference internal" href="#econox.config.SUMMARY_SEPARATOR_LENGTH"><code class="docutils literal notranslate"><span class="pre">SUMMARY_SEPARATOR_LENGTH</span></code></a></li>
 <li><a class="reference internal" href="#econox.config.LOSS_PENALTY"><code class="docutils literal notranslate"><span class="pre">LOSS_PENALTY</span></code></a></li>
 </ul>
@@ -4025,7 +4146,7 @@ and attribute-style (.key) access.</p>
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=9e919e1a"></script>
+</div><script src="_static/documentation_options.js?v=3ae91a03"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>

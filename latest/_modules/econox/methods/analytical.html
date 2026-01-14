@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.methods.analytical - Econox 0.1.2.post1.dev2 documentation</title>
+        <title>econox.methods.analytical - Econox 0.1.2.post1.dev3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.2.post1.dev2)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.2.post1.dev3)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.2.post1.dev2 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.2.post1.dev3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev2 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -466,13 +466,17 @@
             <span class="n">success</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
             <span class="n">std_errors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_format_params</span><span class="p">(</span><span class="n">std_errors</span><span class="p">,</span> <span class="n">p_names</span><span class="p">),</span>
             <span class="n">vcov</span><span class="o">=</span><span class="n">vcov_final</span><span class="p">,</span>
-            <span class="n">r_squared</span><span class="o">=</span><span class="n">r_squared</span><span class="p">,</span>
+            <span class="n">diagnostics</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;r_squared&quot;</span><span class="p">:</span> <span class="n">r_squared</span><span class="p">},</span>
             <span class="n">meta</span><span class="o">=</span><span class="p">{</span>
-                <span class="s2">&quot;estimator&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> 
-                <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;analytical&quot;</span><span class="p">,</span> 
+                <span class="s2">&quot;computation&quot;</span><span class="p">:</span> <span class="s2">&quot;Analytical&quot;</span><span class="p">,</span> 
+                <span class="s2">&quot;estimation_method&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                <span class="s2">&quot;inference_method&quot;</span><span class="p">:</span> <span class="s2">&quot;Analytical&quot;</span><span class="p">,</span> 
                 <span class="s2">&quot;n_obs&quot;</span><span class="p">:</span> <span class="n">n_obs</span><span class="p">,</span>
+                <span class="s2">&quot;n_params&quot;</span><span class="p">:</span> <span class="n">n_params_total</span><span class="p">,</span>
+                <span class="s2">&quot;n_free_params&quot;</span><span class="p">:</span> <span class="n">handler</span><span class="o">.</span><span class="n">n_free</span><span class="p">,</span>
                 <span class="s2">&quot;n_fixed&quot;</span><span class="p">:</span> <span class="n">handler</span><span class="o">.</span><span class="n">n_fixed</span>
-            <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="n">fixed_mask</span><span class="o">=</span><span class="n">param_space</span><span class="o">.</span><span class="n">fixed_mask</span>
         <span class="p">)</span></div>
 
 
@@ -733,7 +737,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=9e919e1a"></script>
+</div><script src="../../../_static/documentation_options.js?v=3ae91a03"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

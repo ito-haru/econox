@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.structures.results - Econox 0.1.2.post1.dev2 documentation</title>
+        <title>econox.structures.results - Econox 0.1.2.post1.dev3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.2.post1.dev2)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.2.post1.dev3)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.2.post1.dev2 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.2.post1.dev3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev2 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -249,12 +249,13 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">norm</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">equinox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">eqx</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Bool</span><span class="p">,</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">Scalar</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -262,7 +263,6 @@
     <span class="n">SUMMARY_STRING_MAX_LENGTH</span><span class="p">,</span>
     <span class="n">FLATTEN_MULTIDIM_ARRAYS</span><span class="p">,</span>
     <span class="n">SUMMARY_FIELD_WIDTH</span><span class="p">,</span>
-    <span class="n">SUMMARY_DICT_KEY_WIDTH</span><span class="p">,</span>
     <span class="n">SUMMARY_SEPARATOR_LENGTH</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -279,6 +279,51 @@
 <span class="sd">    Provides a generic `save()` method for Result objects.</span>
 <span class="sd">    Implements the &#39;Directory Bundle&#39; strategy.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">print_summary</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ResultMixin.summary">
+<a class="viewcode-back" href="../../../api_reference.html#econox.structures.results.ResultMixin.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">print_summary</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a summary string of the result object.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            short (bool, optional): If True, generate a shorter summary. Default is False.</span>
+<span class="sd">            print_summary (bool, optional): If True, print the summary to console. Default is True.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The summary string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="n">SUMMARY_SEPARATOR_LENGTH</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> Summary&quot;</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">SUMMARY_SEPARATOR_LENGTH</span><span class="p">))</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="n">SUMMARY_SEPARATOR_LENGTH</span><span class="p">)</span>
+
+        <span class="c1"># Get all field names from eqx.Module (which is a dataclass)</span>
+        <span class="n">field_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">field_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Fallback for non-dataclass objects</span>
+            <span class="n">field_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        
+        <span class="k">if</span> <span class="n">short</span><span class="p">:</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(success=</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;success&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">]</span>
+            <span class="n">summary_text</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">field_names</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_name</span><span class="p">)</span>
+                <span class="n">display_str</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_field_value</span><span class="p">(</span><span class="n">field_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2"> : </span><span class="si">{</span><span class="n">display_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">summary_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">print_summary</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">summary_text</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">summary_text</span></div>
+
+        
 <div class="viewcode-block" id="ResultMixin.save">
 <a class="viewcode-back" href="../../../api_reference.html#econox.structures.results.ResultMixin.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -304,16 +349,7 @@
         
         <span class="n">base_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">data_dir</span> <span class="o">=</span> <span class="n">base_path</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span>
-        <span class="n">data_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">summary_lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
-        
-        <span class="c1"># Header</span>
-        <span class="n">class_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="n">SUMMARY_SEPARATOR_LENGTH</span><span class="p">)</span>
-        <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Result Report: </span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="n">SUMMARY_SEPARATOR_LENGTH</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Get all field names from eqx.Module (which is a dataclass)</span>
         <span class="n">field_names</span> <span class="o">=</span> <span class="p">[]</span>
@@ -325,113 +361,122 @@
 
         <span class="k">for</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">field_names</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_name</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">meta_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_field_value</span><span class="p">(</span><span class="n">field_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+            <span class="c1"># Nested Result</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ResultMixin</span><span class="p">):</span>
+                <span class="n">value</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">base_path</span> <span class="o">/</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta_value</span>
             
-            <span class="c1"># 1. Nested Result (Recursive Save)</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;save&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ResultMixin</span><span class="p">):</span>
-                <span class="n">sub_path</span> <span class="o">=</span> <span class="n">base_path</span> <span class="o">/</span> <span class="n">field_name</span>
-                <span class="n">value</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">sub_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
-                <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: [Nested result saved in ./</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">/]&quot;</span><span class="p">)</span>
-                <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;./</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">/&quot;</span>
-                <span class="k">continue</span>
+            <span class="c1"># Dictionary</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">dict_dir</span> <span class="o">=</span> <span class="n">base_path</span> <span class="o">/</span> <span class="n">field_name</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_dict_contents</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">dict_dir</span><span class="p">)</span>
             
-            <span class="c1"># 2. Dictionary Fields (aux, meta)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
-                    <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: </span><span class="se">{{}}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">dict_dir</span> <span class="o">=</span> <span class="n">base_path</span> <span class="o">/</span> <span class="n">field_name</span>
-                    <span class="n">dict_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-                    <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: [Saved as dir ./</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">/]&quot;</span><span class="p">)</span>
-                    <span class="n">dict_metadata</span> <span class="o">=</span> <span class="p">{}</span>
-
-                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                        <span class="c1"># Handle nested arrays in dictionaries</span>
-                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
-                            <span class="n">arr</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">device_get</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-                            <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">INLINE_ARRAY_SIZE_THRESHOLD</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-                                <span class="n">arr_list</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-                                <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">k</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_DICT_KEY_WIDTH</span><span class="si">}}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">arr_list</span><span class="p">)[:</span><span class="n">SUMMARY_STRING_MAX_LENGTH</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                                <span class="n">dict_metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr_list</span>
-                            <span class="k">else</span><span class="p">:</span>
-                                <span class="n">csv_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">.csv&quot;</span>
-                                <span class="n">csv_path</span> <span class="o">=</span> <span class="n">dict_dir</span> <span class="o">/</span> <span class="n">csv_name</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">_save_array_to_csv</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">)</span>
-                                <span class="n">shape_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-                                <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">k</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_DICT_KEY_WIDTH</span><span class="si">}}</span><span class="s2">: [./</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">csv_name</span><span class="si">}</span><span class="s2">] Shape=</span><span class="si">{</span><span class="n">shape_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                                <span class="n">dict_metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;./</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">csv_name</span><span class="si">}</span><span class="s2">&quot;</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="c1"># Primitive values</span>
-                            <span class="n">val_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">SUMMARY_STRING_MAX_LENGTH</span><span class="p">:</span>
-                                <span class="n">val_str</span> <span class="o">=</span> <span class="n">val_str</span><span class="p">[:</span><span class="n">SUMMARY_STRING_MAX_LENGTH</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;...&quot;</span>
-                            <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">k</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_DICT_KEY_WIDTH</span><span class="si">}}</span><span class="s2">: </span><span class="si">{</span><span class="n">val_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                            <span class="k">try</span><span class="p">:</span>
-                                <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-                                <span class="n">dict_metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
-                            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">OverflowError</span><span class="p">):</span>
-                                <span class="n">dict_metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-
-                    <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dict_metadata</span>
-                <span class="k">continue</span>
-            
-            <span class="c1"># 3. JAX Arrays</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
-                <span class="n">arr</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">device_get</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                
-                <span class="c1"># Scalar or Small Array -&gt; Save in Text/JSON</span>
-                <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">INLINE_ARRAY_SIZE_THRESHOLD</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">arr_list</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-                    <span class="n">val_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr_list</span><span class="p">)</span>
-                    <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: </span><span class="si">{</span><span class="n">val_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr_list</span>
-                
-                <span class="c1"># Large Array -&gt; Save as CSV</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">csv_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">.csv&quot;</span>
-                    <span class="n">csv_path</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="n">csv_name</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_save_array_to_csv</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">)</span>
-                    
-                    <span class="n">shape_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-                    <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: [Saved as data/</span><span class="si">{</span><span class="n">csv_name</span><span class="si">}</span><span class="s2">] Shape=</span><span class="si">{</span><span class="n">shape_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;data/</span><span class="si">{</span><span class="n">csv_name</span><span class="si">}</span><span class="s2">&quot;</span>
-
-            <span class="c1"># 4. Boolean values</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
-                <span class="n">bool_val</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: </span><span class="si">{</span><span class="n">bool_val</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">bool_val</span>
-
-            <span class="c1"># 5. None or Primitives</span>
-            <span class="k">elif</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: None&quot;</span><span class="p">)</span>
-                <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="c1"># Long Arrays saved to CSV</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;data/&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">meta_value</span><span class="p">):</span>
+                <span class="n">data_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">array_path</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_save_array_to_csv</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">array_path</span><span class="p">)</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta_value</span>
             
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Python primitives (int, float, str)</span>
-                <span class="n">val_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">SUMMARY_STRING_MAX_LENGTH</span><span class="p">:</span>
-                    <span class="n">val_str</span> <span class="o">=</span> <span class="n">val_str</span><span class="p">[:</span><span class="n">SUMMARY_STRING_MAX_LENGTH</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;...&quot;</span>
-                <span class="n">summary_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: </span><span class="si">{</span><span class="n">val_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                
-                <span class="c1"># Try to add to metadata if JSON serializable</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                    <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-                <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">OverflowError</span><span class="p">):</span>
-                    <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta_value</span>
+           
 
         <span class="c1"># Write Summary Text</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">base_path</span> <span class="o">/</span> <span class="s2">&quot;summary.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">summary_lines</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">print_summary</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
         
         <span class="c1"># Write Metadata JSON</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">base_path</span> <span class="o">/</span> <span class="s2">&quot;metadata.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Results saved to: </span><span class="si">{</span><span class="n">base_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">to_latex_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;to_latex&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">to_latex_method</span><span class="p">):</span>
+            <span class="n">contents</span> <span class="o">=</span> <span class="n">to_latex_method</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contents</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">latex_path</span> <span class="o">=</span> <span class="n">base_path</span> <span class="o">/</span> <span class="s2">&quot;result_table.tex&quot;</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">latex_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LaTeX table saved to: </span><span class="si">{</span><span class="n">latex_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Results saved to: </span><span class="si">{</span><span class="n">base_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_field_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper to format a field value for summary display and metadata.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): The field name.</span>
+<span class="sd">            value (Any): The field value.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[str, Any]: Formatted string for summary and value for metadata.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Nested Result</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ResultMixin</span><span class="p">):</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;[Nested result saved in ./</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/]&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;./</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/&quot;</span>
+        
+        <span class="c1"># 2. Dictionary</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;[Saved as dir ./</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/]&quot;</span><span class="p">,</span> <span class="s2">&quot;DIR_PLACEHOLDER&quot;</span>
+        
+        <span class="c1"># 3. JAX Array</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">device_get</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">INLINE_ARRAY_SIZE_THRESHOLD</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">arr_list</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr_list</span><span class="p">)[:</span><span class="n">SUMMARY_STRING_MAX_LENGTH</span><span class="p">],</span> <span class="n">arr_list</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">shape_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;data/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;[Saved as </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">] Shape=</span><span class="si">{</span><span class="n">shape_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">path</span>
+        
+        <span class="c1"># 4. Boolean</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)),</span> <span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        
+        <span class="c1"># 5. None</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="kc">None</span>
+        
+        <span class="c1"># 6. Primitive</span>
+        <span class="n">val_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">SUMMARY_STRING_MAX_LENGTH</span><span class="p">:</span>
+            <span class="n">val_str</span> <span class="o">=</span> <span class="n">val_str</span><span class="p">[:</span><span class="n">SUMMARY_STRING_MAX_LENGTH</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;...&quot;</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">OverflowError</span><span class="p">):</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">val_str</span><span class="p">,</span> <span class="n">meta</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_dict_contents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">dict_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">dict_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
+                <span class="n">arr</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">device_get</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">INLINE_ARRAY_SIZE_THRESHOLD</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">dict_metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">csv_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+                    <span class="n">dict_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_save_array_to_csv</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">dict_dir</span> <span class="o">/</span> <span class="n">csv_name</span><span class="p">)</span>
+                    <span class="n">dict_metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;./</span><span class="si">{</span><span class="n">dict_dir</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">csv_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                    <span class="n">dict_metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">OverflowError</span><span class="p">):</span>
+                    <span class="n">dict_metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dict_metadata</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_save_array_to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -525,10 +570,14 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Standard errors of the estimated parameters, if available.&quot;&quot;&quot;</span>
     <span class="n">vcov</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;n_params n_params&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Variance-covariance matrix of the estimated parameters, if available.&quot;&quot;&quot;</span>
-    <span class="n">r_squared</span><span class="p">:</span> <span class="n">Scalar</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;R-squared statistic for goodness-of-fit, if available.&quot;&quot;&quot;</span>
+    <span class="n">diagnostics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Additional diagnostics about the estimation process.&quot;&quot;&quot;</span>
     <span class="n">meta</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Additional metadata about the estimation process (e.g., convergence criteria, iteration counts, duration).&quot;&quot;&quot;</span>
+    <span class="n">initial_params</span><span class="p">:</span> <span class="n">PyTree</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initial parameters used for estimation, if available.&quot;&quot;&quot;</span>
+    <span class="n">fixed_mask</span><span class="p">:</span> <span class="n">PyTree</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Boolean mask indicating which parameters were fixed during estimation.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">t_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PyTree</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -540,7 +589,225 @@
             <span class="k">lambda</span> <span class="n">p</span><span class="p">,</span> <span class="n">se</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">se</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">p</span> <span class="o">/</span> <span class="n">se</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">std_errors</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="EstimationResult.to_dataframe">
+<a class="viewcode-back" href="../../../api_reference.html#econox.structures.results.EstimationResult.to_dataframe">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the estimation results to a Pandas DataFrame for easy analysis.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: DataFrame containing parameters, standard errors, and t-values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">flatten_ordered</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">parent_key</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">new_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">parent_key</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">parent_key</span> <span class="k">else</span> <span class="n">k</span>
+                    <span class="n">items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten_ordered</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">new_key</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tree</span><span class="p">):</span>
+                    <span class="n">new_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">parent_key</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">]&quot;</span> <span class="k">if</span> <span class="n">parent_key</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten_ordered</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">new_key</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">parent_key</span><span class="p">,</span> <span class="n">tree</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">items</span>
+        
+        <span class="k">def</span><span class="w"> </span><span class="nf">path_to_str</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path</span><span class="p">)</span>
+
+        <span class="n">ordered_items</span> <span class="o">=</span> <span class="n">flatten_ordered</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ordered_items</span><span class="p">]</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ordered_items</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">init_val</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">init_items</span> <span class="o">=</span> <span class="n">flatten_ordered</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_params</span><span class="p">)</span>
+            <span class="n">init_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">init_items</span><span class="p">}</span>
+            <span class="n">init_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">init_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">init_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">flat_mask_with_path</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_flatten_with_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_mask</span><span class="p">)</span>
+            <span class="n">mask_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">path_to_str</span><span class="p">(</span><span class="n">p</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flat_mask_with_path</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mask_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">se_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_errors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">flat_ses_with_path</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">tree_util</span><span class="o">.</span><span class="n">tree_flatten_with_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">std_errors</span><span class="p">)</span>
+            <span class="n">se_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">path_to_str</span><span class="p">(</span><span class="n">p</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flat_ses_with_path</span><span class="p">}</span>
+
+        <span class="n">ses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">final_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">is_fixed</span> <span class="o">=</span> <span class="n">mask_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">is_fixed</span><span class="p">:</span>
+                <span class="n">ses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">final_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> (fixed)&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">se_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
+                <span class="n">final_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+            <span class="s2">&quot;Initial&quot;</span><span class="p">:</span> <span class="n">init_val</span><span class="p">,</span>
+            <span class="s2">&quot;Estimate&quot;</span><span class="p">:</span> <span class="n">vals</span><span class="p">,</span>
+            <span class="s2">&quot;Std. Error&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ses</span><span class="p">),</span>
+        <span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">final_names</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Parameter&quot;</span><span class="p">))</span>
+
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;t-stat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Estimate&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Std. Error&quot;</span><span class="p">]</span>
+        <span class="n">p_values</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;t-stat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">())))</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;p-value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">p_values</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_stars</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;(fixed)&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span> <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span> <span class="k">return</span> <span class="s2">&quot;***&quot;</span>
+            <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mf">0.05</span><span class="p">:</span> <span class="k">return</span> <span class="s2">&quot;**&quot;</span>
+            <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>  <span class="k">return</span> <span class="s2">&quot;*&quot;</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Sig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_stars</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">p_values</span><span class="p">,</span> <span class="n">final_names</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+
+    
+<div class="viewcode-block" id="EstimationResult.to_latex">
+<a class="viewcode-back" href="../../../api_reference.html#econox.structures.results.EstimationResult.to_latex">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_latex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">split_cols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the estimation results to a LaTeX table.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: LaTeX table as a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+        
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">name_clean</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="n">coef_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Estimate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Sig&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;Parameter&quot;</span><span class="p">:</span> <span class="n">name_clean</span><span class="p">,</span> <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="n">coef_str</span><span class="p">})</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Std. Error&#39;</span><span class="p">]):</span>
+                <span class="n">se_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Std. Error&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;Parameter&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="n">se_str</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+        
+        <span class="k">if</span> <span class="n">split_cols</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">):</span>
+            <span class="n">n_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+            <span class="n">n_left</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_params</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">mid</span> <span class="o">=</span> <span class="n">n_left</span> <span class="o">*</span> <span class="mi">2</span>
+
+            <span class="n">left_rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[:</span><span class="n">mid</span><span class="p">]</span>
+            <span class="n">right_rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">mid</span><span class="p">:]</span>
+            
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">right_rows</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">left_rows</span><span class="p">):</span>
+                <span class="n">right_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;Parameter&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">})</span>
+
+            <span class="n">latex_df_l</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">left_rows</span><span class="p">)</span>
+            <span class="n">latex_df_r</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">right_rows</span><span class="p">)</span>
+            
+            <span class="n">table_l</span> <span class="o">=</span> <span class="n">latex_df_l</span><span class="o">.</span><span class="n">to_latex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">column_format</span><span class="o">=</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">table_r</span> <span class="o">=</span> <span class="n">latex_df_r</span><span class="o">.</span><span class="n">to_latex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">column_format</span><span class="o">=</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            
+            <span class="n">begin_tab</span> <span class="o">=</span> <span class="s1">&#39;begin</span><span class="si">{tabular}{lr}</span><span class="s1">&#39;</span>
+            <span class="n">end_tab</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">end</span><span class="si">{tabular}</span><span class="s1">&#39;</span>
+            <span class="n">begin_tab_escaped</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">begin</span><span class="si">{tabular}</span><span class="s1">[t]</span><span class="si">{lr}</span><span class="s1">&#39;</span>
+            <span class="n">quad</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">quad&#39;</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">begin_tab_escaped</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">table_l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">begin_tab</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">end_tab</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">end_tab</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">content</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">quad</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">content</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">begin_tab_escaped</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">table_r</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">begin_tab</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">end_tab</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">end_tab</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">latex_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">latex_df</span><span class="o">.</span><span class="n">to_latex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">column_format</span><span class="o">=</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Stats</span>
+        <span class="n">stats_rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">stats_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">midrule&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;n_obs&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">:</span>
+            <span class="n">stats_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Observations &amp; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;n_obs&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">stats_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loss (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;estimation_method&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Value&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">) &amp; </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">)</span><span class="si">:</span><span class="s2">.4e</span><span class="si">}</span><span class="s2"> </span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="s2">&quot;r_squared&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">:</span>
+            <span class="n">r2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s2">&quot;r_squared&quot;</span><span class="p">]</span>
+            <span class="n">stats_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;$R^2$ &amp; </span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">latex_lines</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+        <span class="n">final_lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">latex_lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">bottomrule&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">final_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">stats_rows</span><span class="p">)</span>
+            <span class="n">final_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="n">latex_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">begin</span><span class="si">{table}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">latex_str</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">centering</span><span class="se">\n</span><span class="s2">&quot;</span> 
+        <span class="n">latex_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">caption</span><span class="se">{{</span><span class="s2">Estimation Results</span><span class="se">}}\n</span><span class="s2">&quot;</span>
+        <span class="n">latex_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">label</span><span class="se">{{</span><span class="s2">tab:results</span><span class="se">}}\n</span><span class="s2">&quot;</span>
+        <span class="n">latex_str</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">final_lines</span><span class="p">)</span>
+        <span class="n">latex_str</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">end</span><span class="si">{table}</span><span class="s2">&quot;</span>
+        
+        <span class="k">return</span> <span class="n">latex_str</span></div>
+
+    
+<div class="viewcode-block" id="EstimationResult.summary">
+<a class="viewcode-back" href="../../../api_reference.html#econox.structures.results.EstimationResult.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">short</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">print_summary</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a summary string of the estimation result.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            short (bool, optional): If True, generate a shorter summary. Default is False.</span>
+<span class="sd">            print_summary (bool, optional): If True, print the summary to console. Default is True.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The summary string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">short</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">print_summary</span><span class="o">=</span><span class="n">print_summary</span><span class="p">)</span>
+        
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+        <span class="n">display_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;Initial&quot;</span> <span class="ow">in</span> <span class="n">display_df</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">display_df</span><span class="p">[</span><span class="s2">&quot;Initial&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
+            <span class="n">display_df</span> <span class="o">=</span> <span class="n">display_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Initial&quot;</span><span class="p">])</span>
+        <span class="n">loss_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="si">:</span><span class="s2">.4e</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Estimation Result Summary (Loss: </span><span class="si">{</span><span class="n">loss_str</span><span class="si">}</span><span class="s2">, Success: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">success</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="n">formatters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Initial&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2"> .4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;Estimate&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2"> .4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;Std. Error&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2"> .4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;t-stat&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2"> .2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;p-value&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2"> .3f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">}</span>
+        <span class="n">active_formats</span> <span class="o">=</span> <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="n">fmt</span> <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">formatters</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">display_df</span><span class="o">.</span><span class="n">columns</span><span class="p">}</span>
+        <span class="n">table_str</span> <span class="o">=</span> <span class="n">display_df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span>
+            <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+            <span class="n">justify</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> 
+            <span class="n">formatters</span><span class="o">=</span><span class="n">active_formats</span>
+        <span class="p">)</span>
+
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">header</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">),</span> <span class="n">table_str</span><span class="p">]</span>
+
+        <span class="c1"># Diagnostics</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Diagnostics:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagnostics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="n">val_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">val_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">k</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: </span><span class="si">{</span><span class="n">val_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Metadata:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">val_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">k</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">SUMMARY_FIELD_WIDTH</span><span class="si">}}</span><span class="s2">: </span><span class="si">{</span><span class="n">val_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">summary_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">print_summary</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">summary_text</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">summary_text</span></div>
+</div>
 
 </pre></div>
         </article>
@@ -574,7 +841,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=9e919e1a"></script>
+</div><script src="../../../_static/documentation_options.js?v=3ae91a03"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

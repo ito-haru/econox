@@ -268,11 +268,20 @@ class Estimator(eqx.Module):
             std_errors=std_errors,
             vcov=vcov,
             solver_result=final_solver_result,
-            meta={
-                "steps": int(opt_result.steps), 
-                "optimizer": self.optimizer.__class__.__name__,
-                "method": "Numerical"
-            }
+            meta={ 
+                "optimizer": self.optimizer.method_name,
+                "optimizer_steps": int(opt_result.steps),
+                "computation": "Numerical",
+                "estimation_method": self.method.__class__.__name__,
+                "inference_method": 
+                    self.method.variance.__class__.__name__ if self.method.variance is not None else None,
+                "n_obs": final_N,
+                "n_params": self.param_space.num_total_params,
+                "n_free_params": self.param_space.num_free_params,
+                "n_fixed": self.param_space.num_total_params - self.param_space.num_free_params
+            },
+            initial_params=constrained_init,
+            fixed_mask=self.param_space.fixed_mask
         )
 
     def _get_sum_weights(self, observations: Any) -> int | None:

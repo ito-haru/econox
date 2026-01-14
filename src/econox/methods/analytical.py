@@ -211,13 +211,17 @@ class LinearMethod(EstimationMethod):
             success=jnp.array(True),
             std_errors=self._format_params(std_errors, p_names),
             vcov=vcov_final,
-            r_squared=r_squared,
+            diagnostics={"r_squared": r_squared},
             meta={
-                "estimator": self.__class__.__name__, 
-                "method": "analytical", 
+                "computation": "Analytical", 
+                "estimation_method": self.__class__.__name__,
+                "inference_method": "Analytical", 
                 "n_obs": n_obs,
+                "n_params": n_params_total,
+                "n_free_params": handler.n_free,
                 "n_fixed": handler.n_fixed
-            }
+            },
+            fixed_mask=param_space.fixed_mask
         )
 
     # --- Fallback for Numerical Optimization ---

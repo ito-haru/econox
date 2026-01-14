@@ -156,9 +156,12 @@ source = { editable = "." }
 dependencies = [
     { name = "equinox" },
     { name = "jax" },
+    { name = "jinja2" },
     { name = "lineax" },
+    { name = "numpy" },
     { name = "optimistix" },
     { name = "pandas" },
+    { name = "scipy" },
 ]
 
 [package.optional-dependencies]
@@ -182,10 +185,13 @@ requires-dist = [
     { name = "equinox", specifier = ">=0.13.2" },
     { name = "furo", marker = "extra == 'dev'", specifier = ">=2025.9.25" },
     { name = "jax", specifier = ">=0.8.1" },
+    { name = "jinja2", specifier = ">=3.1.6" },
     { name = "lineax", specifier = ">=0.0.8" },
+    { name = "numpy", specifier = ">=2.3.5" },
     { name = "optimistix", specifier = ">=0.0.11" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.1" },
+    { name = "scipy", specifier = ">=1.16.3" },
     { name = "sphinx", marker = "extra == 'dev'", specifier = ">=8.2.3" },
     { name = "sphinx-autodoc-typehints", marker = "extra == 'dev'", specifier = ">=3.5.2" },
 ]

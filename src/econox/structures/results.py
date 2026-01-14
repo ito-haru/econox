@@ -10,12 +10,13 @@ import json
 import dataclasses
 import shutil
 import numpy as np
+from scipy.stats import norm
 import jax
 import jax.numpy as jnp
 import pandas as pd
 import equinox as eqx
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, final
 from jaxtyping import Array, Float, Bool, PyTree, Scalar
 
 from econox.config import (
@@ -102,7 +103,6 @@ class ResultMixin:
         
         base_path.mkdir(parents=True, exist_ok=True)
         data_dir = base_path / "data"
-        data_dir.mkdir(exist_ok=True)
         metadata = {}
 
         # Get all field names from eqx.Module (which is a dataclass)
@@ -120,15 +120,16 @@ class ResultMixin:
             # Nested Result
             if isinstance(value, ResultMixin):
                 value.save(base_path / field_name, overwrite=overwrite)
+                metadata[field_name] = meta_value
             
             # Dictionary
             elif isinstance(value, dict) and value:
                 dict_dir = base_path / field_name
-                dict_dir.mkdir(exist_ok=True)
-                metadata[field_name] = meta_value
+                metadata[field_name] = self._save_dict_contents(value, dict_dir)
             
             # Long Arrays saved to CSV
             elif isinstance(value, jax.Array) and "data/" in str(meta_value):
+                data_dir.mkdir(exist_ok=True)
                 array_path = data_dir / f"{field_name}.csv"
                 self._save_array_to_csv(value, array_path)
                 metadata[field_name] = meta_value
@@ -209,6 +210,26 @@ class ResultMixin:
             meta = str(value)
         
         return val_str, meta
+
+    def _save_dict_contents(self, data_dict: Dict[str, Any], dict_dir: Path) -> Dict[str, Any]:
+        dict_metadata = {}
+        for k, v in data_dict.items():
+            if isinstance(v, jax.Array):
+                arr = jax.device_get(v)
+                if arr.size < INLINE_ARRAY_SIZE_THRESHOLD and arr.ndim <= 1:
+                    dict_metadata[k] = arr.tolist()
+                else:
+                    csv_name = f"{k}.csv"
+                    dict_dir.mkdir(exist_ok=True)
+                    self._save_array_to_csv(v, dict_dir / csv_name)
+                    dict_metadata[k] = f"./{dict_dir.name}/{csv_name}"
+            else:
+                try:
+                    json.dumps(v)
+                    dict_metadata[k] = v
+                except (TypeError, OverflowError):
+                    dict_metadata[k] = str(v)
+        return dict_metadata
 
     def _save_array_to_csv(self, arr, path: Path) -> None:
         """
@@ -300,6 +321,8 @@ class EstimationResult(ResultMixin, eqx.Module):
     """Additional diagnostics about the estimation process."""
     meta: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
     """Additional metadata about the estimation process (e.g., convergence criteria, iteration counts, duration)."""
+    fixed_mask: PyTree | None = None
+    """Boolean mask indicating which parameters were fixed during estimation."""
 
     @property
     def t_values(self) -> PyTree | None:
@@ -334,7 +357,14 @@ class EstimationResult(ResultMixin, eqx.Module):
 
         ordered_items = flatten_ordered(self.params)
         names = [item[0] for item in ordered_items]
-        vals = [item[1] for item in ordered_items]
+        vals = np.array([item[1] for item in ordered_items])
+
+        if self.fixed_mask is not None:
+            flat_mask_with_path, _ = jax.tree_util.tree_flatten_with_path(self.fixed_mask)
+            path_to_str = lambda path: ".".join(str(p.key) if hasattr(p, 'key') else str(p) for p in path)
+            mask_dict = {path_to_str(p): v for p, v in flat_mask_with_path}
+        else:
+            mask_dict = {}
 
         se_dict = {}
         if self.std_errors is not None:
@@ -343,27 +373,37 @@ class EstimationResult(ResultMixin, eqx.Module):
                 return ".".join(str(p.key) if hasattr(p, 'key') else str(p) for p in path)
             se_dict = {path_to_str(p): v for p, v in flat_ses_with_path}
 
-        ses = [se_dict.get(name, jnp.nan) for name in names]
+        ses = []
+        final_names = []
+        for name in names:
+            is_fixed = mask_dict.get(name, False)
+            if is_fixed:
+                ses.append(np.nan)
+                final_names.append(f"{name} (fixed)")
+            else:
+                ses.append(se_dict.get(name, np.nan))
+                final_names.append(name)
 
         df = pd.DataFrame({
             "Estimate": vals,
-            "Std. Error": ses,
-        }, index=pd.Index(names, name="Parameter"))
+            "Std. Error": np.array(ses),
+        }, index=pd.Index(final_names, name="Parameter"))
 
         df["t-stat"] = df["Estimate"] / df["Std. Error"]
-        p_values = 2 * (1 - jax.scipy.stats.norm.cdf(jnp.abs(df["t-stat"].to_numpy())))
+        p_values = 2 * (1 - norm.cdf(np.abs(df["t-stat"].to_numpy())))
         df["p-value"] = p_values
 
-        def get_stars(p):
+        def get_stars(p, name) -> str:
+            if "(fixed)" in name: return ""
             if p < 0.01: return "***"
             if p < 0.05: return "**"
             if p < 0.1:  return "*"
             return ""
-        df["Sig"] = [get_stars(p) for p in p_values]
+        df["Sig"] = [get_stars(p, name) for p, name in zip(p_values, final_names)]
 
         return df
     
-    def to_latex(self) -> str:
+    def to_latex(self, split_cols: bool = True, threshold: int = 25) -> str:
         """
         Convert the estimation results to a LaTeX table.
         Returns:
@@ -371,23 +411,71 @@ class EstimationResult(ResultMixin, eqx.Module):
         """
         df = self.to_dataframe()
         
-        formatted_rows = []
+        rows = []
         for name, row in df.iterrows():
+            name_clean = str(name).replace("_", " ").replace(".", " ")
             coef_str = f"{row['Estimate']:.4f}{row['Sig']}"
-            formatted_rows.append({"Parameter": name, "Value": coef_str})
-            se_str = f"({row['Std. Error']:.4f})"
-            formatted_rows.append({"Parameter": "", "Value": se_str})
+            rows.append({"Parameter": name_clean, "Value": coef_str})
+            if not np.isnan(row['Std. Error']):
+                se_str = f"({row['Std. Error']:.4f})"
+                rows.append({"Parameter": "", "Value": se_str})
+            else:
+                pass
         
-        latex_df = pd.DataFrame(formatted_rows)
+        if split_cols and (len(df) > threshold):
+            mid = ((len(rows) // 2) // 2) * 2
+            left_rows = rows[:mid]
+            right_rows = rows[mid:]
+            
+            while len(right_rows) < len(left_rows):
+                right_rows.append({"P": "", "V": ""})
+
+            latex_df_l = pd.DataFrame(left_rows)
+            latex_df_r = pd.DataFrame(right_rows)
+            
+            table_l = latex_df_l.to_latex(index=False, header=True, column_format="lr", escape=False)
+            table_r = latex_df_r.to_latex(index=False, header=True, column_format="lr", escape=False)
+            
+            begin_tab = 'begin{tabular}{lr}'
+            end_tab = '\\end{tabular}'
+            begin_tab_escaped = '\\begin{tabular}[t]{lr}'
+            quad = '\\quad'
+            content = f"{begin_tab_escaped} {table_l.split(begin_tab)[1].split(end_tab)[0]} {end_tab}\n"
+            content += f"{quad}\n"
+            content += f"{begin_tab_escaped} {table_r.split(begin_tab)[1].split(end_tab)[0]} {end_tab}"
+        else:
+            latex_df = pd.DataFrame(rows)
+            content = latex_df.to_latex(index=False, header=True, column_format="lr", escape=False)
+
+        # Stats
+        stats_rows = []
+        stats_rows.append("\\midrule")
+
+        if "n_obs" in self.meta:
+            stats_rows.append(f"Observations & {self.meta['n_obs']} \\\\")
         
-        return latex_df.to_latex(
-            index=False, 
-            header=True, 
-            column_format="lr", # Left align Parameter, Right align Value
-            caption=f"Estimation Results (Loss: {self.loss:.4f})",
-            label="tab:results",
-            escape=False # Allow LaTeX formatting in cells
-        )
+        if self.loss is not None:
+            stats_rows.append(f"Loss ({self.meta.get('estimation_method', 'Value')}) & {self.loss:.4e} \\\\")
+        
+        if "r_squared" in self.diagnostics:
+            r2 = self.diagnostics["r_squared"]
+            stats_rows.append(f"$R^2$ & {r2:.4f} \\\\")
+        
+        latex_lines = content.splitlines()
+        final_lines = []
+        for line in latex_lines:
+            if "\\bottomrule" in line:
+                final_lines.extend(stats_rows)
+            final_lines.append(line)
+
+        latex_str = "\\begin{table}\n"
+        latex_str += "\\centering\n" 
+        latex_str += f"\\caption{{Estimation Results}}\n"
+        latex_str += f"\\label{{tab:results}}\n"
+        latex_str += "\n".join(final_lines)
+        latex_str += "\\end{table}"
+        
+        return latex_str
     
     def summary(self, short: bool = False, print_summary: bool = True) -> str:
         """
@@ -402,7 +490,8 @@ class EstimationResult(ResultMixin, eqx.Module):
             return super().summary(short=True, print_summary=print_summary)
         
         df = self.to_dataframe()
-        header = f"Estimation Result Summary (Loss: {self.loss}, Success: {self.success})"
+        loss_str = f"{self.loss:.4e}" if self.loss is not None else "N/A"
+        header = f"Estimation Result Summary (Loss: {loss_str}, Success: {self.success})"
         table_str = df.to_string(index=True, justify='right', 
                                 formatters={'Estimate': '{: .4f}'.format, 'Std. Error': '{: .4f}'.format, 't-stat': '{: .2f}'.format})
 
@@ -416,6 +505,12 @@ class EstimationResult(ResultMixin, eqx.Module):
                     val_str = f"{float(v):.4f}"
                 else:
                     val_str = str(v)
+                lines.append(f"  {k:<{SUMMARY_FIELD_WIDTH}}: {val_str}")
+        
+        if self.meta:
+            lines.append("\nMetadata:")
+            for k, v in self.meta.items():
+                val_str = str(v)
                 lines.append(f"  {k:<{SUMMARY_FIELD_WIDTH}}: {val_str}")
 
         summary_text = "\n".join(lines)

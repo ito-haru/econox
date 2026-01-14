@@ -300,3 +300,22 @@ class ParameterSpace(eqx.Module):
             k: (v == "fixed") 
             for k, v in self.constraints.items()
         }
+    
+    @property
+    def num_total_params(self) -> int:
+        """
+        Returns the number of all parameters.
+        """
+        return sum(
+            1 for kind in self.constraints.values() 
+        )
+    
+    @property
+    def num_free_params(self) -> int:
+        """
+        Returns the number of free (non-fixed) parameters.
+        """
+        return sum(
+            1 for kind in self.constraints.values() 
+            if kind != "fixed"
+        )

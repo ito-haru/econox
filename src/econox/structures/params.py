@@ -306,9 +306,7 @@ class ParameterSpace(eqx.Module):
         """
         Returns the number of all parameters.
         """
-        return sum(
-            1 for kind in self.constraints.values() 
-        )
+        return len(self.constraints)
     
     @property
     def num_free_params(self) -> int:

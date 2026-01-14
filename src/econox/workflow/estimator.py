@@ -280,6 +280,7 @@ class Estimator(eqx.Module):
                 "n_free_params": self.param_space.num_free_params,
                 "n_fixed": self.param_space.num_total_params - self.param_space.num_free_params
             },
+            initial_params=constrained_init,
             fixed_mask=self.param_space.fixed_mask
         )
 

@@ -16,7 +16,7 @@ import jax.numpy as jnp
 import pandas as pd
 import equinox as eqx
 from pathlib import Path
-from typing import Any, Dict, Union, final
+from typing import Any, Dict, Union, Callable
 from jaxtyping import Array, Float, Bool, PyTree, Scalar
 
 from econox.config import (
@@ -321,6 +321,8 @@ class EstimationResult(ResultMixin, eqx.Module):
     """Additional diagnostics about the estimation process."""
     meta: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
     """Additional metadata about the estimation process (e.g., convergence criteria, iteration counts, duration)."""
+    initial_params: PyTree | None = None
+    """Initial parameters used for estimation, if available."""
     fixed_mask: PyTree | None = None
     """Boolean mask indicating which parameters were fixed during estimation."""
 
@@ -343,25 +345,36 @@ class EstimationResult(ResultMixin, eqx.Module):
         Returns:
             pd.DataFrame: DataFrame containing parameters, standard errors, and t-values.
         """
-        def flatten_ordered(tree):
+        def flatten_ordered(tree, parent_key=""):
+            items = []
             if isinstance(tree, dict):
-                items = []
                 for k, v in tree.items():
-                    if isinstance(v, (dict, list, tuple)):
-                        for sub_k, sub_v in flatten_ordered(v):
-                            items.append((f"{k}.{sub_k}", sub_v))
-                    else:
-                        items.append((k, v))
-                return items
-            return [("", tree)]
+                    new_key = f"{parent_key}.{k}" if parent_key else k
+                    items.extend(flatten_ordered(v, new_key))
+            elif isinstance(tree, (list, tuple)):
+                for i, v in enumerate(tree):
+                    new_key = f"{parent_key}[{i}]" if parent_key else str(i)
+                    items.extend(flatten_ordered(v, new_key))
+            else:
+                items.append((parent_key, tree))
+            return items
+        
+        def path_to_str(path):
+            return ".".join(str(p.key) if hasattr(p, 'key') else str(p) for p in path)
 
         ordered_items = flatten_ordered(self.params)
         names = [item[0] for item in ordered_items]
-        vals = np.array([item[1] for item in ordered_items])
+        vals = np.array([float(item[1]) for item in ordered_items], dtype=float)
+        init_val = []
+        if self.initial_params is not None:
+            init_items = flatten_ordered(self.initial_params)
+            init_dict = {item[0]: float(item[1]) for item in init_items}
+            init_val = np.array([init_dict.get(name, np.nan) for name in names], dtype=float)
+        else:
+            init_val = np.array([np.nan] * len(names))
 
         if self.fixed_mask is not None:
             flat_mask_with_path, _ = jax.tree_util.tree_flatten_with_path(self.fixed_mask)
-            path_to_str = lambda path: ".".join(str(p.key) if hasattr(p, 'key') else str(p) for p in path)
             mask_dict = {path_to_str(p): v for p, v in flat_mask_with_path}
         else:
             mask_dict = {}
@@ -369,8 +382,6 @@ class EstimationResult(ResultMixin, eqx.Module):
         se_dict = {}
         if self.std_errors is not None:
             flat_ses_with_path, _ = jax.tree_util.tree_flatten_with_path(self.std_errors)
-            def path_to_str(path):
-                return ".".join(str(p.key) if hasattr(p, 'key') else str(p) for p in path)
             se_dict = {path_to_str(p): v for p, v in flat_ses_with_path}
 
         ses = []
@@ -385,6 +396,7 @@ class EstimationResult(ResultMixin, eqx.Module):
                 final_names.append(name)
 
         df = pd.DataFrame({
+            "Initial": init_val,
             "Estimate": vals,
             "Std. Error": np.array(ses),
         }, index=pd.Index(final_names, name="Parameter"))
@@ -423,12 +435,15 @@ class EstimationResult(ResultMixin, eqx.Module):
                 pass
         
         if split_cols and (len(df) > threshold):
-            mid = ((len(rows) // 2) // 2) * 2
+            n_params = len(df)
+            n_left = (n_params + 1) // 2
+            mid = n_left * 2
+
             left_rows = rows[:mid]
             right_rows = rows[mid:]
             
             while len(right_rows) < len(left_rows):
-                right_rows.append({"P": "", "V": ""})
+                right_rows.append({"Parameter": "", "Value": ""})
 
             latex_df_l = pd.DataFrame(left_rows)
             latex_df_r = pd.DataFrame(right_rows)
@@ -455,7 +470,7 @@ class EstimationResult(ResultMixin, eqx.Module):
             stats_rows.append(f"Observations & {self.meta['n_obs']} \\\\")
         
         if self.loss is not None:
-            stats_rows.append(f"Loss ({self.meta.get('estimation_method', 'Value')}) & {self.loss:.4e} \\\\")
+            stats_rows.append(f"Loss ({self.meta.get('estimation_method', 'Value')}) & {float(self.loss):.4e} \\\\")
         
         if "r_squared" in self.diagnostics:
             r2 = self.diagnostics["r_squared"]
@@ -490,10 +505,24 @@ class EstimationResult(ResultMixin, eqx.Module):
             return super().summary(short=True, print_summary=print_summary)
         
         df = self.to_dataframe()
+        display_df = df.copy()
+        if "Initial" in display_df.columns and bool(display_df["Initial"].isna().all()):
+            display_df = display_df.drop(columns=["Initial"])
         loss_str = f"{self.loss:.4e}" if self.loss is not None else "N/A"
         header = f"Estimation Result Summary (Loss: {loss_str}, Success: {self.success})"
-        table_str = df.to_string(index=True, justify='right', 
-                                formatters={'Estimate': '{: .4f}'.format, 'Std. Error': '{: .4f}'.format, 't-stat': '{: .2f}'.format})
+        formatters: dict[Any, Callable[[Any], str]] = {
+            'Initial': lambda x: f"{x: .4f}",
+            'Estimate': lambda x: f"{x: .4f}",
+            'Std. Error': lambda x: f"{x: .4f}",
+            't-stat': lambda x: f"{x: .2f}",
+            'p-value': lambda x: f"{x: .3f}"
+        }
+        active_formats = {col: fmt for col, fmt in formatters.items() if col in display_df.columns}
+        table_str = display_df.to_string(
+            index=True, 
+            justify='right', 
+            formatters=active_formats
+        )
 
         lines = [header, "-" * len(header), table_str]
 

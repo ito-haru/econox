@@ -179,7 +179,17 @@ class ExponentialTrendTerminal(eqx.Module):
             else:
                 gamma = jnp.asarray(get_from_pytree(params, self.growth_rate_keys, 0.0))
             
-            gamma_eff = gamma[self.prev_idx, jnp.newaxis] if gamma.ndim > 0 else gamma
+            if gamma.ndim > 0:
+                # Validate that gamma aligns with the state dimension before indexing
+                if gamma.shape[0] != expected.shape[0]:
+                    raise ValueError(
+                        f"ExponentialTrendTerminal: gamma has incompatible shape {gamma.shape}; "
+                        f"expected leading dimension {expected.shape[0]} to match the number of states."
+                    )
+                gamma_eff = gamma[self.prev_idx, jnp.newaxis]
+            else:
+                gamma_eff = gamma
+            
             updated_val = val_t_minus_1 * (1.0 + gamma_eff)
 
         # Case 2: Pre-previous indices provided    
@@ -273,14 +283,18 @@ class LinearTrendTerminal(eqx.Module):
             else:
                 delta = jnp.asarray(get_from_pytree(params, self.drift_keys, default=0.0))
 
-            val_prev = expected[self.prev_idx, :]
-
             if delta.ndim > 0:
+                # Validate that delta aligns with the state dimension before indexing
+                if delta.shape[0] != expected.shape[0]:
+                    raise ValueError(
+                        f"LinearTrendTerminal: delta has incompatible shape {delta.shape}; "
+                        f"expected leading dimension {expected.shape[0]} to match the number of states."
+                    )
                 delta_effective = delta[self.prev_idx, jnp.newaxis]
             else:
                 delta_effective = delta
 
-            updated_val = val_prev + delta_effective
+            updated_val = val_t_minus_1 + delta_effective
             return expected.at[self.term_idx, :].set(updated_val)
         
         # Case 2: Pre-previous indices provided

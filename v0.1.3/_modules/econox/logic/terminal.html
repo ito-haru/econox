@@ -1,0 +1,651 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>econox.logic.terminal - Econox 0.1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/version_tabs.css?v=741ea410" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     
+    <div class="version-tabs-container">
+      <a href="/econox/stable/" class="version-tab selected">Stable</a>
+      <a href="/econox/latest/" class="version-tab">Latest (dev)</a>
+    </div>
+     
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">Econox 0.1.3 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <span class="sidebar-brand-text">Econox 0.1.3 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api_reference.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="simple">
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for econox.logic.terminal</h1><div class="highlight"><pre>
+<span></span><span class="c1"># src/econox/logic/terminal.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Terminal value function approximators for dynamic programming solvers.</span>
+
+<span class="sd">These classes define strategies to close finite-horizon dynamic models by </span>
+<span class="sd">approximating the expected value function :math:`EV(T)` at the simulation </span>
+<span class="sd">horizon.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">equinox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">eqx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">PyTree</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">econox.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">econox.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_from_pytree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">econox.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">NUMERICAL_EPSILON</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_retrieve_and_validate_param</span><span class="p">(</span>
+    <span class="n">param_keys</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]],</span>
+    <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span>
+    <span class="n">prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">param_name</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;n 1&quot;</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve and validate trend parameters from PyTree.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        param_keys: Single key or list of keys to retrieve from params.</span>
+<span class="sd">        params: Parameter PyTree.</span>
+<span class="sd">        prev_idx: Index tuple to validate shape against.</span>
+<span class="sd">        param_name: Name for error messages.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Parameter value, reshaped for broadcasting if multidimensional.</span>
+<span class="sd">    </span>
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If parameter shape doesn&#39;t match prev_idx.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param_keys</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">get_from_pytree</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">param_keys</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">get_from_pytree</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">param_keys</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prev_idx</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2"> has incompatible shape </span><span class="si">{</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;expected leading dimension </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> to match prev_idx.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">param</span><span class="p">[:,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">param</span>
+
+
+<div class="viewcode-block" id="IdentityTerminal">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.IdentityTerminal">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IdentityTerminal</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identity terminal approximator (Zero modification).</span>
+<span class="sd">    </span>
+<span class="sd">    This strategy assumes the terminal value is already correctly initialized </span>
+<span class="sd">    and performs no modification to the input matrix.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \mathbb{E}V_T(s, a) = \mathbb{E}V_{T}^{input}(s, a)</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; approximator = IdentityTerminal()</span>
+<span class="sd">        &gt;&gt;&gt; # Returns expected value matrix as-is</span>
+<span class="sd">        &gt;&gt;&gt; adjusted_ev = approximator.approximate(expected, params, model)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="IdentityTerminal.approximate">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.IdentityTerminal.approximate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">approximate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">expected</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span> 
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> 
+        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the expected value matrix without any modifications.</span>
+<span class="sd">        </span>
+<span class="sd">        This method acts as a pass-through, preserving the original Emax values </span>
+<span class="sd">        computed by the Bellman operator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">expected</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StationaryTerminal">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.StationaryTerminal">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StationaryTerminal</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stationary terminal approximator (Steady-state Boundary).</span>
+<span class="sd">    </span>
+<span class="sd">    Approximates the terminal period by assuming the system has reached a </span>
+<span class="sd">    time-invariant steady state, where the value function at :math:`T` </span>
+<span class="sd">    replicates the value at :math:`T-1`.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \mathbb{E}V_T(s, a) = \mathbb{E}V_{T-1}(s&#39;, a) \quad \forall s \in \mathcal{S}_{term}</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        term_idx (tuple[int, ...]): Indices of the terminal states :math:`\mathcal{S}_{term}`.</span>
+<span class="sd">        prev_idx (tuple[int, ...]): Indices of the predecessor states :math:`\mathcal{S}_{prev}`.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # Assuming states (4, 5) are terminal and (2, 3) are T-1</span>
+<span class="sd">        &gt;&gt;&gt; approximator = StationaryTerminal(</span>
+<span class="sd">        ...     term_idx=(4, 5),</span>
+<span class="sd">        ...     prev_idx=(2, 3)</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; adjusted_ev = approximator.approximate(expected, params, model)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">term_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StationaryTerminal.approximate">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.StationaryTerminal.approximate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">approximate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">expected</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span> 
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> 
+        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overwrites terminal state values with values from predecessor states.</span>
+
+<span class="sd">        This implementation performs a scatter operation where:</span>
+<span class="sd">        </span>
+<span class="sd">        .. math::</span>
+<span class="sd">            EV_{adj}[term\_idx, :] = EV_{raw}[prev\_idx, :]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;StationaryTerminal: term_idx and prev_idx must have the same shape. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Extract values from predecessor states</span>
+        <span class="n">expected_at_prev</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="c1"># Map them to terminal states</span>
+        <span class="k">return</span> <span class="n">expected</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">expected_at_prev</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ExponentialTrendTerminal">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.ExponentialTrendTerminal">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExponentialTrendTerminal</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exponential trend terminal approximator with Adaptive Branching.</span>
+<span class="sd">    </span>
+<span class="sd">    This approximator handles non-stationary growth at the horizon by applying </span>
+<span class="sd">    a growth rate :math:`\gamma_s` to the value function. </span>
+
+<span class="sd">    **Branching Priority**:</span>
+<span class="sd">    </span>
+<span class="sd">    1. **Exogenous (Parameter-driven)**: If `growth_rate_keys` is not None, </span>
+<span class="sd">       the solver uses growth rates :math:`\gamma` from `params`.</span>
+<span class="sd">    2. **Endogenous (Data-driven)**: If `growth_rate_keys` is None and </span>
+<span class="sd">       `pre_prev_idx` is provided, the solver extrapolates the trend from </span>
+<span class="sd">       the model&#39;s internal dynamics (:math:`T-1` and :math:`T-2`).</span>
+<span class="sd">    </span>
+<span class="sd">    It supports growth rates through three parameter specification patterns:</span>
+<span class="sd">    </span>
+<span class="sd">    1. **Global Scalar**: A single key mapping to a scalar value (e.g., ``&quot;g&quot;``). </span>
+<span class="sd">       The same growth rate is applied to all terminal states.</span>
+<span class="sd">    2. **Aggregated Scalars**: A list or tuple of keys (e.g., ``[&quot;g1&quot;, &quot;g2&quot;, &quot;g3&quot;]``). </span>
+<span class="sd">       The number of keys must match the length of ``term_idx`` (and ``prev_idx``). </span>
+<span class="sd">       Each scalar parameter corresponds to a terminal state in order.</span>
+<span class="sd">    3. **State-Indexed Vector**: A single key mapping to an array of length :math:`n` </span>
+<span class="sd">       (e.g., ``&quot;g_vector&quot;``), where :math:`n` is the length of ``term_idx``. </span>
+<span class="sd">       Each element corresponds to a terminal state in order.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \mathbb{E}V_T(s, a) = \begin{cases} </span>
+<span class="sd">        (1 + \gamma_s) \mathbb{E}V_{T-1}(s&#39;, a) &amp; \text{if keys provided (Exogenous)} \\</span>
+<span class="sd">        \frac{\mathbb{E}V_{T-1}(s&#39;, a)}{\mathbb{E}V_{T-2}(s&#39;&#39;, a)} \mathbb{E}V_{T-1}(s&#39;, a) &amp; \text{if pre_prev_idx provided (Endogenous)}</span>
+<span class="sd">        \end{cases}</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        term_idx: Indices of the terminal states :math:`T`.</span>
+<span class="sd">        prev_idx: Indices of the predecessor states :math:`T-1`.</span>
+<span class="sd">        pre_prev_idx: Indices of the states :math:`T-2`. Required for endogenous mode.</span>
+<span class="sd">        growth_rate_keys: Identifier(s) for growth rate :math:`\gamma`. </span>
+<span class="sd">            Accepts a single ``str`` for global/vector parameters, or a ``list[str]`` </span>
+<span class="sd">            to aggregate multiple regional scalars.</span>
+<span class="sd">    </span>
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If both `growth_rate_keys` and `pre_prev_idx` are None.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # Pattern 1: Global scalar growth</span>
+<span class="sd">        &gt;&gt;&gt; approx = ExponentialTrendTerminal(term_idx, prev_idx, growth_rate_keys=&quot;g&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; params = {&quot;g&quot;: 0.02}</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; # Pattern 2: Aggregated scalars (3 terminal states)</span>
+<span class="sd">        &gt;&gt;&gt; term_idx = (13, 14, 15)</span>
+<span class="sd">        &gt;&gt;&gt; prev_idx = (10, 11, 12)</span>
+<span class="sd">        &gt;&gt;&gt; approx = ExponentialTrendTerminal(</span>
+<span class="sd">        ...     term_idx, prev_idx, growth_rate_keys=[&quot;g1&quot;, &quot;g2&quot;, &quot;g3&quot;]</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; params = {&quot;g1&quot;: 0.02, &quot;g2&quot;: 0.03, &quot;g3&quot;: 0.01}</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; # Pattern 3: Endogenous dynamic extrapolation (No params needed)</span>
+<span class="sd">        &gt;&gt;&gt; approx = ExponentialTrendTerminal(term_idx, prev_idx, pre_prev_idx=pre_prev)</span>
+<span class="sd">        &gt;&gt;&gt; adjusted_ev = approx.approximate(expected, {}, model)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">term_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">pre_prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">growth_rate_keys</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="ExponentialTrendTerminal.approximate">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.ExponentialTrendTerminal.approximate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">approximate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">expected</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span> 
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> 
+        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies exponential growth to the terminal horizon.</span>
+
+<span class="sd">        The method adaptively switches between:</span>
+<span class="sd">        </span>
+<span class="sd">        * **Exogenous Growth**: Multiplying :math:`T-1` values by :math:`(1 + \gamma)` from `params`.</span>
+<span class="sd">        * **Endogenous Extrapolation**: Multiplying :math:`T-1` values by the ratio :math:`EV_{T-1} / EV_{T-2}`.</span>
+<span class="sd">        </span>
+<span class="sd">        It automatically handles spatial heterogeneity by mapping parameter keys </span>
+<span class="sd">        or vector elements to the corresponding state indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;ExponentialTrendTerminal: term_idx and prev_idx must have the same shape. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">val_t_minus_1</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="c1"># Case 1: Growth rates provided</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">growth_rate_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gamma_eff</span> <span class="o">=</span> <span class="n">_retrieve_and_validate_param</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">growth_rate_keys</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="s2">&quot;ExponentialTrendTerminal: gamma&quot;</span>
+            <span class="p">)</span>
+            <span class="n">updated_val</span> <span class="o">=</span> <span class="n">val_t_minus_1</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">gamma_eff</span><span class="p">)</span>
+
+        <span class="c1"># Case 2: Pre-previous indices provided    </span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;ExponentialTrendTerminal: pre_prev_idx and prev_idx must have the same shape. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">val_t_minus_2</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="c1"># Use jnp.where for numerical stability: fallback to stationary (ratio=1.0) when denominator is near zero</span>
+            <span class="c1"># Note: jnp.where evaluates both branches, so we must avoid division by zero in the computation itself</span>
+            <span class="n">denominator</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">val_t_minus_2</span><span class="p">)</span>
+            <span class="n">safe_denom</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">denominator</span> <span class="o">&gt;</span> <span class="n">NUMERICAL_EPSILON</span><span class="p">,</span> <span class="n">val_t_minus_2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">ratio</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                <span class="n">denominator</span> <span class="o">&gt;</span> <span class="n">NUMERICAL_EPSILON</span><span class="p">,</span>
+                <span class="n">val_t_minus_1</span> <span class="o">/</span> <span class="n">safe_denom</span><span class="p">,</span>
+                <span class="mf">1.0</span>
+            <span class="p">)</span>
+            <span class="n">updated_val</span> <span class="o">=</span> <span class="n">val_t_minus_1</span> <span class="o">*</span> <span class="n">ratio</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;ExponentialTrendTerminal requires either &#39;growth_rate_keys&#39; or &#39;pre_prev_idx&#39; to be set.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">expected</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">updated_val</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LinearTrendTerminal">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.LinearTrendTerminal">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LinearTrendTerminal</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Linear trend terminal approximator with Adaptive Branching.</span>
+<span class="sd">    </span>
+<span class="sd">    Approximates the terminal value by adding a drift component :math:`\delta_s`. </span>
+
+<span class="sd">    **Branching Priority**:</span>
+<span class="sd">    </span>
+<span class="sd">    1. **Exogenous (Parameter-driven)**: If `drift_keys` is not None, </span>
+<span class="sd">       uses drift terms :math:`\delta` from `params`.</span>
+<span class="sd">    2. **Endogenous (Data-driven)**: If `drift_keys` is None and </span>
+<span class="sd">       `pre_prev_idx` is provided, extrapolates the linear difference </span>
+<span class="sd">       between :math:`T-1` and :math:`T-2`.</span>
+
+<span class="sd">    Similar to the exponential variant, it supports three patterns for :math:`\delta`:</span>
+<span class="sd">    </span>
+<span class="sd">    1. **Global Drift**: A single key mapping to a scalar drift value applied to all terminal states.</span>
+<span class="sd">    2. **Aggregated Drifts**: A list or tuple of keys. The number of keys must match </span>
+<span class="sd">       the length of ``term_idx`` (and ``prev_idx``). Each scalar corresponds to a terminal state in order.</span>
+<span class="sd">    3. **Drift Vector**: A single key mapping to an array of length :math:`n`, </span>
+<span class="sd">       where :math:`n` is the length of ``term_idx``. Each element corresponds to a terminal state in order.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \mathbb{E}V_T(s, a) = \begin{cases} </span>
+<span class="sd">        \mathbb{E}V_{T-1}(s&#39;, a) + \delta_s &amp; \text{if keys provided (Exogenous)} \\</span>
+<span class="sd">        \mathbb{E}V_{T-1}(s&#39;, a) + (\mathbb{E}V_{T-1}(s&#39;, a) - \mathbb{E}V_{T-2}(s&#39;&#39;, a)) &amp; \text{if pre_prev_idx provided (Endogenous)}</span>
+<span class="sd">        \end{cases}</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        term_idx: Indices of the terminal states :math:`T`.</span>
+<span class="sd">        prev_idx: Indices of the predecessor states :math:`T-1`.</span>
+<span class="sd">        pre_prev_idx: Indices of the states :math:`T-2`. Required for endogenous mode.</span>
+<span class="sd">        drift_keys: Identifier(s) for drift :math:`\delta`. Accepts a single ``str`` </span>
+<span class="sd">            for global/vector parameters, or a ``list[str]`` to aggregate </span>
+<span class="sd">            multiple regional scalars.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If both `drift_keys` and `pre_prev_idx` are None.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # Linear drift via parameter keys</span>
+<span class="sd">        &gt;&gt;&gt; approx = LinearTrendTerminal(term_idx, prev_idx, drift_keys=&quot;drift&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; params = {&quot;drift&quot;: 500.0}</span>
+<span class="sd">        &gt;&gt;&gt; adjusted_ev = approx.approximate(expected, params, model)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">term_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">pre_prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">drift_keys</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="LinearTrendTerminal.approximate">
+<a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.LinearTrendTerminal.approximate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">approximate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">expected</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span> 
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> 
+        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies linear drift to the terminal horizon.</span>
+
+<span class="sd">        The method adaptively switches between:</span>
+<span class="sd">        </span>
+<span class="sd">        * **Exogenous Drift**: Adding :math:`\delta` from `params` to :math:`T-1` values.</span>
+<span class="sd">        * **Endogenous Extrapolation**: Adding the difference :math:`(EV_{T-1} - EV_{T-2})` to :math:`EV_{T-1}`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val_t_minus_1</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="c1"># Case 1: Drift keys provided</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drift_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delta_effective</span> <span class="o">=</span> <span class="n">_retrieve_and_validate_param</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">drift_keys</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="s2">&quot;LinearTrendTerminal: delta&quot;</span>
+            <span class="p">)</span>
+            <span class="n">updated_val</span> <span class="o">=</span> <span class="n">val_t_minus_1</span> <span class="o">+</span> <span class="n">delta_effective</span>
+        
+        <span class="c1"># Case 2: Pre-previous indices provided</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;LinearTrendTerminal: pre_prev_idx and prev_idx must have the same shape. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">val_t_minus_2</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">val_t_minus_1</span> <span class="o">-</span> <span class="n">val_t_minus_2</span>
+            <span class="n">updated_val</span> <span class="o">=</span> <span class="n">val_t_minus_1</span> <span class="o">+</span> <span class="n">diff</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;LinearTrendTerminal requires either &#39;drift_keys&#39; or &#39;pre_prev_idx&#39; to be set.&quot;</span>
+            <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">expected</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">updated_val</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Haruto Ito
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=360bc84d"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

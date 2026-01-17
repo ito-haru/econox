@@ -7,13 +7,12 @@ Can be used for static models as well by setting discount_factor=0.
 import jax.numpy as jnp
 import equinox as eqx
 from typing import Any
-from jaxtyping import PyTree, Array, Int
+from jaxtyping import PyTree, Array
 
-from econox.protocols import StructuralModel, Utility, Distribution
+from econox.protocols import StructuralModel, Utility, Distribution, TerminalApproximator
 from econox.optim import FixedPoint, FixedPointResult
 from econox.structures import SolverResult
-from econox.utils import get_from_pytree
-
+from econox.logic import IdentityTerminal 
 
 class ValueIterationSolver(eqx.Module):
     """
@@ -23,16 +22,9 @@ class ValueIterationSolver(eqx.Module):
         utility (Utility): Utility function to compute flow utilities.
         dist (Distribution): Probability distribution for choice modeling.
         discount_factor (float): Discount factor for future utilities.
-        numerical_solver: FixedPoint
+        terminal_approximator (TerminalApproximator): Approximator for terminal value function.
+        numerical_solver (FixedPoint): Numerical solver for finding fixed points.
 
-    Optional Data Keys:
-        The solver looks for the following keys in `model.data` to enable 
-        terminal state approximation (:math:`EV(T-1) = EV(T)`):
-        
-        * **terminal_state_indices** (Int[Array, "n"]): Indices of states at :math:`T`.
-        * **previous_state_indices** (Int[Array, "n"]): Indices of states at :math:`T-1` to copy from.
-        
-        If provided, both must be present and have the same shape.
     
     Examples:
         >>> # Define structural components
@@ -43,7 +35,8 @@ class ValueIterationSolver(eqx.Module):
         >>> solver = ValueIterationSolver(
         ...     utility=utility,
         ...     dist=dist,
-        ...     discount_factor=0.99
+        ...     discount_factor=0.99,
+        ...     terminal_approximator=IdentityTerminal(),
         ... )
         
         >>> # Solve the model
@@ -57,6 +50,7 @@ class ValueIterationSolver(eqx.Module):
     utility: Utility
     dist: Distribution
     discount_factor: float
+    terminal_approximator: TerminalApproximator = eqx.field(default_factory=IdentityTerminal)
     numerical_solver: FixedPoint = eqx.field(default_factory=FixedPoint)
 
     def solve(
@@ -102,36 +96,10 @@ class ValueIterationSolver(eqx.Module):
                     f"Got:      {transitions.shape}"
                 )
         
-        # If finite, approximate terminal value EV[T-1] = EV[T]
-        term_idx: Int[Array, "n_terminal"] | None = get_from_pytree(data, "terminal_state_indices", default=None)
-        prev_idx: Int[Array, "n_terminal"] | None = get_from_pytree(data, "previous_state_indices", default=None)
-
-        # Validate terminal approximation indices
-        if (term_idx is None) != (prev_idx is None):
-            raise ValueError(
-                "ValueIteration: 'terminal_state_indices' and 'previous_state_indices' "
-                "must be provided together in model.data to enable terminal approximation."
-            )
-        if term_idx is not None and prev_idx is not None:
-            if term_idx.shape != prev_idx.shape:
-                raise ValueError(
-                    f"ValueIteration: Shape mismatch. terminal_state_indices {term_idx.shape} "
-                    f"!= previous_state_indices {prev_idx.shape}"
-                )
         num_states: int = model.num_states
         num_actions: int = model.num_actions
 
         flow_utility: Array = utility.compute_flow_utility(params, model)
-
-        # ---------------------------------------------------------
-        # Helper Function (Closure)
-        # ---------------------------------------------------------
-        def apply_terminal_approximation(expected: Array) -> Array:
-            """Apply terminal state approximation EV(T-1) = EV(T) if configured."""
-            if term_idx is not None and prev_idx is not None:
-                expected_at_prev = expected[prev_idx, :]
-                return expected.at[term_idx, :].set(expected_at_prev)
-            return expected
 
         # ---------------------------------------------------------
         # Bellman Operator
@@ -151,7 +119,8 @@ class ValueIterationSolver(eqx.Module):
             expected_flat = transitions @ current_ev
             expected = expected_flat.reshape(num_states, num_actions)
             
-            expected = apply_terminal_approximation(expected)
+            # Apply terminal value approximation
+            expected = self.terminal_approximator.approximate(expected, params, model)
             
             choice_values = flow_utility + self.discount_factor * expected
             next_ev = dist.expected_max(choice_values)
@@ -172,7 +141,8 @@ class ValueIterationSolver(eqx.Module):
         expected_final_flat = transitions @ final_ev
         expected_final = expected_final_flat.reshape(num_states, num_actions)
         
-        expected_final = apply_terminal_approximation(expected_final)
+        # Apply terminal value approximation
+        expected_final = self.terminal_approximator.approximate(expected_final, params, model)
             
         value_choices = flow_utility + self.discount_factor * expected_final
         choice_probs = dist.choice_probabilities(value_choices)

@@ -151,6 +151,30 @@ class Dynamics(Protocol):
         """Computes :math:`D_{t+1}` given :math:`D_t` and Policy."""
         ...
 
+@runtime_checkable
+class TerminalApproximator(Protocol):
+    """
+    Terminal Value Function Approximator for Finite Horizon Models.
+    """
+    def approximate(
+        self, 
+        expected: Float[Array, "num_states num_actions"], 
+        params: PyTree, 
+        model: StructuralModel
+    ) -> Float[Array, "num_states num_actions"]:
+        """
+        Computes the terminal value function approximation.
+        
+        Args:
+            expected: The expected future value matrix before terminal adjustment.
+            params: Model parameters (may include growth rates, etc.).
+            model: The structural model instance providing data and metadata.
+            
+        Returns:
+            The adjusted expected future value matrix.
+        """
+        ...
+
 # =============================================================================
 # 3. Core Engine (Solver)
 # =============================================================================

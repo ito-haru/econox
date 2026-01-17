@@ -35,7 +35,11 @@ from econox.logic import (
     FunctionFeedback,
     CustomUpdateFeedback,
     SimpleDynamics,
-    TrajectoryDynamics
+    TrajectoryDynamics,
+    IdentityTerminal,
+    StationaryTerminal,
+    ExponentialTrendTerminal,
+    LinearTrendTerminal,
 )
 
 # 3. Solvers (Computational Engines)
@@ -65,6 +69,10 @@ __all__ = [
     "CustomUpdateFeedback",
     "SimpleDynamics",
     "TrajectoryDynamics",
+    "IdentityTerminal",
+    "StationaryTerminal",
+    "ExponentialTrendTerminal",
+    "LinearTrendTerminal",
     # Solvers
     "ValueIterationSolver",
     "EquilibriumSolver",

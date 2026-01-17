@@ -7,13 +7,12 @@ Can be used for static models as well by setting discount_factor=0.
 import jax.numpy as jnp
 import equinox as eqx
 from typing import Any
-from jaxtyping import PyTree, Array, Int
+from jaxtyping import PyTree, Array
 
 from econox.protocols import StructuralModel, Utility, Distribution, TerminalApproximator
 from econox.optim import FixedPoint, FixedPointResult
 from econox.structures import SolverResult
-from econox.logic import IdentityTerminal
-from econox.utils import get_from_pytree    
+from econox.logic import IdentityTerminal 
 
 class ValueIterationSolver(eqx.Module):
     """

@@ -13,6 +13,44 @@ from jaxtyping import Array, Float, Int, PyTree
 
 from econox.protocols import StructuralModel
 from econox.utils import get_from_pytree
+from econox.config import NUMERICAL_EPSILON
+
+
+def _retrieve_and_validate_param(
+    param_keys: Union[str, List[str], Tuple[str, ...]],
+    params: PyTree,
+    prev_idx: Int[Array, "n"],
+    param_name: str
+) -> Union[Float[Array, "n 1"], float]:
+    """
+    Retrieve and validate trend parameters from PyTree.
+    
+    Args:
+        param_keys: Single key or list of keys to retrieve from params.
+        params: Parameter PyTree.
+        prev_idx: Index array to validate shape against.
+        param_name: Name for error messages.
+    
+    Returns:
+        Parameter value, reshaped for broadcasting if multidimensional.
+    
+    Raises:
+        ValueError: If parameter shape doesn't match prev_idx.
+    """
+    if isinstance(param_keys, (list, tuple)):
+        param = jnp.array([get_from_pytree(params, k, 0.0) for k in param_keys])
+    else:
+        param = jnp.asarray(get_from_pytree(params, param_keys, 0.0))
+    
+    if param.ndim > 0:
+        if param.shape[0] != prev_idx.shape[0]:
+            raise ValueError(
+                f"{param_name} has incompatible shape {param.shape}; "
+                f"expected leading dimension {prev_idx.shape[0]} to match prev_idx."
+            )
+        return param[:, jnp.newaxis]
+    else:
+        return param
 
 
 class IdentityTerminal(eqx.Module):
@@ -85,6 +123,12 @@ class StationaryTerminal(eqx.Module):
         .. math::
             EV_{adj}[term\_idx, :] = EV_{raw}[prev\_idx, :]
         """
+        if self.term_idx.shape != self.prev_idx.shape:
+            raise ValueError(
+                f"StationaryTerminal: term_idx and prev_idx must have the same shape. "
+                f"Got {self.term_idx.shape} and {self.prev_idx.shape}."
+            )
+
         # Extract values from predecessor states
         expected_at_prev = expected[self.prev_idx, :]
         # Map them to terminal states
@@ -106,15 +150,16 @@ class ExponentialTrendTerminal(eqx.Module):
        `pre_prev_idx` is provided, the solver extrapolates the trend from 
        the model's internal dynamics (:math:`T-1` and :math:`T-2`).
     
-    It supports spatial heterogeneity in growth rates through three parameter 
-    specification patterns:
+    It supports growth rates through three parameter specification patterns:
     
     1. **Global Scalar**: A single key mapping to a scalar value (e.g., ``"g"``). 
-       The same growth rate is applied to all states.
-    2. **Aggregated Scalars**: A list or tuple of keys (e.g., ``["g_tokyo", "g_osaka"]``). 
-       Individual scalar parameters are collected into a spatial vector.
-    3. **Spatial Vector**: A single key mapping to an array of length :math:`S` 
-       (e.g., ``"g_vector"``). Each element corresponds to a specific state.
+       The same growth rate is applied to all terminal states.
+    2. **Aggregated Scalars**: A list or tuple of keys (e.g., ``["g1", "g2", "g3"]``). 
+       The number of keys must match the length of ``term_idx`` (and ``prev_idx``). 
+       Each scalar parameter corresponds to a terminal state in order.
+    3. **State-Indexed Vector**: A single key mapping to an array of length :math:`n` 
+       (e.g., ``"g_vector"``), where :math:`n` is the length of ``term_idx``. 
+       Each element corresponds to a terminal state in order.
 
     .. math::
         \mathbb{E}V_T(s, a) = \begin{cases} 
@@ -138,11 +183,13 @@ class ExponentialTrendTerminal(eqx.Module):
         >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, growth_rate_keys="g")
         >>> params = {"g": 0.02}
         
-        >>> # Pattern 2: Aggregated regional scalars (Spatial Heterogeneity)
+        >>> # Pattern 2: Aggregated scalars (3 terminal states)
+        >>> term_idx = jnp.array([13, 14, 15])
+        >>> prev_idx = jnp.array([10, 11, 12])
         >>> approx = ExponentialTrendTerminal(
-        ...     term_idx, prev_idx, growth_rate_keys=["g_tokyo", "g_osaka"]
+        ...     term_idx, prev_idx, growth_rate_keys=["g1", "g2", "g3"]
         ... )
-        >>> params = {"g_tokyo": 0.03, "g_osaka": 0.01}
+        >>> params = {"g1": 0.02, "g2": 0.03, "g3": 0.01}
         
         >>> # Pattern 3: Endogenous dynamic extrapolation (No params needed)
         >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, pre_prev_idx=pre_prev)
@@ -170,32 +217,35 @@ class ExponentialTrendTerminal(eqx.Module):
         It automatically handles spatial heterogeneity by mapping parameter keys 
         or vector elements to the corresponding state indices.
         """
+        if self.term_idx.shape != self.prev_idx.shape:
+            raise ValueError(
+                f"ExponentialTrendTerminal: term_idx and prev_idx must have the same shape. "
+                f"Got {self.term_idx.shape} and {self.prev_idx.shape}."
+            )
         val_t_minus_1 = expected[self.prev_idx, :]
 
         # Case 1: Growth rates provided
         if self.growth_rate_keys is not None:
-            if isinstance(self.growth_rate_keys, (list, tuple)):
-                gamma = jnp.array([get_from_pytree(params, k, 0.0) for k in self.growth_rate_keys])
-            else:
-                gamma = jnp.asarray(get_from_pytree(params, self.growth_rate_keys, 0.0))
-            
-            if gamma.ndim > 0:
-                # Validate that gamma aligns with the state dimension before indexing
-                if gamma.shape[0] != expected.shape[0]:
-                    raise ValueError(
-                        f"ExponentialTrendTerminal: gamma has incompatible shape {gamma.shape}; "
-                        f"expected leading dimension {expected.shape[0]} to match the number of states."
-                    )
-                gamma_eff = gamma[self.prev_idx, jnp.newaxis]
-            else:
-                gamma_eff = gamma
-            
+            gamma_eff = _retrieve_and_validate_param(
+                self.growth_rate_keys, params, self.prev_idx, "ExponentialTrendTerminal: gamma"
+            )
             updated_val = val_t_minus_1 * (1.0 + gamma_eff)
 
         # Case 2: Pre-previous indices provided    
         elif self.pre_prev_idx is not None:
+            if self.pre_prev_idx.shape != self.prev_idx.shape:
+                raise ValueError(
+                    f"ExponentialTrendTerminal: pre_prev_idx and prev_idx must have the same shape. "
+                    f"Got {self.pre_prev_idx.shape} and {self.prev_idx.shape}."
+                )
             val_t_minus_2 = expected[self.pre_prev_idx, :]
-            ratio = val_t_minus_1 / (jnp.abs(val_t_minus_2) + 1e-8)
+            # Use jnp.where for numerical stability: fallback to stationary (ratio=1.0) when denominator is near zero
+            denominator = jnp.abs(val_t_minus_2)
+            ratio = jnp.where(
+                denominator > NUMERICAL_EPSILON,
+                val_t_minus_1 / val_t_minus_2,
+                1.0
+            )
             updated_val = val_t_minus_1 * ratio
             
         else:
@@ -220,12 +270,13 @@ class LinearTrendTerminal(eqx.Module):
        `pre_prev_idx` is provided, extrapolates the linear difference 
        between :math:`T-1` and :math:`T-2`.
 
-    Similar to the exponential variant, it supports three patterns for :math:`\delta_s`:
+    Similar to the exponential variant, it supports three patterns for :math:`\delta`:
     
-    1. **Global Drift**: A single key mapping to a scalar drift value.
-    2. **Aggregated Drifts**: A collection of keys mapping to region-specific scalars.
-    3. **Spatial Drift Vector**: A single key mapping to a pre-formed drift array 
-       of length :math:`S`.
+    1. **Global Drift**: A single key mapping to a scalar drift value applied to all terminal states.
+    2. **Aggregated Drifts**: A list or tuple of keys. The number of keys must match 
+       the length of ``term_idx`` (and ``prev_idx``). Each scalar corresponds to a terminal state in order.
+    3. **Drift Vector**: A single key mapping to an array of length :math:`n`, 
+       where :math:`n` is the length of ``term_idx``. Each element corresponds to a terminal state in order.
 
     .. math::
         \mathbb{E}V_T(s, a) = \begin{cases} 
@@ -273,38 +324,20 @@ class LinearTrendTerminal(eqx.Module):
 
         # Case 1: Drift keys provided
         if self.drift_keys is not None:
-            
-            # Retrieve and aggregate drift parameters
-            if isinstance(self.drift_keys, (list, tuple)):
-                delta = jnp.array([
-                    get_from_pytree(params, k, default=0.0) 
-                    for k in self.drift_keys
-                ])
-            else:
-                delta = jnp.asarray(get_from_pytree(params, self.drift_keys, default=0.0))
-
-            if delta.ndim > 0:
-                # Validate that delta aligns with the state dimension before indexing
-                if delta.shape[0] != expected.shape[0]:
-                    raise ValueError(
-                        f"LinearTrendTerminal: delta has incompatible shape {delta.shape}; "
-                        f"expected leading dimension {expected.shape[0]} to match the number of states."
-                    )
-                delta_effective = delta[self.prev_idx, jnp.newaxis]
-            else:
-                delta_effective = delta
-
+            delta_effective = _retrieve_and_validate_param(
+                self.drift_keys, params, self.prev_idx, "LinearTrendTerminal: delta"
+            )
             updated_val = val_t_minus_1 + delta_effective
-            return expected.at[self.term_idx, :].set(updated_val)
         
         # Case 2: Pre-previous indices provided
         elif self.pre_prev_idx is not None:
             val_t_minus_2 = expected[self.pre_prev_idx, :]
             diff = val_t_minus_1 - val_t_minus_2
             updated_val = val_t_minus_1 + diff
-            return expected.at[self.term_idx, :].set(updated_val)
         
         else:
             raise ValueError(
                 "LinearTrendTerminal requires either 'drift_keys' or 'pre_prev_idx' to be set."
             )
+        
+        return expected.at[self.term_idx, :].set(updated_val)

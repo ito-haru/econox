@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="Welcome to Econox’s documentation!" href="index.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>API Reference - Econox 0.1.2.post1.dev3 documentation</title>
+        <title>API Reference - Econox 0.1.2.post1.dev4 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -159,7 +159,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.2.post1.dev3)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.2.post1.dev4)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -171,7 +171,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">Econox 0.1.2.post1.dev3 documentation</div></a>
+      <a href="index.html"><div class="brand">Econox 0.1.2.post1.dev4 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev3 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -796,6 +796,34 @@ Handles the smoothing of the max operator (Emax) and choice probabilities (CCP).
 <p>State Transition Law of Motion <span class="math notranslate nohighlight">\(s' = f(s, a, \xi)\)</span>.</p>
 <p>Defines how the distribution of agents over states evolves over time.
 Used for simulation and calculating steady-state distributions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.protocols.TerminalApproximator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.protocols.</span></span><span class="sig-name descname"><span class="pre">TerminalApproximator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#TerminalApproximator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.TerminalApproximator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<p>Terminal Value Function Approximator for Finite Horizon Models.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.protocols.TerminalApproximator.approximate">
+<span class="sig-name descname"><span class="pre">approximate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expected</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/protocols.html#TerminalApproximator.approximate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.protocols.TerminalApproximator.approximate" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the terminal value function approximation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expected</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'num_states</span> <span class="pre">num_actions']</span></code></span>) – The expected future value matrix before terminal adjustment.</p></li>
+<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyTree</span></code></span>) – Model parameters (may include growth rates, etc.).</p></li>
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – The structural model instance providing data and metadata.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'num_states</span> <span class="pre">num_actions']</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The adjusted expected future value matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -2157,6 +2185,391 @@ often involving:
 </dd></dl>
 
 </section>
+<section id="module-econox.logic.terminal">
+<span id="terminal-approximators"></span><h3>Terminal Approximators<a class="headerlink" href="#module-econox.logic.terminal" title="Link to this heading">¶</a></h3>
+<p>Terminal value function approximators for dynamic programming solvers.</p>
+<p>These classes define strategies to close finite-horizon dynamic models by
+approximating the expected value function <span class="math notranslate nohighlight">\(EV(T)\)</span> at the simulation
+horizon.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.logic.terminal.IdentityTerminal">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.logic.terminal.</span></span><span class="sig-name descname"><span class="pre">IdentityTerminal</span></span><a class="reference internal" href="_modules/econox/logic/terminal.html#IdentityTerminal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.terminal.IdentityTerminal" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Identity terminal approximator (Zero modification).</p>
+<p>This strategy assumes the terminal value is already correctly initialized
+and performs no modification to the input matrix.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\mathbb{E}V_T(s, a) = \mathbb{E}V_{T}^{input}(s, a)\]</div>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">approximator</span> <span class="o">=</span> <span class="n">IdentityTerminal</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Returns expected value matrix as-is</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adjusted_ev</span> <span class="o">=</span> <span class="n">approximator</span><span class="o">.</span><span class="n">approximate</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.terminal.IdentityTerminal.approximate">
+<span class="sig-name descname"><span class="pre">approximate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expected</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/terminal.html#IdentityTerminal.approximate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.terminal.IdentityTerminal.approximate" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the expected value matrix without any modifications.</p>
+<p>This method acts as a pass-through, preserving the original Emax values
+computed by the Bellman operator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'S</span> <span class="pre">A']</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>expected</strong> (<em>Float</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>'S A'</em><em>]</em>)</p></li>
+<li><p><strong>params</strong> (<em>PyTree</em>)</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.terminal.IdentityTerminal.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#econox.logic.terminal.IdentityTerminal.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.logic.terminal.StationaryTerminal">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.logic.terminal.</span></span><span class="sig-name descname"><span class="pre">StationaryTerminal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/terminal.html#StationaryTerminal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.terminal.StationaryTerminal" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Stationary terminal approximator (Steady-state Boundary).</p>
+<p>Approximates the terminal period by assuming the system has reached a
+time-invariant steady state, where the value function at <span class="math notranslate nohighlight">\(T\)</span>
+replicates the value at <span class="math notranslate nohighlight">\(T-1\)</span>.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\mathbb{E}V_T(s, a) = \mathbb{E}V_{T-1}(s', a) \quad \forall s \in \mathcal{S}_{term}\]</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>term_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>) – Indices of the terminal states <span class="math notranslate nohighlight">\(\mathcal{S}_{term}\)</span>.</p></li>
+<li><p><strong>prev_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>) – Indices of the predecessor states <span class="math notranslate nohighlight">\(\mathcal{S}_{prev}\)</span>.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Assuming states (4, 5) are terminal and (2, 3) are T-1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">approximator</span> <span class="o">=</span> <span class="n">StationaryTerminal</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">term_idx</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">prev_idx</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adjusted_ev</span> <span class="o">=</span> <span class="n">approximator</span><span class="o">.</span><span class="n">approximate</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.StationaryTerminal.term_idx">
+<span class="sig-name descname"><span class="pre">term_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.logic.terminal.StationaryTerminal.term_idx" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.StationaryTerminal.prev_idx">
+<span class="sig-name descname"><span class="pre">prev_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.logic.terminal.StationaryTerminal.prev_idx" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.terminal.StationaryTerminal.approximate">
+<span class="sig-name descname"><span class="pre">approximate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expected</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/terminal.html#StationaryTerminal.approximate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.terminal.StationaryTerminal.approximate" title="Link to this definition">¶</a></dt>
+<dd><p>Overwrites terminal state values with values from predecessor states.</p>
+<p>This implementation performs a scatter operation where:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[EV_{adj}[term\_idx, :] = EV_{raw}[prev\_idx, :]\]</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'S</span> <span class="pre">A']</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>expected</strong> (<em>Float</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>'S A'</em><em>]</em>)</p></li>
+<li><p><strong>params</strong> (<em>PyTree</em>)</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.terminal.StationaryTerminal.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.logic.terminal.StationaryTerminal.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>term_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>prev_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.logic.terminal.ExponentialTrendTerminal">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.logic.terminal.</span></span><span class="sig-name descname"><span class="pre">ExponentialTrendTerminal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_prev_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">growth_rate_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/terminal.html#ExponentialTrendTerminal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.terminal.ExponentialTrendTerminal" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Exponential trend terminal approximator with Adaptive Branching.</p>
+<p>This approximator handles non-stationary growth at the horizon by applying
+a growth rate <span class="math notranslate nohighlight">\(\gamma_s\)</span> to the value function.</p>
+<p><strong>Branching Priority</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Exogenous (Parameter-driven)</strong>: If <cite>growth_rate_keys</cite> is not None,
+the solver uses growth rates <span class="math notranslate nohighlight">\(\gamma\)</span> from <cite>params</cite>.</p></li>
+<li><p><strong>Endogenous (Data-driven)</strong>: If <cite>growth_rate_keys</cite> is None and
+<cite>pre_prev_idx</cite> is provided, the solver extrapolates the trend from
+the model’s internal dynamics (<span class="math notranslate nohighlight">\(T-1\)</span> and <span class="math notranslate nohighlight">\(T-2\)</span>).</p></li>
+</ol>
+<p>It supports growth rates through three parameter specification patterns:</p>
+<ol class="arabic simple">
+<li><p><strong>Global Scalar</strong>: A single key mapping to a scalar value (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;g&quot;</span></code>).
+The same growth rate is applied to all terminal states.</p></li>
+<li><p><strong>Aggregated Scalars</strong>: A list or tuple of keys (e.g., <code class="docutils literal notranslate"><span class="pre">[&quot;g1&quot;,</span> <span class="pre">&quot;g2&quot;,</span> <span class="pre">&quot;g3&quot;]</span></code>).
+The number of keys must match the length of <code class="docutils literal notranslate"><span class="pre">term_idx</span></code> (and <code class="docutils literal notranslate"><span class="pre">prev_idx</span></code>).
+Each scalar parameter corresponds to a terminal state in order.</p></li>
+<li><p><strong>State-Indexed Vector</strong>: A single key mapping to an array of length <span class="math notranslate nohighlight">\(n\)</span>
+(e.g., <code class="docutils literal notranslate"><span class="pre">&quot;g_vector&quot;</span></code>), where <span class="math notranslate nohighlight">\(n\)</span> is the length of <code class="docutils literal notranslate"><span class="pre">term_idx</span></code>.
+Each element corresponds to a terminal state in order.</p></li>
+</ol>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathbb{E}V_T(s, a) = \begin{cases}
+(1 + \gamma_s) \mathbb{E}V_{T-1}(s', a) &amp; \text{if keys provided (Exogenous)} \\
+\frac{\mathbb{E}V_{T-1}(s', a)}{\mathbb{E}V_{T-2}(s'', a)} \mathbb{E}V_{T-1}(s', a) &amp; \text{if pre_prev_idx provided (Endogenous)}
+\end{cases}\end{split}\]</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>term_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>]</span>) – Indices of the terminal states <span class="math notranslate nohighlight">\(T\)</span>.</p></li>
+<li><p><strong>prev_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>]</span>) – Indices of the predecessor states <span class="math notranslate nohighlight">\(T-1\)</span>.</p></li>
+<li><p><strong>pre_prev_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Indices of the states <span class="math notranslate nohighlight">\(T-2\)</span>. Required for endogenous mode.</p></li>
+<li><p><strong>growth_rate_keys</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Identifier(s) for growth rate <span class="math notranslate nohighlight">\(\gamma\)</span>.
+Accepts a single <code class="docutils literal notranslate"><span class="pre">str</span></code> for global/vector parameters, or a <code class="docutils literal notranslate"><span class="pre">list[str]</span></code>
+to aggregate multiple regional scalars.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If both <cite>growth_rate_keys</cite> and <cite>pre_prev_idx</cite> are None.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pattern 1: Global scalar growth</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">approx</span> <span class="o">=</span> <span class="n">ExponentialTrendTerminal</span><span class="p">(</span><span class="n">term_idx</span><span class="p">,</span> <span class="n">prev_idx</span><span class="p">,</span> <span class="n">growth_rate_keys</span><span class="o">=</span><span class="s2">&quot;g&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;g&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pattern 2: Aggregated scalars (3 terminal states)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">term_idx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prev_idx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">approx</span> <span class="o">=</span> <span class="n">ExponentialTrendTerminal</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">term_idx</span><span class="p">,</span> <span class="n">prev_idx</span><span class="p">,</span> <span class="n">growth_rate_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;g1&quot;</span><span class="p">,</span> <span class="s2">&quot;g2&quot;</span><span class="p">,</span> <span class="s2">&quot;g3&quot;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;g1&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s2">&quot;g2&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">,</span> <span class="s2">&quot;g3&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pattern 3: Endogenous dynamic extrapolation (No params needed)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">approx</span> <span class="o">=</span> <span class="n">ExponentialTrendTerminal</span><span class="p">(</span><span class="n">term_idx</span><span class="p">,</span> <span class="n">prev_idx</span><span class="p">,</span> <span class="n">pre_prev_idx</span><span class="o">=</span><span class="n">pre_prev</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adjusted_ev</span> <span class="o">=</span> <span class="n">approx</span><span class="o">.</span><span class="n">approximate</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="p">{},</span> <span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.ExponentialTrendTerminal.term_idx">
+<span class="sig-name descname"><span class="pre">term_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.logic.terminal.ExponentialTrendTerminal.term_idx" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.ExponentialTrendTerminal.prev_idx">
+<span class="sig-name descname"><span class="pre">prev_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.logic.terminal.ExponentialTrendTerminal.prev_idx" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.ExponentialTrendTerminal.pre_prev_idx">
+<span class="sig-name descname"><span class="pre">pre_prev_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.logic.terminal.ExponentialTrendTerminal.pre_prev_idx" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.ExponentialTrendTerminal.growth_rate_keys">
+<span class="sig-name descname"><span class="pre">growth_rate_keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.logic.terminal.ExponentialTrendTerminal.growth_rate_keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.terminal.ExponentialTrendTerminal.approximate">
+<span class="sig-name descname"><span class="pre">approximate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expected</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/terminal.html#ExponentialTrendTerminal.approximate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.terminal.ExponentialTrendTerminal.approximate" title="Link to this definition">¶</a></dt>
+<dd><p>Applies exponential growth to the terminal horizon.</p>
+<p>The method adaptively switches between:</p>
+<ul class="simple">
+<li><p><strong>Exogenous Growth</strong>: Multiplying <span class="math notranslate nohighlight">\(T-1\)</span> values by <span class="math notranslate nohighlight">\((1 + \gamma)\)</span> from <cite>params</cite>.</p></li>
+<li><p><strong>Endogenous Extrapolation</strong>: Multiplying <span class="math notranslate nohighlight">\(T-1\)</span> values by the ratio <span class="math notranslate nohighlight">\(EV_{T-1} / EV_{T-2}\)</span>.</p></li>
+</ul>
+<p>It automatically handles spatial heterogeneity by mapping parameter keys
+or vector elements to the corresponding state indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'S</span> <span class="pre">A']</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>expected</strong> (<em>Float</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>'S A'</em><em>]</em>)</p></li>
+<li><p><strong>params</strong> (<em>PyTree</em>)</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.terminal.ExponentialTrendTerminal.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_prev_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">growth_rate_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.logic.terminal.ExponentialTrendTerminal.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>term_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>prev_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>pre_prev_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>growth_rate_keys</strong> (<em>str</em><em> | </em><em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>...</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.logic.terminal.LinearTrendTerminal">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.logic.terminal.</span></span><span class="sig-name descname"><span class="pre">LinearTrendTerminal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_prev_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drift_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/terminal.html#LinearTrendTerminal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.terminal.LinearTrendTerminal" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Linear trend terminal approximator with Adaptive Branching.</p>
+<p>Approximates the terminal value by adding a drift component <span class="math notranslate nohighlight">\(\delta_s\)</span>.</p>
+<p><strong>Branching Priority</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Exogenous (Parameter-driven)</strong>: If <cite>drift_keys</cite> is not None,
+uses drift terms <span class="math notranslate nohighlight">\(\delta\)</span> from <cite>params</cite>.</p></li>
+<li><p><strong>Endogenous (Data-driven)</strong>: If <cite>drift_keys</cite> is None and
+<cite>pre_prev_idx</cite> is provided, extrapolates the linear difference
+between <span class="math notranslate nohighlight">\(T-1\)</span> and <span class="math notranslate nohighlight">\(T-2\)</span>.</p></li>
+</ol>
+<p>Similar to the exponential variant, it supports three patterns for <span class="math notranslate nohighlight">\(\delta\)</span>:</p>
+<ol class="arabic simple">
+<li><p><strong>Global Drift</strong>: A single key mapping to a scalar drift value applied to all terminal states.</p></li>
+<li><p><strong>Aggregated Drifts</strong>: A list or tuple of keys. The number of keys must match
+the length of <code class="docutils literal notranslate"><span class="pre">term_idx</span></code> (and <code class="docutils literal notranslate"><span class="pre">prev_idx</span></code>). Each scalar corresponds to a terminal state in order.</p></li>
+<li><p><strong>Drift Vector</strong>: A single key mapping to an array of length <span class="math notranslate nohighlight">\(n\)</span>,
+where <span class="math notranslate nohighlight">\(n\)</span> is the length of <code class="docutils literal notranslate"><span class="pre">term_idx</span></code>. Each element corresponds to a terminal state in order.</p></li>
+</ol>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathbb{E}V_T(s, a) = \begin{cases}
+\mathbb{E}V_{T-1}(s', a) + \delta_s &amp; \text{if keys provided (Exogenous)} \\
+\mathbb{E}V_{T-1}(s', a) + (\mathbb{E}V_{T-1}(s', a) - \mathbb{E}V_{T-2}(s'', a)) &amp; \text{if pre_prev_idx provided (Endogenous)}
+\end{cases}\end{split}\]</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>term_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>]</span>) – Indices of the terminal states <span class="math notranslate nohighlight">\(T\)</span>.</p></li>
+<li><p><strong>prev_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>]</span>) – Indices of the predecessor states <span class="math notranslate nohighlight">\(T-1\)</span>.</p></li>
+<li><p><strong>pre_prev_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Indices of the states <span class="math notranslate nohighlight">\(T-2\)</span>. Required for endogenous mode.</p></li>
+<li><p><strong>drift_keys</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span>) – Identifier(s) for drift <span class="math notranslate nohighlight">\(\delta\)</span>. Accepts a single <code class="docutils literal notranslate"><span class="pre">str</span></code>
+for global/vector parameters, or a <code class="docutils literal notranslate"><span class="pre">list[str]</span></code> to aggregate
+multiple regional scalars.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If both <cite>drift_keys</cite> and <cite>pre_prev_idx</cite> are None.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Linear drift via parameter keys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">approx</span> <span class="o">=</span> <span class="n">LinearTrendTerminal</span><span class="p">(</span><span class="n">term_idx</span><span class="p">,</span> <span class="n">prev_idx</span><span class="p">,</span> <span class="n">drift_keys</span><span class="o">=</span><span class="s2">&quot;drift&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;drift&quot;</span><span class="p">:</span> <span class="mf">500.0</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adjusted_ev</span> <span class="o">=</span> <span class="n">approx</span><span class="o">.</span><span class="n">approximate</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.LinearTrendTerminal.term_idx">
+<span class="sig-name descname"><span class="pre">term_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.logic.terminal.LinearTrendTerminal.term_idx" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.LinearTrendTerminal.prev_idx">
+<span class="sig-name descname"><span class="pre">prev_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.logic.terminal.LinearTrendTerminal.prev_idx" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.LinearTrendTerminal.pre_prev_idx">
+<span class="sig-name descname"><span class="pre">pre_prev_idx</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.logic.terminal.LinearTrendTerminal.pre_prev_idx" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.logic.terminal.LinearTrendTerminal.drift_keys">
+<span class="sig-name descname"><span class="pre">drift_keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.logic.terminal.LinearTrendTerminal.drift_keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.terminal.LinearTrendTerminal.approximate">
+<span class="sig-name descname"><span class="pre">approximate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expected</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/logic/terminal.html#LinearTrendTerminal.approximate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.logic.terminal.LinearTrendTerminal.approximate" title="Link to this definition">¶</a></dt>
+<dd><p>Applies linear drift to the terminal horizon.</p>
+<p>The method adaptively switches between:</p>
+<ul class="simple">
+<li><p><strong>Exogenous Drift</strong>: Adding <span class="math notranslate nohighlight">\(\delta\)</span> from <cite>params</cite> to <span class="math notranslate nohighlight">\(T-1\)</span> values.</p></li>
+<li><p><strong>Endogenous Extrapolation</strong>: Adding the difference <span class="math notranslate nohighlight">\((EV_{T-1} - EV_{T-2})\)</span> to <span class="math notranslate nohighlight">\(EV_{T-1}\)</span>.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'S</span> <span class="pre">A']</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>expected</strong> (<em>Float</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>'S A'</em><em>]</em>)</p></li>
+<li><p><strong>params</strong> (<em>PyTree</em>)</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.logic.terminal.LinearTrendTerminal.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_prev_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drift_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.logic.terminal.LinearTrendTerminal.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>term_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>prev_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>pre_prev_idx</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>drift_keys</strong> (<em>str</em><em> | </em><em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>...</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 </section>
 <section id="solvers-algorithms">
 <h2>Solvers (Algorithms)<a class="headerlink" href="#solvers-algorithms" title="Link to this heading">¶</a></h2>
@@ -2167,7 +2580,7 @@ often involving:
 Can be used for static models as well by setting discount_factor=0.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.solvers.dynamic_programming.</span></span><span class="sig-name descname"><span class="pre">ValueIterationSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/dynamic_programming.html#ValueIterationSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.solvers.dynamic_programming.</span></span><span class="sig-name descname"><span class="pre">ValueIterationSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_approximator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/dynamic_programming.html#ValueIterationSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>Fixed-point solver using value function iteration.</p>
 <dl class="field-list simple">
@@ -2176,7 +2589,8 @@ Can be used for static models as well by setting discount_factor=0.</p>
 <li><p><strong>utility</strong> (<a class="reference internal" href="#econox.protocols.Utility" title="econox.protocols.Utility"><em>Utility</em></a>) – Utility function to compute flow utilities.</p></li>
 <li><p><strong>dist</strong> (<a class="reference internal" href="#econox.protocols.Distribution" title="econox.protocols.Distribution"><em>Distribution</em></a>) – Probability distribution for choice modeling.</p></li>
 <li><p><strong>discount_factor</strong> (<em>float</em>) – Discount factor for future utilities.</p></li>
-<li><p><strong>numerical_solver</strong> – FixedPoint</p></li>
+<li><p><strong>terminal_approximator</strong> (<a class="reference internal" href="#econox.protocols.TerminalApproximator" title="econox.protocols.TerminalApproximator"><em>TerminalApproximator</em></a>) – Approximator for terminal value function.</p></li>
+<li><p><strong>numerical_solver</strong> (<a class="reference internal" href="#econox.optim.FixedPoint" title="econox.optim.FixedPoint"><em>FixedPoint</em></a>) – Numerical solver for finding fixed points.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
@@ -2184,18 +2598,9 @@ Can be used for static models as well by setting discount_factor=0.</p>
 <li><p><strong>utility</strong> (<a class="reference internal" href="#econox.protocols.Utility" title="econox.protocols.Utility"><em>Utility</em></a>)</p></li>
 <li><p><strong>dist</strong> (<a class="reference internal" href="#econox.protocols.Distribution" title="econox.protocols.Distribution"><em>Distribution</em></a>)</p></li>
 <li><p><strong>discount_factor</strong> (<em>float</em>)</p></li>
+<li><p><strong>terminal_approximator</strong> (<a class="reference internal" href="#econox.protocols.TerminalApproximator" title="econox.protocols.TerminalApproximator"><em>TerminalApproximator</em></a>)</p></li>
 <li><p><strong>numerical_solver</strong> (<a class="reference internal" href="#econox.optim.FixedPoint" title="econox.optim.FixedPoint"><em>FixedPoint</em></a>)</p></li>
 </ul>
-</dd>
-</dl>
-<dl>
-<dt>Optional Data Keys:</dt><dd><p>The solver looks for the following keys in <cite>model.data</cite> to enable
-terminal state approximation (<span class="math notranslate nohighlight">\(EV(T-1) = EV(T)\)</span>):</p>
-<ul class="simple">
-<li><p><strong>terminal_state_indices</strong> (Int[Array, “n”]): Indices of states at <span class="math notranslate nohighlight">\(T\)</span>.</p></li>
-<li><p><strong>previous_state_indices</strong> (Int[Array, “n”]): Indices of states at <span class="math notranslate nohighlight">\(T-1\)</span> to copy from.</p></li>
-</ul>
-<p>If provided, both must be present and have the same shape.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -2208,7 +2613,8 @@ terminal state approximation (<span class="math notranslate nohighlight">\(EV(T-
 <span class="gp">&gt;&gt;&gt; </span><span class="n">solver</span> <span class="o">=</span> <span class="n">ValueIterationSolver</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">utility</span><span class="o">=</span><span class="n">utility</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">dist</span><span class="o">=</span><span class="n">dist</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span>
+<span class="gp">... </span>    <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">terminal_approximator</span><span class="o">=</span><span class="n">IdentityTerminal</span><span class="p">(),</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2234,6 +2640,11 @@ terminal state approximation (<span class="math notranslate nohighlight">\(EV(T-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.discount_factor">
 <span class="sig-name descname"><span class="pre">discount_factor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.discount_factor" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.terminal_approximator">
+<span class="sig-name descname"><span class="pre">terminal_approximator</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.protocols.TerminalApproximator" title="econox.protocols.TerminalApproximator"><span class="pre">TerminalApproximator</span></a></span><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.terminal_approximator" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -2270,13 +2681,14 @@ terminal state approximation (<span class="math notranslate nohighlight">\(EV(T-
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_approximator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>utility</strong> (<a class="reference internal" href="#econox.protocols.Utility" title="econox.protocols.Utility"><em>Utility</em></a>)</p></li>
 <li><p><strong>dist</strong> (<a class="reference internal" href="#econox.protocols.Distribution" title="econox.protocols.Distribution"><em>Distribution</em></a>)</p></li>
 <li><p><strong>discount_factor</strong> (<em>float</em>)</p></li>
+<li><p><strong>terminal_approximator</strong> (<a class="reference internal" href="#econox.protocols.TerminalApproximator" title="econox.protocols.TerminalApproximator"><em>TerminalApproximator</em></a>)</p></li>
 <li><p><strong>numerical_solver</strong> (<a class="reference internal" href="#econox.optim.FixedPoint" title="econox.optim.FixedPoint"><em>FixedPoint</em></a>)</p></li>
 </ul>
 </dd>
@@ -3815,6 +4227,10 @@ and attribute-style (.key) access.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#econox.protocols.Dynamics"><code class="docutils literal notranslate"><span class="pre">Dynamics</span></code></a></li>
+<li><a class="reference internal" href="#econox.protocols.TerminalApproximator"><code class="docutils literal notranslate"><span class="pre">TerminalApproximator</span></code></a><ul>
+<li><a class="reference internal" href="#econox.protocols.TerminalApproximator.approximate"><code class="docutils literal notranslate"><span class="pre">TerminalApproximator.approximate()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#econox.protocols.Solver"><code class="docutils literal notranslate"><span class="pre">Solver</span></code></a><ul>
 <li><a class="reference internal" href="#econox.protocols.Solver.solve"><code class="docutils literal notranslate"><span class="pre">Solver.solve()</span></code></a></li>
 </ul>
@@ -3963,6 +4379,39 @@ and attribute-style (.key) access.</p>
 </li>
 </ul>
 </li>
+<li><a class="reference internal" href="#module-econox.logic.terminal">Terminal Approximators</a><ul>
+<li><a class="reference internal" href="#econox.logic.terminal.IdentityTerminal"><code class="docutils literal notranslate"><span class="pre">IdentityTerminal</span></code></a><ul>
+<li><a class="reference internal" href="#econox.logic.terminal.IdentityTerminal.approximate"><code class="docutils literal notranslate"><span class="pre">IdentityTerminal.approximate()</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.IdentityTerminal.__init__"><code class="docutils literal notranslate"><span class="pre">IdentityTerminal.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#econox.logic.terminal.StationaryTerminal"><code class="docutils literal notranslate"><span class="pre">StationaryTerminal</span></code></a><ul>
+<li><a class="reference internal" href="#econox.logic.terminal.StationaryTerminal.term_idx"><code class="docutils literal notranslate"><span class="pre">StationaryTerminal.term_idx</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.StationaryTerminal.prev_idx"><code class="docutils literal notranslate"><span class="pre">StationaryTerminal.prev_idx</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.StationaryTerminal.approximate"><code class="docutils literal notranslate"><span class="pre">StationaryTerminal.approximate()</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.StationaryTerminal.__init__"><code class="docutils literal notranslate"><span class="pre">StationaryTerminal.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#econox.logic.terminal.ExponentialTrendTerminal"><code class="docutils literal notranslate"><span class="pre">ExponentialTrendTerminal</span></code></a><ul>
+<li><a class="reference internal" href="#econox.logic.terminal.ExponentialTrendTerminal.term_idx"><code class="docutils literal notranslate"><span class="pre">ExponentialTrendTerminal.term_idx</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.ExponentialTrendTerminal.prev_idx"><code class="docutils literal notranslate"><span class="pre">ExponentialTrendTerminal.prev_idx</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.ExponentialTrendTerminal.pre_prev_idx"><code class="docutils literal notranslate"><span class="pre">ExponentialTrendTerminal.pre_prev_idx</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.ExponentialTrendTerminal.growth_rate_keys"><code class="docutils literal notranslate"><span class="pre">ExponentialTrendTerminal.growth_rate_keys</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.ExponentialTrendTerminal.approximate"><code class="docutils literal notranslate"><span class="pre">ExponentialTrendTerminal.approximate()</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.ExponentialTrendTerminal.__init__"><code class="docutils literal notranslate"><span class="pre">ExponentialTrendTerminal.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#econox.logic.terminal.LinearTrendTerminal"><code class="docutils literal notranslate"><span class="pre">LinearTrendTerminal</span></code></a><ul>
+<li><a class="reference internal" href="#econox.logic.terminal.LinearTrendTerminal.term_idx"><code class="docutils literal notranslate"><span class="pre">LinearTrendTerminal.term_idx</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.LinearTrendTerminal.prev_idx"><code class="docutils literal notranslate"><span class="pre">LinearTrendTerminal.prev_idx</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.LinearTrendTerminal.pre_prev_idx"><code class="docutils literal notranslate"><span class="pre">LinearTrendTerminal.pre_prev_idx</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.LinearTrendTerminal.drift_keys"><code class="docutils literal notranslate"><span class="pre">LinearTrendTerminal.drift_keys</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.LinearTrendTerminal.approximate"><code class="docutils literal notranslate"><span class="pre">LinearTrendTerminal.approximate()</span></code></a></li>
+<li><a class="reference internal" href="#econox.logic.terminal.LinearTrendTerminal.__init__"><code class="docutils literal notranslate"><span class="pre">LinearTrendTerminal.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#solvers-algorithms">Solvers (Algorithms)</a><ul>
@@ -3971,6 +4420,7 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.utility"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.utility</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.dist"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.dist</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.discount_factor"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.discount_factor</span></code></a></li>
+<li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.terminal_approximator"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.terminal_approximator</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.numerical_solver"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.numerical_solver</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.solve"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.solve()</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.__init__"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.__init__()</span></code></a></li>
@@ -4146,7 +4596,7 @@ and attribute-style (.key) access.</p>
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=3ae91a03"></script>
+</div><script src="_static/documentation_options.js?v=f1608ace"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>

@@ -65,7 +65,7 @@ def sample_params():
 
 def test_retrieve_and_validate_param_scalar_key(sample_params):
     """Test parameter retrieval with a single scalar key."""
-    prev_idx = jnp.array([0, 1, 2])
+    prev_idx = (0, 1, 2)
     result = _retrieve_and_validate_param("g", sample_params, prev_idx, "test_param")
     
     # Should return scalar value
@@ -75,7 +75,7 @@ def test_retrieve_and_validate_param_scalar_key(sample_params):
 
 def test_retrieve_and_validate_param_vector_key(sample_params):
     """Test parameter retrieval with a vector key."""
-    prev_idx = jnp.array([0, 1, 2])
+    prev_idx = (0, 1, 2)
     result = _retrieve_and_validate_param("g_vector", sample_params, prev_idx, "test_param")
     
     # Should return (3, 1) array for broadcasting
@@ -86,7 +86,7 @@ def test_retrieve_and_validate_param_vector_key(sample_params):
 
 def test_retrieve_and_validate_param_list_keys(sample_params):
     """Test parameter retrieval with a list of keys."""
-    prev_idx = jnp.array([0, 1, 2])
+    prev_idx = (0, 1, 2)
     result = _retrieve_and_validate_param(["g1", "g2", "g3"], sample_params, prev_idx, "test_param")
     
     # Should aggregate into (3, 1) array
@@ -97,17 +97,17 @@ def test_retrieve_and_validate_param_list_keys(sample_params):
 
 def test_retrieve_and_validate_param_shape_mismatch(sample_params):
     """Test that shape validation raises ValueError on mismatch."""
-    prev_idx = jnp.array([0, 1, 2])  # Length 3
+    prev_idx = (0, 1, 2)  # Length 3
     
     with pytest.raises(ValueError, match="incompatible shape"):
         # g_vector has length 3, but we'll create a prev_idx of different length
-        wrong_idx = jnp.array([0, 1])  # Length 2
+        wrong_idx = (0, 1)  # Length 2
         _retrieve_and_validate_param("g_vector", sample_params, wrong_idx, "test_param")
 
 
 def test_retrieve_and_validate_param_missing_key():
     """Test behavior when key is missing from params."""
-    prev_idx = jnp.array([0, 1, 2])
+    prev_idx = (0, 1, 2)
     result = _retrieve_and_validate_param("nonexistent_key", {}, prev_idx, "test_param")
     
     # Should return default 0.0
@@ -144,8 +144,8 @@ def test_identity_terminal_preserves_dtype(mock_model):
 def test_stationary_terminal_basic(sample_expected_values, sample_params, mock_model):
     """Test basic stationary approximation."""
     # States 8, 9 are terminal, copy from states 6, 7
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
     
     approximator = StationaryTerminal(term_idx=term_idx, prev_idx=prev_idx)
     result = approximator.approximate(sample_expected_values, sample_params, mock_model)
@@ -161,8 +161,8 @@ def test_stationary_terminal_basic(sample_expected_values, sample_params, mock_m
 
 def test_stationary_terminal_shape_validation(sample_expected_values, sample_params, mock_model):
     """Test that StationaryTerminal validates index shape consistency."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6])  # Mismatched length
+    term_idx = (8, 9)
+    prev_idx = (6,)  # Mismatched length
     
     approximator = StationaryTerminal(term_idx=term_idx, prev_idx=prev_idx)
     
@@ -172,8 +172,8 @@ def test_stationary_terminal_shape_validation(sample_expected_values, sample_par
 
 def test_stationary_terminal_single_state(sample_expected_values, sample_params, mock_model):
     """Test stationary approximation for a single terminal state."""
-    term_idx = jnp.array([9])
-    prev_idx = jnp.array([7])
+    term_idx = (9,)
+    prev_idx = (7,)
     
     approximator = StationaryTerminal(term_idx=term_idx, prev_idx=prev_idx)
     result = approximator.approximate(sample_expected_values, sample_params, mock_model)
@@ -187,8 +187,8 @@ def test_stationary_terminal_single_state(sample_expected_values, sample_params,
 
 def test_exponential_trend_exogenous_scalar(sample_expected_values, sample_params, mock_model):
     """Test exponential trend with scalar growth rate."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
     
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,
@@ -207,8 +207,8 @@ def test_exponential_trend_exogenous_scalar(sample_expected_values, sample_param
 
 def test_exponential_trend_exogenous_vector(sample_expected_values, sample_params, mock_model):
     """Test exponential trend with vector growth rates."""
-    term_idx = jnp.array([7, 8, 9])
-    prev_idx = jnp.array([4, 5, 6])
+    term_idx = (7, 8, 9)
+    prev_idx = (4, 5, 6)
     
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,
@@ -229,8 +229,8 @@ def test_exponential_trend_exogenous_vector(sample_expected_values, sample_param
 
 def test_exponential_trend_exogenous_list_keys(sample_expected_values, sample_params, mock_model):
     """Test exponential trend with aggregated regional scalars."""
-    term_idx = jnp.array([7, 8, 9])
-    prev_idx = jnp.array([4, 5, 6])
+    term_idx = (7, 8, 9)
+    prev_idx = (4, 5, 6)
     
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,
@@ -251,9 +251,9 @@ def test_exponential_trend_exogenous_list_keys(sample_expected_values, sample_pa
 
 def test_exponential_trend_endogenous(sample_expected_values, sample_params, mock_model):
     """Test exponential trend with endogenous extrapolation."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
-    pre_prev_idx = jnp.array([4, 5])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
+    pre_prev_idx = (4, 5)
     
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,
@@ -289,9 +289,9 @@ def test_exponential_trend_endogenous_numerical_stability(sample_params, mock_mo
         [0.0, 1e-12, 25.0]    # Zero and near-zero
     ])
     
-    term_idx = jnp.array([2, 3])
-    prev_idx = jnp.array([2, 3])
-    pre_prev_idx = jnp.array([1, 1])
+    term_idx = (2, 3)
+    prev_idx = (2, 3)
+    pre_prev_idx = (1, 1)
     
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,
@@ -318,9 +318,9 @@ def test_exponential_trend_negative_values(sample_params, mock_model):
         [-60.0, -50.0, -35.0]
     ])
     
-    term_idx = jnp.array([2, 3])
-    prev_idx = jnp.array([2, 3])
-    pre_prev_idx = jnp.array([0, 1])
+    term_idx = (2, 3)
+    prev_idx = (2, 3)
+    pre_prev_idx = (0, 1)
     
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,
@@ -346,8 +346,8 @@ def test_exponential_trend_negative_values(sample_params, mock_model):
 
 def test_exponential_trend_requires_keys_or_indices(sample_expected_values, mock_model):
     """Test that ExponentialTrendTerminal requires either keys or pre_prev_idx."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
     
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,
@@ -362,9 +362,9 @@ def test_exponential_trend_requires_keys_or_indices(sample_expected_values, mock
 
 def test_exponential_trend_index_shape_validation(sample_expected_values, sample_params, mock_model):
     """Test index shape validation for pre_prev_idx."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
-    pre_prev_idx = jnp.array([4])  # Mismatched length
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
+    pre_prev_idx = (4,)  # Mismatched length
     
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,
@@ -382,8 +382,8 @@ def test_exponential_trend_index_shape_validation(sample_expected_values, sample
 
 def test_linear_trend_exogenous_scalar(sample_expected_values, sample_params, mock_model):
     """Test linear trend with scalar drift."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
     
     approximator = LinearTrendTerminal(
         term_idx=term_idx,
@@ -402,8 +402,8 @@ def test_linear_trend_exogenous_scalar(sample_expected_values, sample_params, mo
 
 def test_linear_trend_exogenous_vector(sample_expected_values, sample_params, mock_model):
     """Test linear trend with vector drifts."""
-    term_idx = jnp.array([7, 8, 9])
-    prev_idx = jnp.array([4, 5, 6])
+    term_idx = (7, 8, 9)
+    prev_idx = (4, 5, 6)
     
     approximator = LinearTrendTerminal(
         term_idx=term_idx,
@@ -424,8 +424,8 @@ def test_linear_trend_exogenous_vector(sample_expected_values, sample_params, mo
 
 def test_linear_trend_exogenous_list_keys(sample_expected_values, sample_params, mock_model):
     """Test linear trend with aggregated regional drifts."""
-    term_idx = jnp.array([7, 8, 9])
-    prev_idx = jnp.array([4, 5, 6])
+    term_idx = (7, 8, 9)
+    prev_idx = (4, 5, 6)
     
     approximator = LinearTrendTerminal(
         term_idx=term_idx,
@@ -446,9 +446,9 @@ def test_linear_trend_exogenous_list_keys(sample_expected_values, sample_params,
 
 def test_linear_trend_endogenous(sample_expected_values, sample_params, mock_model):
     """Test linear trend with endogenous extrapolation."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
-    pre_prev_idx = jnp.array([4, 5])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
+    pre_prev_idx = (4, 5)
     
     approximator = LinearTrendTerminal(
         term_idx=term_idx,
@@ -476,9 +476,9 @@ def test_linear_trend_negative_values(sample_params, mock_model):
         [-60.0, -50.0, -35.0]
     ])
     
-    term_idx = jnp.array([2, 3])
-    prev_idx = jnp.array([2, 3])
-    pre_prev_idx = jnp.array([0, 1])
+    term_idx = (2, 3)
+    prev_idx = (2, 3)
+    pre_prev_idx = (0, 1)
     
     approximator = LinearTrendTerminal(
         term_idx=term_idx,
@@ -499,8 +499,8 @@ def test_linear_trend_negative_values(sample_params, mock_model):
 
 def test_linear_trend_requires_keys_or_indices(sample_expected_values, mock_model):
     """Test that LinearTrendTerminal requires either keys or pre_prev_idx."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
     
     approximator = LinearTrendTerminal(
         term_idx=term_idx,
@@ -515,8 +515,8 @@ def test_linear_trend_requires_keys_or_indices(sample_expected_values, mock_mode
 
 def test_linear_trend_structure_consistency(sample_expected_values, sample_params, mock_model):
     """Test that LinearTrendTerminal returns consistently at the end (not in branches)."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
     
     # Test with exogenous keys
     approx1 = LinearTrendTerminal(term_idx=term_idx, prev_idx=prev_idx, drift_keys="drift")
@@ -524,7 +524,7 @@ def test_linear_trend_structure_consistency(sample_expected_values, sample_param
     assert result1.shape == sample_expected_values.shape
     
     # Test with endogenous
-    pre_prev_idx = jnp.array([4, 5])
+    pre_prev_idx = (4, 5)
     approx2 = LinearTrendTerminal(term_idx=term_idx, prev_idx=prev_idx, pre_prev_idx=pre_prev_idx)
     result2 = approx2.approximate(sample_expected_values, sample_params, mock_model)
     assert result2.shape == sample_expected_values.shape
@@ -536,8 +536,8 @@ def test_linear_trend_structure_consistency(sample_expected_values, sample_param
 
 def test_all_approximators_preserve_shape(sample_expected_values, sample_params, mock_model):
     """Test that all approximators preserve the input shape."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
     
     approximators = [
         IdentityTerminal(),
@@ -553,8 +553,8 @@ def test_all_approximators_preserve_shape(sample_expected_values, sample_params,
 
 def test_approximators_are_jax_compatible(sample_expected_values, sample_params, mock_model):
     """Test that approximators work with JAX transformations (jit, grad)."""
-    term_idx = jnp.array([8, 9])
-    prev_idx = jnp.array([6, 7])
+    term_idx = (8, 9)
+    prev_idx = (6, 7)
     
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,

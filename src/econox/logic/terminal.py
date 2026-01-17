@@ -9,7 +9,7 @@ horizon.
 import jax.numpy as jnp
 import equinox as eqx
 from typing import Union, List, Tuple
-from jaxtyping import Array, Float, Int, PyTree
+from jaxtyping import Array, Float, PyTree
 
 from econox.protocols import StructuralModel
 from econox.utils import get_from_pytree
@@ -19,7 +19,7 @@ from econox.config import NUMERICAL_EPSILON
 def _retrieve_and_validate_param(
     param_keys: Union[str, List[str], Tuple[str, ...]],
     params: PyTree,
-    prev_idx: Int[Array, "n"],
+    prev_idx: tuple[int, ...],
     param_name: str
 ) -> Union[Float[Array, "n 1"], float]:
     """
@@ -28,7 +28,7 @@ def _retrieve_and_validate_param(
     Args:
         param_keys: Single key or list of keys to retrieve from params.
         params: Parameter PyTree.
-        prev_idx: Index array to validate shape against.
+        prev_idx: Index tuple to validate shape against.
         param_name: Name for error messages.
     
     Returns:
@@ -43,10 +43,10 @@ def _retrieve_and_validate_param(
         param = jnp.asarray(get_from_pytree(params, param_keys, 0.0))
     
     if param.ndim > 0:
-        if param.shape[0] != prev_idx.shape[0]:
+        if param.shape[0] != len(prev_idx):
             raise ValueError(
                 f"{param_name} has incompatible shape {param.shape}; "
-                f"expected leading dimension {prev_idx.shape[0]} to match prev_idx."
+                f"expected leading dimension {len(prev_idx)} to match prev_idx."
             )
         return param[:, jnp.newaxis]
     else:
@@ -95,19 +95,19 @@ class StationaryTerminal(eqx.Module):
         \mathbb{E}V_T(s, a) = \mathbb{E}V_{T-1}(s', a) \quad \forall s \in \mathcal{S}_{term}
 
     Args:
-        term_idx (Int[Array, "n"]): Indices of the terminal states :math:`\mathcal{S}_{term}`.
-        prev_idx (Int[Array, "n"]): Indices of the predecessor states :math:`\mathcal{S}_{prev}`.
+        term_idx (tuple[int, ...]): Indices of the terminal states :math:`\mathcal{S}_{term}`.
+        prev_idx (tuple[int, ...]): Indices of the predecessor states :math:`\mathcal{S}_{prev}`.
     
     Examples:
-        >>> # Assuming states [4, 5] are terminal and [2, 3] are T-1
+        >>> # Assuming states (4, 5) are terminal and (2, 3) are T-1
         >>> approximator = StationaryTerminal(
-        ...     term_idx=jnp.array([4, 5]),
-        ...     prev_idx=jnp.array([2, 3])
+        ...     term_idx=(4, 5),
+        ...     prev_idx=(2, 3)
         ... )
         >>> adjusted_ev = approximator.approximate(expected, params, model)
     """
-    term_idx: Int[Array, "n"]
-    prev_idx: Int[Array, "n"]
+    term_idx: tuple[int, ...] = eqx.field(static=True)
+    prev_idx: tuple[int, ...] = eqx.field(static=True)
 
     def approximate(
         self, 
@@ -123,10 +123,10 @@ class StationaryTerminal(eqx.Module):
         .. math::
             EV_{adj}[term\_idx, :] = EV_{raw}[prev\_idx, :]
         """
-        if self.term_idx.shape != self.prev_idx.shape:
+        if len(self.term_idx) != len(self.prev_idx):
             raise ValueError(
                 f"StationaryTerminal: term_idx and prev_idx must have the same shape. "
-                f"Got {self.term_idx.shape} and {self.prev_idx.shape}."
+                f"Got {len(self.term_idx)} and {len(self.prev_idx)}."
             )
 
         # Extract values from predecessor states
@@ -184,8 +184,8 @@ class ExponentialTrendTerminal(eqx.Module):
         >>> params = {"g": 0.02}
         
         >>> # Pattern 2: Aggregated scalars (3 terminal states)
-        >>> term_idx = jnp.array([13, 14, 15])
-        >>> prev_idx = jnp.array([10, 11, 12])
+        >>> term_idx = (13, 14, 15)
+        >>> prev_idx = (10, 11, 12)
         >>> approx = ExponentialTrendTerminal(
         ...     term_idx, prev_idx, growth_rate_keys=["g1", "g2", "g3"]
         ... )
@@ -195,9 +195,9 @@ class ExponentialTrendTerminal(eqx.Module):
         >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, pre_prev_idx=pre_prev)
         >>> adjusted_ev = approx.approximate(expected, {}, model)
     """
-    term_idx: Int[Array, "n"]
-    prev_idx: Int[Array, "n"]
-    pre_prev_idx: Int[Array, "n"] | None = None
+    term_idx: tuple[int, ...] = eqx.field(static=True)
+    prev_idx: tuple[int, ...] = eqx.field(static=True)
+    pre_prev_idx: tuple[int, ...] | None = eqx.field(static=True, default=None)
     growth_rate_keys: Union[str, List[str], Tuple[str, ...]] | None = None
 
     def approximate(
@@ -217,10 +217,10 @@ class ExponentialTrendTerminal(eqx.Module):
         It automatically handles spatial heterogeneity by mapping parameter keys 
         or vector elements to the corresponding state indices.
         """
-        if self.term_idx.shape != self.prev_idx.shape:
+        if len(self.term_idx) != len(self.prev_idx):
             raise ValueError(
                 f"ExponentialTrendTerminal: term_idx and prev_idx must have the same shape. "
-                f"Got {self.term_idx.shape} and {self.prev_idx.shape}."
+                f"Got {len(self.term_idx)} and {len(self.prev_idx)}."
             )
         val_t_minus_1 = expected[self.prev_idx, :]
 
@@ -233,17 +233,19 @@ class ExponentialTrendTerminal(eqx.Module):
 
         # Case 2: Pre-previous indices provided    
         elif self.pre_prev_idx is not None:
-            if self.pre_prev_idx.shape != self.prev_idx.shape:
+            if len(self.pre_prev_idx) != len(self.prev_idx):
                 raise ValueError(
                     f"ExponentialTrendTerminal: pre_prev_idx and prev_idx must have the same shape. "
-                    f"Got {self.pre_prev_idx.shape} and {self.prev_idx.shape}."
+                    f"Got {len(self.pre_prev_idx)} and {len(self.prev_idx)}."
                 )
             val_t_minus_2 = expected[self.pre_prev_idx, :]
             # Use jnp.where for numerical stability: fallback to stationary (ratio=1.0) when denominator is near zero
+            # Note: jnp.where evaluates both branches, so we must avoid division by zero in the computation itself
             denominator = jnp.abs(val_t_minus_2)
+            safe_denom = jnp.where(denominator > NUMERICAL_EPSILON, val_t_minus_2, 1.0)
             ratio = jnp.where(
                 denominator > NUMERICAL_EPSILON,
-                val_t_minus_1 / val_t_minus_2,
+                val_t_minus_1 / safe_denom,
                 1.0
             )
             updated_val = val_t_minus_1 * ratio
@@ -301,9 +303,9 @@ class LinearTrendTerminal(eqx.Module):
         >>> params = {"drift": 500.0}
         >>> adjusted_ev = approx.approximate(expected, params, model)
     """
-    term_idx: Int[Array, "n"]
-    prev_idx: Int[Array, "n"]
-    pre_prev_idx: Int[Array, "n"] | None = None
+    term_idx: tuple[int, ...] = eqx.field(static=True)
+    prev_idx: tuple[int, ...] = eqx.field(static=True)
+    pre_prev_idx: tuple[int, ...] | None = eqx.field(static=True, default=None)
     drift_keys: Union[str, List[str], Tuple[str, ...]] | None = None
 
     def approximate(
@@ -331,6 +333,11 @@ class LinearTrendTerminal(eqx.Module):
         
         # Case 2: Pre-previous indices provided
         elif self.pre_prev_idx is not None:
+            if len(self.pre_prev_idx) != len(self.prev_idx):
+                raise ValueError(
+                    f"LinearTrendTerminal: pre_prev_idx and prev_idx must have the same shape. "
+                    f"Got {len(self.pre_prev_idx)} and {len(self.prev_idx)}."
+                )
             val_t_minus_2 = expected[self.pre_prev_idx, :]
             diff = val_t_minus_1 - val_t_minus_2
             updated_val = val_t_minus_1 + diff

@@ -67,11 +67,11 @@ The following notebook contains two key validations:
 
 | Implementation | Hardware | Est. Total Time | Speedup |
 | :--- | :--- | :--- | :--- |
-| NumPy (Numerical Diff) | CPU | ~2.5 days | 1x (Baseline) |
-| **Econox (Auto-Diff)** | **CPU** | **~42 min** | **~86x** |
-| **Econox (Auto-Diff)** | **GPU (T4)** | **~17 min** | **~212x** |
+| NumPy (Numerical Diff) | CPU | ~2.0 days | 1x (Baseline) |
+| **Econox (Auto-Diff)** | **CPU** | **~1.1 hours** | **~44x** |
+| **Econox (Auto-Diff)** | **GPU (T4)** | **~19 min** | **~157x** |
 
-> *Note: Times for Econox include JIT compilation overhead (Warmup). NumPy estimates are extrapolated from single-step performance using an honest solver (Utility $\to$ Bellman $\to$ Likelihood).*
+> *Note: Times for Econox include JIT compilation overhead (Warmup). NumPy estimates are extrapolated from single-step performance using an honest solver (Utility $\to$ Bellman $\to$ Likelihood).* Benchmark conducted on Google Colab (vCPU: Intel Xeon, GPU: NVIDIA T4).
 
 ## Quick Start: Structural Estimation
 

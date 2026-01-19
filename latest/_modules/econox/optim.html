@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.optim - Econox 0.1.2.post1.dev4 documentation</title>
+        <title>econox.optim - Econox 0.1.3.post1.dev1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.2.post1.dev4)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.3.post1.dev1)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">Econox 0.1.2.post1.dev4 documentation</div></a>
+      <a href="../../index.html"><div class="brand">Econox 0.1.3.post1.dev1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev4 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.3.post1.dev1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -380,13 +380,16 @@
 <span class="sd">        &gt;&gt;&gt; # Uses default max_steps (2000) and tolerances (rtol=1e-8, atol=1e-8)</span>
 <span class="sd">        &gt;&gt;&gt; fp = FixedPoint() </span>
 
-<span class="sd">        &gt;&gt;&gt; # Custom </span>
-<span class="sd">        &gt;&gt;&gt; fp = FixedPoint(method=optx.FixedPointIteration(rtol=1e-10, atol=1e-10), max_steps=5000)</span>
+<span class="sd">        &gt;&gt;&gt; # Custom method (e.g., Newton) with specified tolerances </span>
+<span class="sd">        &gt;&gt;&gt; fp = FixedPoint(method=optx.Newton(rtol=1e-10, atol=1e-10), max_steps=5000)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">method</span><span class="p">:</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractFixedPointSolver</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">FixedPointIteration</span><span class="p">(</span><span class="n">rtol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">)</span>
+    <span class="n">method</span><span class="p">:</span> <span class="p">(</span><span class="n">optx</span><span class="o">.</span><span class="n">AbstractFixedPointSolver</span> 
+    <span class="o">|</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractRootFinder</span> 
+    <span class="o">|</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractLeastSquaresSolver</span> 
+    <span class="o">|</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractMinimiser</span><span class="p">)</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">optx</span><span class="o">.</span><span class="n">FixedPointIteration</span><span class="p">(</span><span class="n">rtol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">))</span>
     <span class="n">max_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
     <span class="n">throw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">adjoint</span><span class="p">:</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractAdjoint</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">ImplicitAdjoint</span><span class="p">(</span><span class="n">linear_solver</span><span class="o">=</span><span class="n">lx</span><span class="o">.</span><span class="n">AutoLinearSolver</span><span class="p">(</span><span class="n">well_posed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">adjoint</span><span class="p">:</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractAdjoint</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">optx</span><span class="o">.</span><span class="n">ImplicitAdjoint</span><span class="p">(</span><span class="n">linear_solver</span><span class="o">=</span><span class="n">lx</span><span class="o">.</span><span class="n">AutoLinearSolver</span><span class="p">(</span><span class="n">well_posed</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
 
 <div class="viewcode-block" id="FixedPoint.find_fixed_point">
 <a class="viewcode-back" href="../../api_reference.html#econox.optim.FixedPoint.find_fixed_point">[docs]</a>
@@ -458,7 +461,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=f1608ace"></script>
+</div><script src="../../_static/documentation_options.js?v=f640cffe"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

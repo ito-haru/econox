@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="Welcome to Econox’s documentation!" href="index.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>API Reference - Econox 0.1.2.post1.dev4 documentation</title>
+        <title>API Reference - Econox 0.1.3.post1.dev1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -159,7 +159,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.2.post1.dev4)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.3.post1.dev1)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -171,7 +171,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">Econox 0.1.2.post1.dev4 documentation</div></a>
+      <a href="index.html"><div class="brand">Econox 0.1.3.post1.dev1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.2.post1.dev4 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.3.post1.dev1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -2580,7 +2580,7 @@ multiple regional scalars.</p></li>
 Can be used for static models as well by setting discount_factor=0.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.solvers.dynamic_programming.</span></span><span class="sig-name descname"><span class="pre">ValueIterationSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_approximator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/dynamic_programming.html#ValueIterationSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.solvers.dynamic_programming.</span></span><span class="sig-name descname"><span class="pre">ValueIterationSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_approximator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/dynamic_programming.html#ValueIterationSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>Fixed-point solver using value function iteration.</p>
 <dl class="field-list simple">
@@ -2591,6 +2591,7 @@ Can be used for static models as well by setting discount_factor=0.</p>
 <li><p><strong>discount_factor</strong> (<em>float</em>) – Discount factor for future utilities.</p></li>
 <li><p><strong>terminal_approximator</strong> (<a class="reference internal" href="#econox.protocols.TerminalApproximator" title="econox.protocols.TerminalApproximator"><em>TerminalApproximator</em></a>) – Approximator for terminal value function.</p></li>
 <li><p><strong>numerical_solver</strong> (<a class="reference internal" href="#econox.optim.FixedPoint" title="econox.optim.FixedPoint"><em>FixedPoint</em></a>) – Numerical solver for finding fixed points.</p></li>
+<li><p><strong>initial_value</strong> (<em>Array</em><em> | </em><em>None</em>) – Optional initial guess for the value function.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
@@ -2600,6 +2601,7 @@ Can be used for static models as well by setting discount_factor=0.</p>
 <li><p><strong>discount_factor</strong> (<em>float</em>)</p></li>
 <li><p><strong>terminal_approximator</strong> (<a class="reference internal" href="#econox.protocols.TerminalApproximator" title="econox.protocols.TerminalApproximator"><em>TerminalApproximator</em></a>)</p></li>
 <li><p><strong>numerical_solver</strong> (<a class="reference internal" href="#econox.optim.FixedPoint" title="econox.optim.FixedPoint"><em>FixedPoint</em></a>)</p></li>
+<li><p><strong>initial_value</strong> (<em>Float</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>'num_states'</em><em>] </em><em>| </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -2652,6 +2654,11 @@ Can be used for static models as well by setting discount_factor=0.</p>
 <span class="sig-name descname"><span class="pre">numerical_solver</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.optim.FixedPoint" title="econox.optim.FixedPoint"><span class="pre">FixedPoint</span></a></span><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.numerical_solver" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.initial_value">
+<span class="sig-name descname"><span class="pre">initial_value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Float</span><span class="p"><span class="pre">[</span></span><span class="pre">jaxlib._jax.Array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'num_states'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.initial_value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.solve">
 <span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/solvers/dynamic_programming.html#ValueIterationSolver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.solve" title="Link to this definition">¶</a></dt>
@@ -2681,7 +2688,7 @@ Can be used for static models as well by setting discount_factor=0.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.solvers.dynamic_programming.ValueIterationSolver.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_approximator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_approximator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical_solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.solvers.dynamic_programming.ValueIterationSolver.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2690,6 +2697,7 @@ Can be used for static models as well by setting discount_factor=0.</p>
 <li><p><strong>discount_factor</strong> (<em>float</em>)</p></li>
 <li><p><strong>terminal_approximator</strong> (<a class="reference internal" href="#econox.protocols.TerminalApproximator" title="econox.protocols.TerminalApproximator"><em>TerminalApproximator</em></a>)</p></li>
 <li><p><strong>numerical_solver</strong> (<a class="reference internal" href="#econox.optim.FixedPoint" title="econox.optim.FixedPoint"><em>FixedPoint</em></a>)</p></li>
+<li><p><strong>initial_value</strong> (<em>Float</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>'num_states'</em><em>] </em><em>| </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -3080,14 +3088,14 @@ Used by internal solvers (Bellman, Equilibrium) to report convergence status.</p
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fp</span> <span class="o">=</span> <span class="n">FixedPoint</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Custom</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fp</span> <span class="o">=</span> <span class="n">FixedPoint</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">optx</span><span class="o">.</span><span class="n">FixedPointIteration</span><span class="p">(</span><span class="n">rtol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">),</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Custom method (e.g., Newton) with specified tolerances</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fp</span> <span class="o">=</span> <span class="n">FixedPoint</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">optx</span><span class="o">.</span><span class="n">Newton</span><span class="p">(</span><span class="n">rtol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">),</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>AbstractFixedPointSolver</em>)</p></li>
+<li><p><strong>method</strong> (<em>AbstractFixedPointSolver</em><em> | </em><em>AbstractRootFinder</em><em> | </em><em>AbstractLeastSquaresSolver</em><em> | </em><em>AbstractMinimiser</em>)</p></li>
 <li><p><strong>max_steps</strong> (<em>int</em>)</p></li>
 <li><p><strong>throw</strong> (<em>bool</em>)</p></li>
 <li><p><strong>adjoint</strong> (<em>AbstractAdjoint</em>)</p></li>
@@ -3096,7 +3104,7 @@ Used by internal solvers (Bellman, Equilibrium) to report convergence status.</p
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="econox.optim.FixedPoint.method">
-<span class="sig-name descname"><span class="pre">method</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AbstractFixedPointSolver</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">FixedPointIteration(rtol=1e-08,</span> <span class="pre">atol=1e-08)</span></span><a class="headerlink" href="#econox.optim.FixedPoint.method" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">method</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AbstractFixedPointSolver</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbstractRootFinder</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbstractLeastSquaresSolver</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">AbstractMinimiser</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">FixedPointIteration(rtol=1e-08,</span> <span class="pre">atol=1e-08)</span></span><a class="headerlink" href="#econox.optim.FixedPoint.method" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -3142,7 +3150,7 @@ Returns a FixedPointResult containing the solution and status.</p>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>AbstractFixedPointSolver</em>)</p></li>
+<li><p><strong>method</strong> (<em>AbstractFixedPointSolver</em><em> | </em><em>AbstractRootFinder</em><em> | </em><em>AbstractLeastSquaresSolver</em><em> | </em><em>AbstractMinimiser</em>)</p></li>
 <li><p><strong>max_steps</strong> (<em>int</em>)</p></li>
 <li><p><strong>throw</strong> (<em>bool</em>)</p></li>
 <li><p><strong>adjoint</strong> (<em>AbstractAdjoint</em>)</p></li>
@@ -4422,6 +4430,7 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.discount_factor"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.discount_factor</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.terminal_approximator"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.terminal_approximator</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.numerical_solver"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.numerical_solver</span></code></a></li>
+<li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.initial_value"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.initial_value</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.solve"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.solve()</span></code></a></li>
 <li><a class="reference internal" href="#econox.solvers.dynamic_programming.ValueIterationSolver.__init__"><code class="docutils literal notranslate"><span class="pre">ValueIterationSolver.__init__()</span></code></a></li>
 </ul>
@@ -4596,7 +4605,7 @@ and attribute-style (.key) access.</p>
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=f1608ace"></script>
+</div><script src="_static/documentation_options.js?v=f640cffe"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>

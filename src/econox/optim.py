@@ -127,13 +127,16 @@ class FixedPoint(eqx.Module):
         >>> # Uses default max_steps (2000) and tolerances (rtol=1e-8, atol=1e-8)
         >>> fp = FixedPoint() 
 
-        >>> # Custom 
-        >>> fp = FixedPoint(method=optx.FixedPointIteration(rtol=1e-10, atol=1e-10), max_steps=5000)
+        >>> # Custom method (e.g., Newton) with specified tolerances 
+        >>> fp = FixedPoint(method=optx.Newton(rtol=1e-10, atol=1e-10), max_steps=5000)
     """
-    method: optx.AbstractFixedPointSolver = optx.FixedPointIteration(rtol=1e-8, atol=1e-8)
+    method: (optx.AbstractFixedPointSolver 
+    | optx.AbstractRootFinder 
+    | optx.AbstractLeastSquaresSolver 
+    | optx.AbstractMinimiser) = eqx.field(default=optx.FixedPointIteration(rtol=1e-8, atol=1e-8))
     max_steps: int = eqx.field(static=True, default=2000)
     throw: bool = eqx.field(static=True, default=False)
-    adjoint: optx.AbstractAdjoint = optx.ImplicitAdjoint(linear_solver=lx.AutoLinearSolver(well_posed=False))
+    adjoint: optx.AbstractAdjoint = eqx.field(default=optx.ImplicitAdjoint(linear_solver=lx.AutoLinearSolver(well_posed=False)))
 
     def find_fixed_point(
         self, 

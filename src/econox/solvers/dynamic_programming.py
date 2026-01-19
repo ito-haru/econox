@@ -7,7 +7,7 @@ Can be used for static models as well by setting discount_factor=0.
 import jax.numpy as jnp
 import equinox as eqx
 from typing import Any
-from jaxtyping import PyTree, Array
+from jaxtyping import PyTree, Array, Float
 
 from econox.protocols import StructuralModel, Utility, Distribution, TerminalApproximator
 from econox.optim import FixedPoint, FixedPointResult
@@ -24,6 +24,7 @@ class ValueIterationSolver(eqx.Module):
         discount_factor (float): Discount factor for future utilities.
         terminal_approximator (TerminalApproximator): Approximator for terminal value function.
         numerical_solver (FixedPoint): Numerical solver for finding fixed points.
+        initial_value (Array | None): Optional initial guess for the value function.
 
     
     Examples:
@@ -52,6 +53,7 @@ class ValueIterationSolver(eqx.Module):
     discount_factor: float
     terminal_approximator: TerminalApproximator = eqx.field(default_factory=IdentityTerminal)
     numerical_solver: FixedPoint = eqx.field(default_factory=FixedPoint)
+    initial_value: Float[Array, "num_states"] | None = None
 
     def solve(
         self,
@@ -76,7 +78,6 @@ class ValueIterationSolver(eqx.Module):
         utility = self.utility
         dist = self.dist
 
-        data: PyTree = model.data
         transitions: Any = model.transitions
 
         if transitions is None:

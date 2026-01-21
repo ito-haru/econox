@@ -168,6 +168,20 @@ class ExponentialTrendTerminal(eqx.Module):
         (1 + \gamma_s) \mathbb{E}V_{T-1}(s', a) & \text{if keys provided (Exogenous)} \\
         \frac{\mathbb{E}V_{T-1}(s', a)}{\mathbb{E}V_{T-2}(s'', a)} \mathbb{E}V_{T-1}(s', a) & \text{if pre_prev_idx provided (Endogenous)}
         \end{cases}
+    
+    **Stability Mechanism (Soft-Clipping)**:
+    
+    To prevent the value function from diverging (which occurs if growth rate :math:`\ge 1/\beta`), 
+    this class applies a differentiable **Tanh Soft-Clipping** mechanism.
+    The effective growth rate :math:`\gamma_{safe}` is constrained as:
+
+    .. math::
+        \gamma_{limit} &= 1/\beta - 1 - \epsilon \\
+        \gamma_{raw} &= \text{input\_ratio} - 1 \\
+        \gamma_{safe} &= \gamma_{limit} \cdot \tanh\left(\frac{\gamma_{raw}}{\gamma_{limit}}\right)
+
+    This ensures that the growth rate smoothly approaches the theoretical limit 
+    without hitting a hard boundary, preserving gradients for the optimizer.
 
     Args:
         term_idx: Indices of the terminal states :math:`T`.
@@ -179,11 +193,6 @@ class ExponentialTrendTerminal(eqx.Module):
         scale: Scaling factor for numerical stability. Input parameters are divided 
             by this value (e.g., set to 100.0 if parameters are estimated in percentage).
             This helps the optimizer by keeping gradients in a manageable range.
-    
-    Note:
-        To ensure convergence in value iteration, the growth ratio is clipped 
-        within the range :math:`[0, 1/\beta - \epsilon]`. If the ratio exceeds 
-        this boundary, it is capped, and ``is_clipped`` is reported in the results.
     
     Raises:
         ValueError: If both `growth_rate_keys` and `pre_prev_idx` are None.
@@ -204,11 +213,16 @@ class ExponentialTrendTerminal(eqx.Module):
         >>> # Pattern 3: Endogenous dynamic extrapolation (No params needed)
         >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, pre_prev_idx=pre_prev)
         >>> adjusted_ev = approx.approximate(expected, {}, model, discount_factor)
+    
+    Note:
+        The ``is_clipped`` flag in the results returns ``True`` if the raw growth rate 
+        exceeded the theoretical stability limit :math:`1/\beta`. In this case, 
+        the actual used growth rate was compressed by the Tanh function.
     """
     term_idx: tuple[int, ...] = eqx.field(static=True)
     prev_idx: tuple[int, ...] = eqx.field(static=True)
     pre_prev_idx: tuple[int, ...] | None = eqx.field(static=True, default=None)
-    growth_rate_keys: Union[str, List[str], Tuple[str, ...]] | None = None
+    growth_rate_keys: Union[str, List[str], Tuple[str, ...]] | None = eqx.field(static=True, default=None)
     scale: float = eqx.field(static=True, default=1.0)
 
     def approximate(
@@ -266,9 +280,12 @@ class ExponentialTrendTerminal(eqx.Module):
                 "ExponentialTrendTerminal requires either 'growth_rate_keys' or 'pre_prev_idx' to be set."
             )
         
-        upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
-        actual_ratio = jnp.clip(ratio, min=0.0, max=upper_limit)
-        is_clipped = jnp.any((ratio > upper_limit) | (ratio < 0.0))
+        limit_growth = 1.0 / discount_factor - STABILITY_MARGIN - 1
+        raw_growth = ratio - 1.0
+        safe_growth = limit_growth * jnp.tanh(raw_growth / limit_growth)
+        safe_ratio = safe_growth + 1.0
+        actual_ratio = jnp.clip(safe_ratio, min=0.0, max=limit_growth + 1.0)
+        is_clipped = jnp.any(raw_growth > limit_growth)
         updated_val = val_t_minus_1 * actual_ratio
 
         return expected.at[self.term_idx, :].set(updated_val), is_clipped

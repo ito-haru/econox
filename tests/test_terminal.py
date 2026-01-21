@@ -197,10 +197,13 @@ def test_exponential_trend_exogenous_scalar(sample_expected_values, sample_param
     discount_factor = 0.99
     result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Expected: val_t_minus_1 * clipped(1 + 0.02)
-    # upper_limit = 1.0 / 0.99 - STABILITY_MARGIN ≈ 1.0100010101
-    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
-    actual_ratio = jnp.clip(1.02, min=0.0, max=upper_limit)
+    # Expected: val_t_minus_1 * soft_clipped(1 + 0.02)
+    # Replicate the soft clipping logic from the implementation
+    limit_growth = 1.0 / discount_factor - STABILITY_MARGIN - 1
+    raw_growth = 1.02 - 1.0  # 0.02
+    safe_growth = limit_growth * jnp.tanh(raw_growth / limit_growth)
+    safe_ratio = safe_growth + 1.0
+    actual_ratio = jnp.clip(safe_ratio, min=0.0, max=limit_growth + 1.0)
     expected_8 = sample_expected_values[6, :] * actual_ratio
     expected_9 = sample_expected_values[7, :] * actual_ratio
     
@@ -222,11 +225,18 @@ def test_exponential_trend_exogenous_vector(sample_expected_values, sample_param
     discount_factor = 0.99
     result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Expected: val_t_minus_1 * clipped(1 + gamma_i)
-    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
-    expected_7 = sample_expected_values[4, :] * jnp.clip(1.01, min=0.0, max=upper_limit)
-    expected_8 = sample_expected_values[5, :] * jnp.clip(1.02, min=0.0, max=upper_limit)
-    expected_9 = sample_expected_values[6, :] * jnp.clip(1.03, min=0.0, max=upper_limit)
+    # Expected: val_t_minus_1 * soft_clipped(1 + gamma_i)
+    limit_growth = 1.0 / discount_factor - STABILITY_MARGIN - 1
+    
+    def soft_clip_ratio(ratio):
+        raw_growth = ratio - 1.0
+        safe_growth = limit_growth * jnp.tanh(raw_growth / limit_growth)
+        safe_ratio = safe_growth + 1.0
+        return jnp.clip(safe_ratio, min=0.0, max=limit_growth + 1.0)
+    
+    expected_7 = sample_expected_values[4, :] * soft_clip_ratio(1.01)
+    expected_8 = sample_expected_values[5, :] * soft_clip_ratio(1.02)
+    expected_9 = sample_expected_values[6, :] * soft_clip_ratio(1.03)
     
     assert jnp.allclose(result[7, :], expected_7)
     assert jnp.allclose(result[8, :], expected_8)
@@ -247,11 +257,18 @@ def test_exponential_trend_exogenous_list_keys(sample_expected_values, sample_pa
     discount_factor = 0.99
     result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Expected: val_t_minus_1 * clipped(1 + gamma_i)
-    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
-    expected_7 = sample_expected_values[4, :] * jnp.clip(1.01, min=0.0, max=upper_limit)
-    expected_8 = sample_expected_values[5, :] * jnp.clip(1.03, min=0.0, max=upper_limit)
-    expected_9 = sample_expected_values[6, :] * jnp.clip(1.02, min=0.0, max=upper_limit)
+    # Expected: val_t_minus_1 * soft_clipped(1 + gamma_i)
+    limit_growth = 1.0 / discount_factor - STABILITY_MARGIN - 1
+    
+    def soft_clip_ratio(ratio):
+        raw_growth = ratio - 1.0
+        safe_growth = limit_growth * jnp.tanh(raw_growth / limit_growth)
+        safe_ratio = safe_growth + 1.0
+        return jnp.clip(safe_ratio, min=0.0, max=limit_growth + 1.0)
+    
+    expected_7 = sample_expected_values[4, :] * soft_clip_ratio(1.01)
+    expected_8 = sample_expected_values[5, :] * soft_clip_ratio(1.03)
+    expected_9 = sample_expected_values[6, :] * soft_clip_ratio(1.02)
     
     assert jnp.allclose(result[7, :], expected_7)
     assert jnp.allclose(result[8, :], expected_8)
@@ -273,19 +290,25 @@ def test_exponential_trend_endogenous(sample_expected_values, sample_params, moc
     discount_factor = 0.99
     result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Expected: val_t_minus_1 * clipped(val_t_minus_1 / val_t_minus_2)
+    # Expected: val_t_minus_1 * soft_clipped(val_t_minus_1 / val_t_minus_2)
     val_t_minus_1 = jnp.array(sample_expected_values[prev_idx, :])
     val_t_minus_2 = jnp.array(sample_expected_values[pre_prev_idx, :])
     
     # Check numerical stability: ratio should be 1.0 where denominator is near zero
     denominator = jnp.abs(val_t_minus_2)
+    safe_denom = jnp.where(denominator > NUMERICAL_EPSILON, val_t_minus_2, 1.0)
     ratio = jnp.where(
         denominator > NUMERICAL_EPSILON,
-        val_t_minus_1 / val_t_minus_2,
+        val_t_minus_1 / safe_denom,
         1.0
     )
-    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
-    actual_ratio = jnp.clip(ratio, min=0.0, max=upper_limit)
+    
+    # Apply soft clipping
+    limit_growth = 1.0 / discount_factor - STABILITY_MARGIN - 1
+    raw_growth = ratio - 1.0
+    safe_growth = limit_growth * jnp.tanh(raw_growth / limit_growth)
+    safe_ratio = safe_growth + 1.0
+    actual_ratio = jnp.clip(safe_ratio, min=0.0, max=limit_growth + 1.0)
     expected_vals = val_t_minus_1 * actual_ratio
     
     assert jnp.allclose(result[8, :], expected_vals[0, :])
@@ -343,17 +366,23 @@ def test_exponential_trend_negative_values(sample_params, mock_model):
     discount_factor = 0.99
     result, is_clipped = approximator.approximate(expected, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Should handle negative values correctly with clipping
+    # Should handle negative values correctly with soft clipping
     val_t_minus_1 = jnp.array(expected[prev_idx, :])
     val_t_minus_2 = jnp.array(expected[pre_prev_idx, :])
     denominator = jnp.abs(val_t_minus_2)
+    safe_denom = jnp.where(denominator > NUMERICAL_EPSILON, val_t_minus_2, 1.0)
     ratio = jnp.where(
         denominator > NUMERICAL_EPSILON,
-        val_t_minus_1 / val_t_minus_2,
+        val_t_minus_1 / safe_denom,
         1.0
     )
-    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
-    actual_ratio = jnp.clip(ratio, min=0.0, max=upper_limit)
+    
+    # Apply soft clipping
+    limit_growth = 1.0 / discount_factor - STABILITY_MARGIN - 1
+    raw_growth = ratio - 1.0
+    safe_growth = limit_growth * jnp.tanh(raw_growth / limit_growth)
+    safe_ratio = safe_growth + 1.0
+    actual_ratio = jnp.clip(safe_ratio, min=0.0, max=limit_growth + 1.0)
     expected_vals = val_t_minus_1 * actual_ratio
     
     assert jnp.allclose(result[2, :], expected_vals[0, :])

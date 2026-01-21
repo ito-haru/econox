@@ -7,7 +7,6 @@ import jax
 import jax.numpy as jnp
 import pytest
 import equinox as eqx
-from jaxtyping import PyTree
 
 from econox.logic.terminal import (
     IdentityTerminal,
@@ -16,7 +15,7 @@ from econox.logic.terminal import (
     LinearTrendTerminal,
     _retrieve_and_validate_param
 )
-from econox.config import NUMERICAL_EPSILON
+from econox.config import NUMERICAL_EPSILON, STABILITY_MARGIN
 
 
 # =============================================================================
@@ -121,7 +120,7 @@ def test_retrieve_and_validate_param_missing_key():
 def test_identity_terminal_no_modification(sample_expected_values, sample_params, mock_model):
     """Test that IdentityTerminal returns values unchanged."""
     approximator = IdentityTerminal()
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     
     # Should be identical
     assert jnp.allclose(result, sample_expected_values)
@@ -132,7 +131,7 @@ def test_identity_terminal_preserves_dtype(mock_model):
     """Test that IdentityTerminal preserves data type."""
     expected = jnp.ones((5, 2), dtype=jnp.float32)
     approximator = IdentityTerminal()
-    result = approximator.approximate(expected, {}, mock_model)
+    result, is_clipped = approximator.approximate(expected, {}, mock_model, discount_factor=0.99)
     
     assert result.dtype == jnp.float32
 
@@ -148,7 +147,7 @@ def test_stationary_terminal_basic(sample_expected_values, sample_params, mock_m
     prev_idx = (6, 7)
     
     approximator = StationaryTerminal(term_idx=term_idx, prev_idx=prev_idx)
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     
     # Terminal states should match previous states
     assert jnp.allclose(result[8, :], sample_expected_values[6, :])
@@ -167,7 +166,7 @@ def test_stationary_terminal_shape_validation(sample_expected_values, sample_par
     approximator = StationaryTerminal(term_idx=term_idx, prev_idx=prev_idx)
     
     with pytest.raises(ValueError, match="must have the same shape"):
-        approximator.approximate(sample_expected_values, sample_params, mock_model)
+        approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
 
 
 def test_stationary_terminal_single_state(sample_expected_values, sample_params, mock_model):
@@ -176,7 +175,7 @@ def test_stationary_terminal_single_state(sample_expected_values, sample_params,
     prev_idx = (7,)
     
     approximator = StationaryTerminal(term_idx=term_idx, prev_idx=prev_idx)
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     
     assert jnp.allclose(result[9, :], sample_expected_values[7, :])
 
@@ -195,14 +194,20 @@ def test_exponential_trend_exogenous_scalar(sample_expected_values, sample_param
         prev_idx=prev_idx,
         growth_rate_keys="g"
     )
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    discount_factor = 0.99
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Expected: val_t_minus_1 * (1 + 0.02)
-    expected_8 = sample_expected_values[6, :] * 1.02
-    expected_9 = sample_expected_values[7, :] * 1.02
+    # Expected: val_t_minus_1 * clipped(1 + 0.02)
+    # upper_limit = 1.0 / 0.99 - STABILITY_MARGIN ≈ 1.0100010101
+    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
+    actual_ratio = jnp.clip(1.02, min=0.0, max=upper_limit)
+    expected_8 = sample_expected_values[6, :] * actual_ratio
+    expected_9 = sample_expected_values[7, :] * actual_ratio
     
     assert jnp.allclose(result[8, :], expected_8)
     assert jnp.allclose(result[9, :], expected_9)
+    assert is_clipped is not None
+    assert jnp.any(is_clipped) # Should be clipped
 
 
 def test_exponential_trend_exogenous_vector(sample_expected_values, sample_params, mock_model):
@@ -215,16 +220,20 @@ def test_exponential_trend_exogenous_vector(sample_expected_values, sample_param
         prev_idx=prev_idx,
         growth_rate_keys="g_vector"
     )
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    discount_factor = 0.99
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Expected: val_t_minus_1 * (1 + gamma_i)
-    expected_7 = sample_expected_values[4, :] * 1.01
-    expected_8 = sample_expected_values[5, :] * 1.02
-    expected_9 = sample_expected_values[6, :] * 1.03
+    # Expected: val_t_minus_1 * clipped(1 + gamma_i)
+    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
+    expected_7 = sample_expected_values[4, :] * jnp.clip(1.01, min=0.0, max=upper_limit)
+    expected_8 = sample_expected_values[5, :] * jnp.clip(1.02, min=0.0, max=upper_limit)
+    expected_9 = sample_expected_values[6, :] * jnp.clip(1.03, min=0.0, max=upper_limit)
     
     assert jnp.allclose(result[7, :], expected_7)
     assert jnp.allclose(result[8, :], expected_8)
     assert jnp.allclose(result[9, :], expected_9)
+    assert is_clipped is not None
+    assert jnp.any(is_clipped) # Should be clipped
 
 
 def test_exponential_trend_exogenous_list_keys(sample_expected_values, sample_params, mock_model):
@@ -237,16 +246,20 @@ def test_exponential_trend_exogenous_list_keys(sample_expected_values, sample_pa
         prev_idx=prev_idx,
         growth_rate_keys=["g1", "g2", "g3"]
     )
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    discount_factor = 0.99
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Expected: val_t_minus_1 * (1 + gamma_i)
-    expected_7 = sample_expected_values[4, :] * 1.01
-    expected_8 = sample_expected_values[5, :] * 1.03
-    expected_9 = sample_expected_values[6, :] * 1.02
+    # Expected: val_t_minus_1 * clipped(1 + gamma_i)
+    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
+    expected_7 = sample_expected_values[4, :] * jnp.clip(1.01, min=0.0, max=upper_limit)
+    expected_8 = sample_expected_values[5, :] * jnp.clip(1.03, min=0.0, max=upper_limit)
+    expected_9 = sample_expected_values[6, :] * jnp.clip(1.02, min=0.0, max=upper_limit)
     
     assert jnp.allclose(result[7, :], expected_7)
     assert jnp.allclose(result[8, :], expected_8)
     assert jnp.allclose(result[9, :], expected_9)
+    assert is_clipped is not None
+    assert jnp.any(is_clipped) # Should be clipped
 
 
 def test_exponential_trend_endogenous(sample_expected_values, sample_params, mock_model):
@@ -260,11 +273,12 @@ def test_exponential_trend_endogenous(sample_expected_values, sample_params, moc
         prev_idx=prev_idx,
         pre_prev_idx=pre_prev_idx
     )
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    discount_factor = 0.99
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Expected: val_t_minus_1 * (val_t_minus_1 / val_t_minus_2)
-    val_t_minus_1 = sample_expected_values[prev_idx, :]
-    val_t_minus_2 = sample_expected_values[pre_prev_idx, :]
+    # Expected: val_t_minus_1 * clipped(val_t_minus_1 / val_t_minus_2)
+    val_t_minus_1 = jnp.array(sample_expected_values[prev_idx, :])
+    val_t_minus_2 = jnp.array(sample_expected_values[pre_prev_idx, :])
     
     # Check numerical stability: ratio should be 1.0 where denominator is near zero
     denominator = jnp.abs(val_t_minus_2)
@@ -273,7 +287,9 @@ def test_exponential_trend_endogenous(sample_expected_values, sample_params, moc
         val_t_minus_1 / val_t_minus_2,
         1.0
     )
-    expected_vals = val_t_minus_1 * ratio
+    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
+    actual_ratio = jnp.clip(ratio, min=0.0, max=upper_limit)
+    expected_vals = val_t_minus_1 * actual_ratio
     
     assert jnp.allclose(result[8, :], expected_vals[0, :])
     assert jnp.allclose(result[9, :], expected_vals[1, :])
@@ -298,7 +314,7 @@ def test_exponential_trend_endogenous_numerical_stability(sample_params, mock_mo
         prev_idx=prev_idx,
         pre_prev_idx=pre_prev_idx
     )
-    result = approximator.approximate(expected, sample_params, mock_model)
+    result, is_clipped = approximator.approximate(expected, sample_params, mock_model, discount_factor=0.99)
     
     # Should not produce NaN or Inf
     assert jnp.all(jnp.isfinite(result))
@@ -327,18 +343,21 @@ def test_exponential_trend_negative_values(sample_params, mock_model):
         prev_idx=prev_idx,
         pre_prev_idx=pre_prev_idx
     )
-    result = approximator.approximate(expected, sample_params, mock_model)
+    discount_factor = 0.99
+    result, is_clipped = approximator.approximate(expected, sample_params, mock_model, discount_factor=discount_factor)
     
-    # Should handle negative values correctly
-    val_t_minus_1 = expected[prev_idx, :]
-    val_t_minus_2 = expected[pre_prev_idx, :]
+    # Should handle negative values correctly with clipping
+    val_t_minus_1 = jnp.array(expected[prev_idx, :])
+    val_t_minus_2 = jnp.array(expected[pre_prev_idx, :])
     denominator = jnp.abs(val_t_minus_2)
     ratio = jnp.where(
         denominator > NUMERICAL_EPSILON,
         val_t_minus_1 / val_t_minus_2,
         1.0
     )
-    expected_vals = val_t_minus_1 * ratio
+    upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
+    actual_ratio = jnp.clip(ratio, min=0.0, max=upper_limit)
+    expected_vals = val_t_minus_1 * actual_ratio
     
     assert jnp.allclose(result[2, :], expected_vals[0, :])
     assert jnp.allclose(result[3, :], expected_vals[1, :])
@@ -357,7 +376,7 @@ def test_exponential_trend_requires_keys_or_indices(sample_expected_values, mock
     )
     
     with pytest.raises(ValueError, match="requires either"):
-        approximator.approximate(sample_expected_values, {}, mock_model)
+        approximator.approximate(sample_expected_values, {}, mock_model, discount_factor=0.99)
 
 
 def test_exponential_trend_index_shape_validation(sample_expected_values, sample_params, mock_model):
@@ -373,7 +392,7 @@ def test_exponential_trend_index_shape_validation(sample_expected_values, sample
     )
     
     with pytest.raises(ValueError, match="must have the same shape"):
-        approximator.approximate(sample_expected_values, sample_params, mock_model)
+        approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
 
 
 # =============================================================================
@@ -390,7 +409,7 @@ def test_linear_trend_exogenous_scalar(sample_expected_values, sample_params, mo
         prev_idx=prev_idx,
         drift_keys="drift"
     )
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     
     # Expected: val_t_minus_1 + 5.0
     expected_8 = sample_expected_values[6, :] + 5.0
@@ -410,7 +429,7 @@ def test_linear_trend_exogenous_vector(sample_expected_values, sample_params, mo
         prev_idx=prev_idx,
         drift_keys="drift_vector"
     )
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     
     # Expected: val_t_minus_1 + delta_i
     expected_7 = sample_expected_values[4, :] + 3.0
@@ -432,7 +451,7 @@ def test_linear_trend_exogenous_list_keys(sample_expected_values, sample_params,
         prev_idx=prev_idx,
         drift_keys=["drift1", "drift2", "drift3"]
     )
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     
     # Expected: val_t_minus_1 + delta_i
     expected_7 = sample_expected_values[4, :] + 3.0
@@ -455,11 +474,11 @@ def test_linear_trend_endogenous(sample_expected_values, sample_params, mock_mod
         prev_idx=prev_idx,
         pre_prev_idx=pre_prev_idx
     )
-    result = approximator.approximate(sample_expected_values, sample_params, mock_model)
+    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     
     # Expected: val_t_minus_1 + (val_t_minus_1 - val_t_minus_2)
-    val_t_minus_1 = sample_expected_values[prev_idx, :]
-    val_t_minus_2 = sample_expected_values[pre_prev_idx, :]
+    val_t_minus_1 = jnp.array(sample_expected_values[prev_idx, :])
+    val_t_minus_2 = jnp.array(sample_expected_values[pre_prev_idx, :])
     diff = val_t_minus_1 - val_t_minus_2
     expected_vals = val_t_minus_1 + diff
     
@@ -485,11 +504,11 @@ def test_linear_trend_negative_values(sample_params, mock_model):
         prev_idx=prev_idx,
         pre_prev_idx=pre_prev_idx
     )
-    result = approximator.approximate(expected, sample_params, mock_model)
+    result, is_clipped = approximator.approximate(expected, sample_params, mock_model, discount_factor=0.99)
     
     # Should handle negative values correctly
-    val_t_minus_1 = expected[prev_idx, :]
-    val_t_minus_2 = expected[pre_prev_idx, :]
+    val_t_minus_1 = jnp.array(expected[prev_idx, :])
+    val_t_minus_2 = jnp.array(expected[pre_prev_idx, :])
     diff = val_t_minus_1 - val_t_minus_2
     expected_vals = val_t_minus_1 + diff
     
@@ -510,7 +529,7 @@ def test_linear_trend_requires_keys_or_indices(sample_expected_values, mock_mode
     )
     
     with pytest.raises(ValueError, match="requires either"):
-        approximator.approximate(sample_expected_values, {}, mock_model)
+        approximator.approximate(sample_expected_values, {}, mock_model, discount_factor=0.99   )
 
 
 def test_linear_trend_structure_consistency(sample_expected_values, sample_params, mock_model):
@@ -520,13 +539,13 @@ def test_linear_trend_structure_consistency(sample_expected_values, sample_param
     
     # Test with exogenous keys
     approx1 = LinearTrendTerminal(term_idx=term_idx, prev_idx=prev_idx, drift_keys="drift")
-    result1 = approx1.approximate(sample_expected_values, sample_params, mock_model)
+    result1, is_clipped1 = approx1.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     assert result1.shape == sample_expected_values.shape
     
     # Test with endogenous
     pre_prev_idx = (4, 5)
     approx2 = LinearTrendTerminal(term_idx=term_idx, prev_idx=prev_idx, pre_prev_idx=pre_prev_idx)
-    result2 = approx2.approximate(sample_expected_values, sample_params, mock_model)
+    result2, is_clipped2 = approx2.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     assert result2.shape == sample_expected_values.shape
 
 
@@ -547,7 +566,7 @@ def test_all_approximators_preserve_shape(sample_expected_values, sample_params,
     ]
     
     for approx in approximators:
-        result = approx.approximate(sample_expected_values, sample_params, mock_model)
+        result, is_clipped = approx.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
         assert result.shape == sample_expected_values.shape
 
 
@@ -565,14 +584,14 @@ def test_approximators_are_jax_compatible(sample_expected_values, sample_params,
     # Test JIT compilation
     @jax.jit
     def approximate_jit(expected, params):
-        return approximator.approximate(expected, params, mock_model)
+        return approximator.approximate(expected, params, mock_model, discount_factor=0.99)
     
-    result = approximate_jit(sample_expected_values, sample_params)
+    result, is_clipped = approximate_jit(sample_expected_values, sample_params)
     assert jnp.all(jnp.isfinite(result))
     
     # Test gradient computation (through expected values)
     def loss_fn(expected):
-        result = approximator.approximate(expected, sample_params, mock_model)
+        result, is_clipped = approximator.approximate(expected, sample_params, mock_model, discount_factor=0.99)
         return jnp.sum(result)
     
     grad_fn = jax.grad(loss_fn)

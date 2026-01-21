@@ -298,6 +298,8 @@ class SolverResult(ResultMixin, eqx.Module):
     """Whether the solver converged successfully."""
     aux: Dict[str, Any] = eqx.field(default_factory=dict)
     """Additional auxiliary information (e.g., diagnostics)."""
+    meta: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
+    """Additional metadata about the solving process (e.g., convergence criteria, iteration counts, duration)."""
 
 class EstimationResult(ResultMixin, eqx.Module):
     """

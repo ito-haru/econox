@@ -121,7 +121,7 @@ class ValueIterationSolver(eqx.Module):
             expected = expected_flat.reshape(num_states, num_actions)
             
             # Apply terminal value approximation
-            expected = self.terminal_approximator.approximate(expected, params, model)
+            expected, _ = self.terminal_approximator.approximate(expected, params, model, self.discount_factor)
             
             choice_values = flow_utility + self.discount_factor * expected
             next_ev = dist.expected_max(choice_values)
@@ -143,7 +143,7 @@ class ValueIterationSolver(eqx.Module):
         expected_final = expected_final_flat.reshape(num_states, num_actions)
         
         # Apply terminal value approximation
-        expected_final = self.terminal_approximator.approximate(expected_final, params, model)
+        expected_final, is_clipped = self.terminal_approximator.approximate(expected_final, params, model, self.discount_factor)
             
         value_choices = flow_utility + self.discount_factor * expected_final
         choice_probs = dist.choice_probabilities(value_choices)
@@ -152,6 +152,17 @@ class ValueIterationSolver(eqx.Module):
             solution=final_ev,
             profile=choice_probs,
             success=result.success,
-            aux={"num_steps": result.steps}
+            aux={
+                "num_steps": result.steps,
+                "terminal_clipping": is_clipped
+                },
+            meta={
+                "solver": "ValueIterationSolver",
+                "terminal_approximator": type(self.terminal_approximator).__name__,
+                "utility": type(self.utility).__name__,
+                "distribution": type(self.dist).__name__,
+                "numerical_solver": type(self.numerical_solver).__name__,
+                "discount_factor": self.discount_factor
+            }
         )
         

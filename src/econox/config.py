@@ -6,6 +6,7 @@ import jax
 
 # Small constant for numerical stability
 NUMERICAL_EPSILON: float = 1e-8
+STABILITY_MARGIN: float = 1e-4
 
 # Clipping bounds for logarithmic transformations
 LOG_CLIP_MIN: float = -20.0

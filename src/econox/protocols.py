@@ -160,8 +160,9 @@ class TerminalApproximator(Protocol):
         self, 
         expected: Float[Array, "num_states num_actions"], 
         params: PyTree, 
-        model: StructuralModel
-    ) -> Float[Array, "num_states num_actions"]:
+        model: StructuralModel,
+        discount_factor: float
+    ) -> tuple[Float[Array, "num_states num_actions"], Array | None]:
         """
         Computes the terminal value function approximation.
         
@@ -169,9 +170,10 @@ class TerminalApproximator(Protocol):
             expected: The expected future value matrix before terminal adjustment.
             params: Model parameters (may include growth rates, etc.).
             model: The structural model instance providing data and metadata.
+            discount_factor: The discount factor :math:`\\beta` to apply.
             
         Returns:
-            The adjusted expected future value matrix.
+            A tuple of (adjusted_expected, is_clipped)
         """
         ...
 

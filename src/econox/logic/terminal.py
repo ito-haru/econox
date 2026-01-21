@@ -13,7 +13,7 @@ from jaxtyping import Array, Float, PyTree
 
 from econox.protocols import StructuralModel
 from econox.utils import get_from_pytree
-from econox.config import NUMERICAL_EPSILON
+from econox.config import NUMERICAL_EPSILON, STABILITY_MARGIN
 
 
 def _retrieve_and_validate_param(
@@ -66,21 +66,22 @@ class IdentityTerminal(eqx.Module):
     Examples:
         >>> approximator = IdentityTerminal()
         >>> # Returns expected value matrix as-is
-        >>> adjusted_ev = approximator.approximate(expected, params, model)
+        >>> adjusted_ev = approximator.approximate(expected, params, model, discount_factor)
     """
     def approximate(
         self, 
         expected: Float[Array, "S A"], 
         params: PyTree, 
-        model: StructuralModel
-    ) -> Float[Array, "S A"]:
+        model: StructuralModel,
+        discount_factor: float
+    ) -> tuple[Float[Array, "S A"], Array | None]:
         """
         Returns the expected value matrix without any modifications.
         
         This method acts as a pass-through, preserving the original Emax values 
         computed by the Bellman operator.
         """
-        return expected
+        return expected, None
 
 
 class StationaryTerminal(eqx.Module):
@@ -104,7 +105,7 @@ class StationaryTerminal(eqx.Module):
         ...     term_idx=(4, 5),
         ...     prev_idx=(2, 3)
         ... )
-        >>> adjusted_ev = approximator.approximate(expected, params, model)
+        >>> adjusted_ev = approximator.approximate(expected, params, model, discount_factor)
     """
     term_idx: tuple[int, ...] = eqx.field(static=True)
     prev_idx: tuple[int, ...] = eqx.field(static=True)
@@ -113,8 +114,9 @@ class StationaryTerminal(eqx.Module):
         self, 
         expected: Float[Array, "S A"], 
         params: PyTree, 
-        model: StructuralModel
-    ) -> Float[Array, "S A"]:
+        model: StructuralModel,
+        discount_factor: float
+    ) -> tuple[Float[Array, "S A"], Array | None]:
         r"""
         Overwrites terminal state values with values from predecessor states.
 
@@ -132,7 +134,7 @@ class StationaryTerminal(eqx.Module):
         # Extract values from predecessor states
         expected_at_prev = expected[self.prev_idx, :]
         # Map them to terminal states
-        return expected.at[self.term_idx, :].set(expected_at_prev)
+        return expected.at[self.term_idx, :].set(expected_at_prev), None
 
 
 class ExponentialTrendTerminal(eqx.Module):
@@ -174,38 +176,48 @@ class ExponentialTrendTerminal(eqx.Module):
         growth_rate_keys: Identifier(s) for growth rate :math:`\gamma`. 
             Accepts a single ``str`` for global/vector parameters, or a ``list[str]`` 
             to aggregate multiple regional scalars.
+        scale: Scaling factor for numerical stability. Input parameters are divided 
+            by this value (e.g., set to 100.0 if parameters are estimated in percentage).
+            This helps the optimizer by keeping gradients in a manageable range.
+    
+    Note:
+        To ensure convergence in value iteration, the growth ratio is clipped 
+        within the range :math:`[0, 1/\beta - \epsilon]`. If the ratio exceeds 
+        this boundary, it is capped, and ``is_clipped`` is reported in the results.
     
     Raises:
         ValueError: If both `growth_rate_keys` and `pre_prev_idx` are None.
 
     Examples:
         >>> # Pattern 1: Global scalar growth
-        >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, growth_rate_keys="g")
+        >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, growth_rate_keys="g", scale=100.0)
         >>> params = {"g": 0.02}
         
         >>> # Pattern 2: Aggregated scalars (3 terminal states)
         >>> term_idx = (13, 14, 15)
         >>> prev_idx = (10, 11, 12)
         >>> approx = ExponentialTrendTerminal(
-        ...     term_idx, prev_idx, growth_rate_keys=["g1", "g2", "g3"]
+        ...     term_idx, prev_idx, growth_rate_keys=["g1", "g2", "g3"], scale=100.0
         ... )
         >>> params = {"g1": 0.02, "g2": 0.03, "g3": 0.01}
         
         >>> # Pattern 3: Endogenous dynamic extrapolation (No params needed)
         >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, pre_prev_idx=pre_prev)
-        >>> adjusted_ev = approx.approximate(expected, {}, model)
+        >>> adjusted_ev = approx.approximate(expected, {}, model, discount_factor)
     """
     term_idx: tuple[int, ...] = eqx.field(static=True)
     prev_idx: tuple[int, ...] = eqx.field(static=True)
     pre_prev_idx: tuple[int, ...] | None = eqx.field(static=True, default=None)
     growth_rate_keys: Union[str, List[str], Tuple[str, ...]] | None = None
+    scale: float = eqx.field(static=True, default=1.0)
 
     def approximate(
         self, 
         expected: Float[Array, "S A"], 
         params: PyTree, 
-        model: StructuralModel
-    ) -> Float[Array, "S A"]:
+        model: StructuralModel,
+        discount_factor: float
+    ) -> tuple[Float[Array, "S A"], Array | None]:
         r"""
         Applies exponential growth to the terminal horizon.
 
@@ -229,7 +241,7 @@ class ExponentialTrendTerminal(eqx.Module):
             gamma_eff = _retrieve_and_validate_param(
                 self.growth_rate_keys, params, self.prev_idx, "ExponentialTrendTerminal: gamma"
             )
-            updated_val = val_t_minus_1 * (1.0 + gamma_eff)
+            ratio = (1.0 + gamma_eff / self.scale)
 
         # Case 2: Pre-previous indices provided    
         elif self.pre_prev_idx is not None:
@@ -248,15 +260,18 @@ class ExponentialTrendTerminal(eqx.Module):
                 val_t_minus_1 / safe_denom,
                 1.0
             )
-            updated_val = val_t_minus_1 * ratio
             
         else:
             raise ValueError(
                 "ExponentialTrendTerminal requires either 'growth_rate_keys' or 'pre_prev_idx' to be set."
             )
+        
+        upper_limit = 1.0 / discount_factor - STABILITY_MARGIN
+        actual_ratio = jnp.clip(ratio, min=0.0, max=upper_limit)
+        is_clipped = jnp.any((ratio > upper_limit) | (ratio < 0.0))
+        updated_val = val_t_minus_1 * actual_ratio
 
-        return expected.at[self.term_idx, :].set(updated_val)
-
+        return expected.at[self.term_idx, :].set(updated_val), is_clipped
 
 class LinearTrendTerminal(eqx.Module):
     r"""
@@ -293,6 +308,8 @@ class LinearTrendTerminal(eqx.Module):
         drift_keys: Identifier(s) for drift :math:`\delta`. Accepts a single ``str`` 
             for global/vector parameters, or a ``list[str]`` to aggregate 
             multiple regional scalars.
+        scale: Scaling factor for numerical stability. Input parameters are divided 
+            by this value. Useful when drift values have a large absolute magnitude.
 
     Raises:
         ValueError: If both `drift_keys` and `pre_prev_idx` are None.
@@ -301,19 +318,21 @@ class LinearTrendTerminal(eqx.Module):
         >>> # Linear drift via parameter keys
         >>> approx = LinearTrendTerminal(term_idx, prev_idx, drift_keys="drift")
         >>> params = {"drift": 500.0}
-        >>> adjusted_ev = approx.approximate(expected, params, model)
+        >>> adjusted_ev = approx.approximate(expected, params, model, discount_factor=0.99)
     """
     term_idx: tuple[int, ...] = eqx.field(static=True)
     prev_idx: tuple[int, ...] = eqx.field(static=True)
     pre_prev_idx: tuple[int, ...] | None = eqx.field(static=True, default=None)
     drift_keys: Union[str, List[str], Tuple[str, ...]] | None = None
+    scale: float = eqx.field(static=True, default=1.0)
 
     def approximate(
         self, 
         expected: Float[Array, "S A"], 
         params: PyTree, 
-        model: StructuralModel
-    ) -> Float[Array, "S A"]:
+        model: StructuralModel,
+        discount_factor: float
+    ) -> tuple[Float[Array, "S A"], Array | None]:
         r"""
         Applies linear drift to the terminal horizon.
 
@@ -329,7 +348,7 @@ class LinearTrendTerminal(eqx.Module):
             delta_effective = _retrieve_and_validate_param(
                 self.drift_keys, params, self.prev_idx, "LinearTrendTerminal: delta"
             )
-            updated_val = val_t_minus_1 + delta_effective
+            updated_val = val_t_minus_1 + delta_effective / self.scale
         
         # Case 2: Pre-previous indices provided
         elif self.pre_prev_idx is not None:
@@ -347,4 +366,4 @@ class LinearTrendTerminal(eqx.Module):
                 "LinearTrendTerminal requires either 'drift_keys' or 'pre_prev_idx' to be set."
             )
         
-        return expected.at[self.term_idx, :].set(updated_val)
+        return expected.at[self.term_idx, :].set(updated_val), None

@@ -206,8 +206,7 @@ def test_exponential_trend_exogenous_scalar(sample_expected_values, sample_param
     
     assert jnp.allclose(result[8, :], expected_8)
     assert jnp.allclose(result[9, :], expected_9)
-    assert is_clipped is not None
-    assert jnp.any(is_clipped) # Should be clipped
+    assert is_clipped
 
 
 def test_exponential_trend_exogenous_vector(sample_expected_values, sample_params, mock_model):
@@ -232,8 +231,7 @@ def test_exponential_trend_exogenous_vector(sample_expected_values, sample_param
     assert jnp.allclose(result[7, :], expected_7)
     assert jnp.allclose(result[8, :], expected_8)
     assert jnp.allclose(result[9, :], expected_9)
-    assert is_clipped is not None
-    assert jnp.any(is_clipped) # Should be clipped
+    assert is_clipped
 
 
 def test_exponential_trend_exogenous_list_keys(sample_expected_values, sample_params, mock_model):
@@ -258,8 +256,7 @@ def test_exponential_trend_exogenous_list_keys(sample_expected_values, sample_pa
     assert jnp.allclose(result[7, :], expected_7)
     assert jnp.allclose(result[8, :], expected_8)
     assert jnp.allclose(result[9, :], expected_9)
-    assert is_clipped is not None
-    assert jnp.any(is_clipped) # Should be clipped
+    assert is_clipped
 
 
 def test_exponential_trend_endogenous(sample_expected_values, sample_params, mock_model):
@@ -529,7 +526,7 @@ def test_linear_trend_requires_keys_or_indices(sample_expected_values, mock_mode
     )
     
     with pytest.raises(ValueError, match="requires either"):
-        approximator.approximate(sample_expected_values, {}, mock_model, discount_factor=0.99   )
+        approximator.approximate(sample_expected_values, {}, mock_model, discount_factor=0.99)
 
 
 def test_linear_trend_structure_consistency(sample_expected_values, sample_params, mock_model):

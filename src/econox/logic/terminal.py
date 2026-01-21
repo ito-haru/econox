@@ -191,7 +191,7 @@ class ExponentialTrendTerminal(eqx.Module):
     Examples:
         >>> # Pattern 1: Global scalar growth
         >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, growth_rate_keys="g", scale=100.0)
-        >>> params = {"g": 0.02}
+        >>> params = {"g": 2.0}  # 2% growth
         
         >>> # Pattern 2: Aggregated scalars (3 terminal states)
         >>> term_idx = (13, 14, 15)
@@ -199,7 +199,7 @@ class ExponentialTrendTerminal(eqx.Module):
         >>> approx = ExponentialTrendTerminal(
         ...     term_idx, prev_idx, growth_rate_keys=["g1", "g2", "g3"], scale=100.0
         ... )
-        >>> params = {"g1": 0.02, "g2": 0.03, "g3": 0.01}
+        >>> params = {"g1": 2.0, "g2": 3.0, "g3": 1.0}
         
         >>> # Pattern 3: Endogenous dynamic extrapolation (No params needed)
         >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, pre_prev_idx=pre_prev)

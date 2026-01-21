@@ -299,7 +299,7 @@ class SolverResult(ResultMixin, eqx.Module):
     aux: Dict[str, Any] = eqx.field(default_factory=dict)
     """Additional auxiliary information (e.g., diagnostics)."""
     meta: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
-    """Additional metadata about the solving process (e.g., convergence criteria, iteration counts, duration)."""
+    """Additional metadata about the solving process."""
 
 class EstimationResult(ResultMixin, eqx.Module):
     """
@@ -322,7 +322,7 @@ class EstimationResult(ResultMixin, eqx.Module):
     diagnostics: Dict[str, Any] = eqx.field(default_factory=dict)
     """Additional diagnostics about the estimation process."""
     meta: Dict[str, Any] = eqx.field(default_factory=dict, static=True)
-    """Additional metadata about the estimation process (e.g., convergence criteria, iteration counts, duration)."""
+    """Additional metadata about the estimation process."""
     initial_params: PyTree | None = None
     """Initial parameters used for estimation, if available."""
     fixed_mask: PyTree | None = None

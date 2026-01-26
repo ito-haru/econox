@@ -265,7 +265,12 @@ class Estimator(eqx.Module):
                     # Extract standard errors and unravel to constrained PyTree structure
                     variances = jnp.diag(vcov_model_flat)
                     std_errors_flat_jax = jnp.sqrt(jnp.where(variances < -1e-10, jnp.nan, jnp.maximum(variances, 0.0)))
-                    std_errors = unravel_constrained_fn(std_errors_flat_jax)
+                    std_errors_jax = unravel_constrained_fn(std_errors_flat_jax)
+                    
+                    if isinstance(std_errors_jax, dict):
+                         std_errors = {k: std_errors_jax[k] for k in user_keys if k in std_errors_jax}
+                    else:
+                         std_errors = std_errors_jax
                 
                 else:
                     if self.verbose:

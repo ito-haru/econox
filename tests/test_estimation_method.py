@@ -23,8 +23,10 @@ from econox import (
     ValueIterationSolver,
     LinearUtility,
     GumbelDistribution,
+    utility,
 )
 from econox.methods.variance import Hessian
+from econox.structures.params import ConstraintKind
 
 # =============================================================================
 # Fixtures
@@ -180,6 +182,69 @@ def test_fixed_parameter(simple_model, linear_data):
     assert result.params["intercept"] == 10.0, "Fixed parameter 'intercept' changed!"
     assert result.params["beta_0"] != 0.0, "Free parameter 'beta_0' did not update."
 
+def test_parameter_order_with_fixed_params_maximum_likelihood():
+    """
+    Test that standard errors maintain correct parameter order when some parameters are fixed.
+    Case 1: 'xi' style parameters with MaximumLikelihood.
+    """
+    initial_params = {"xi_1": 0.0, "xi_10": 1.0, "xi_2": 2.0, "xi_12": 3.0}
+    constraints: dict[str, ConstraintKind] = {"xi_10": "fixed", "xi_12": "fixed"}
+    
+    param_space = ParameterSpace.create(initial_params=initial_params, constraints=constraints)
+    
+    N = 100
+    num_actions = 2
+    num_params = 4
+    
+    x_state = jnp.ones((N, num_params))
+    x = jnp.broadcast_to(x_state[:, None, :], (N, num_actions, num_params))
+    
+    logits = 2 * x_state[:, 0] + 3.0 
+    p = 1 / (1 + jnp.exp(-logits))
+    key = jax.random.PRNGKey(123)
+    y = jax.random.bernoulli(key, p).astype(jnp.int32)
+    
+    data = {
+        "x": x,
+        "state_indices": jnp.arange(N), 
+        "choice_indices": y          
+    }
+    
+    transitions = (jnp.ones((N, num_actions, N)) / N).reshape(N * num_actions, N)
+    
+    model = Model.from_data(
+        num_states=N, 
+        num_actions=num_actions, 
+        data=data, 
+        transitions=transitions
+    )
+    
+    utility = LinearUtility(
+        param_keys=("xi_1", "xi_10", "xi_2", "xi_12"), 
+        feature_key="x"
+    )
+    
+    solver = ValueIterationSolver(
+        utility=utility,
+        dist=GumbelDistribution(),
+        discount_factor=0.0
+    )
+    
+    method = MaximumLikelihood()
+    
+    estimator = Estimator(model, param_space, method, solver=solver)
+    result = estimator.fit(data, sample_size=N, force_numerical=True)
+    
+    # Check order
+    param_keys = list(initial_params.keys())
+    assert result.std_errors is not None, "Standard errors not computed"
+    std_error_keys = list(result.std_errors.keys())
+    
+    assert std_error_keys == param_keys, \
+        f"Order mismatch!\nExpected: {param_keys}\nActual:   {std_error_keys}"
+    
+    assert "xi_10" in result.std_errors
+    assert "xi_12" in result.std_errors
 
 def test_fixed_parameter_with_variance_dynamic_model():
     """

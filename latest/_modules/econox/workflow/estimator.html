@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.workflow.estimator - Econox 0.1.3.post1.dev2 documentation</title>
+        <title>econox.workflow.estimator - Econox 0.1.3.post1.dev3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.3.post1.dev2)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.3.post1.dev3)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.3.post1.dev2 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.3.post1.dev3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.3.post1.dev2 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.3.post1.dev3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -490,10 +490,30 @@
                     <span class="c1"># Project variance to constrained space</span>
                     <span class="n">vcov_model_flat</span> <span class="o">=</span> <span class="n">J</span> <span class="o">@</span> <span class="n">vcov_free</span> <span class="o">@</span> <span class="n">J</span><span class="o">.</span><span class="n">T</span>
                     <span class="n">vcov</span> <span class="o">=</span> <span class="n">vcov_model_flat</span>
+
+                    <span class="c1"># Create a dummy dict mapping keys to their insertion index</span>
+                    <span class="n">user_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_space</span><span class="o">.</span><span class="n">initial_params</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                    <span class="n">indices_struct</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">user_keys</span><span class="p">)}</span>
+                    
+                    <span class="c1"># Flatten this structure using JAX to see where each index ended up</span>
+                    <span class="n">flat_indices</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ravel_pytree</span><span class="p">(</span><span class="n">indices_struct</span><span class="p">)</span>
+                    <span class="n">flat_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flat_indices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+                    
+                    <span class="c1"># Compute permutation to sort JAX order back to User order</span>
+                    <span class="n">perm_order</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">flat_indices</span><span class="p">)</span>
+                    
+                    <span class="c1"># Apply permutation to rows and columns of vcov</span>
+                    <span class="n">vcov</span> <span class="o">=</span> <span class="n">vcov</span><span class="p">[</span><span class="n">perm_order</span><span class="p">][:,</span> <span class="n">perm_order</span><span class="p">]</span>
             
                     <span class="c1"># Extract standard errors and unravel to constrained PyTree structure</span>
-                    <span class="n">std_errors_flat</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">vcov_model_flat</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">))</span>
-                    <span class="n">std_errors</span> <span class="o">=</span> <span class="n">unravel_constrained_fn</span><span class="p">(</span><span class="n">std_errors_flat</span><span class="p">)</span>
+                    <span class="n">variances</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">vcov_model_flat</span><span class="p">)</span>
+                    <span class="n">std_errors_flat_jax</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">variances</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">variances</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)))</span>
+                    <span class="n">std_errors_jax</span> <span class="o">=</span> <span class="n">unravel_constrained_fn</span><span class="p">(</span><span class="n">std_errors_flat_jax</span><span class="p">)</span>
+                    
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">std_errors_jax</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                         <span class="n">std_errors</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">std_errors_jax</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">user_keys</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">std_errors_jax</span><span class="p">}</span>
+                    <span class="k">else</span><span class="p">:</span>
+                         <span class="n">std_errors</span> <span class="o">=</span> <span class="n">std_errors_jax</span>
                 
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
@@ -570,7 +590,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=c1b84594"></script>
+</div><script src="../../../_static/documentation_options.js?v=65c0c18d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

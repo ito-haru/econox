@@ -247,10 +247,30 @@ class Estimator(eqx.Module):
                     # Project variance to constrained space
                     vcov_model_flat = J @ vcov_free @ J.T
                     vcov = vcov_model_flat
+
+                    # Create a dummy dict mapping keys to their insertion index
+                    user_keys = list(self.param_space.initial_params.keys())
+                    indices_struct = {k: i for i, k in enumerate(user_keys)}
+                    
+                    # Flatten this structure using JAX to see where each index ended up
+                    flat_indices, _ = ravel_pytree(indices_struct)
+                    flat_indices = jnp.array(flat_indices, dtype=int)
+                    
+                    # Compute permutation to sort JAX order back to User order
+                    perm_order = jnp.argsort(flat_indices)
+                    
+                    # Apply permutation to rows and columns of vcov
+                    vcov = vcov[perm_order][:, perm_order]
             
                     # Extract standard errors and unravel to constrained PyTree structure
-                    std_errors_flat = jnp.sqrt(jnp.maximum(jnp.diag(vcov_model_flat), 0.0))
-                    std_errors = unravel_constrained_fn(std_errors_flat)
+                    variances = jnp.diag(vcov_model_flat)
+                    std_errors_flat_jax = jnp.sqrt(jnp.where(variances < -1e-10, jnp.nan, jnp.maximum(variances, 0.0)))
+                    std_errors_jax = unravel_constrained_fn(std_errors_flat_jax)
+                    
+                    if isinstance(std_errors_jax, dict):
+                         std_errors = {k: std_errors_jax[k] for k in user_keys if k in std_errors_jax}
+                    else:
+                         std_errors = std_errors_jax
                 
                 else:
                     if self.verbose:

@@ -23,7 +23,6 @@ from econox import (
     ValueIterationSolver,
     LinearUtility,
     GumbelDistribution,
-    utility,
 )
 from econox.methods.variance import Hessian
 from econox.structures.params import ConstraintKind
@@ -93,7 +92,6 @@ def test_ols_numerical_equivalence(simple_model, linear_data):
     res_numerical = estimator_numerical.fit(
         linear_data, 
         sample_size=linear_data["N"], 
-        force_numerical=True
     )
     
     # Verification: Check parameters match
@@ -132,13 +130,13 @@ def test_composite_weights(simple_model, linear_data):
     # Run 1: Weight [1.0, 0.0] -> Pure Method 1 (valid OLS, beta should be ~2.0)
     comp_method_1 = CompositeMethod(methods=[method_1, method_2], weights=[1.0, 0.0])
     res_1 = Estimator(model, param_space, comp_method_1).fit(
-        data_with_noise, sample_size=100, force_numerical=True
+        data_with_noise, sample_size=100
     )
     
     # Run 2: Weight [0.5, 0.5] -> Mixed (beta should be pulled toward 0)
     comp_method_mix = CompositeMethod(methods=[method_1, method_2], weights=[0.5, 0.5])
     res_mix = Estimator(model, param_space, comp_method_mix).fit(
-        data_with_noise, sample_size=100, force_numerical=True
+        data_with_noise, sample_size=100
     )
     
     # Verification
@@ -175,7 +173,6 @@ def test_fixed_parameter(simple_model, linear_data):
     result = estimator.fit(
         linear_data, 
         sample_size=linear_data["N"],
-        force_numerical=True
     )
     
     # Verification
@@ -233,7 +230,7 @@ def test_parameter_order_with_fixed_params_maximum_likelihood():
     method = MaximumLikelihood()
     
     estimator = Estimator(model, param_space, method, solver=solver)
-    result = estimator.fit(data, sample_size=N, force_numerical=True)
+    result = estimator.fit(data, sample_size=N)
     
     # Check order
     param_keys = list(initial_params.keys())
@@ -480,7 +477,7 @@ def test_2sls_numerical_equivalence(iv_data):
     
     # 2. Numerical solution (via optimizer)
     res_numerical = Estimator(model, param_space, tsls_method).fit(
-        data, sample_size=iv_data["N"], force_numerical=True
+        data, sample_size=iv_data["N"]
     )
     
     print("\n2SLS Analytical:", res_analytical.params)

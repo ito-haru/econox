@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="Welcome to Econox’s documentation!" href="index.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>API Reference - Econox 0.1.3.post1.dev3 documentation</title>
+        <title>API Reference - Econox 0.1.3.post1.dev4 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -159,7 +159,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.3.post1.dev3)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.3.post1.dev4)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -171,7 +171,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">Econox 0.1.3.post1.dev3 documentation</div></a>
+      <a href="index.html"><div class="brand">Econox 0.1.3.post1.dev4 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.3.post1.dev3 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.3.post1.dev4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -340,7 +340,7 @@ Orchestrates the estimation process by connecting Data, Model, Solver, and Objec
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.workflow.estimator.Estimator.fit">
-<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/workflow/estimator.html#Estimator.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.workflow.estimator.Estimator.fit" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/workflow/estimator.html#Estimator.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.workflow.estimator.Estimator.fit" title="Link to this definition">¶</a></dt>
 <dd><p>Estimates the model parameters to minimize the objective function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -352,7 +352,6 @@ If None, uses initial_params from ParameterSpace.</p></li>
 Note: This argument is primarily for numerical estimation.
 If an analytical solution is found, this argument
 is ignored and the actual data size (n_obs) is used instead.</p></li>
-<li><p><strong>force_numerical</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If True, forces numerical optimization even if an analytical solution is available.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -3246,8 +3245,47 @@ Returns a FixedPointResult containing the solution and status.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="econox.methods.base.EstimationMethod.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Minimizer()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/base.html#EstimationMethod.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.base.EstimationMethod.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Estimates the model parameters to minimize the objective function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – The structural model being estimated.</p></li>
+<li><p><strong>param_space</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.structures.params.ParameterSpace" title="econox.structures.params.ParameterSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterSpace</span></code></a></span>) – The parameter space definition.</p></li>
+<li><p><strong>solver</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.Solver" title="econox.protocols.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional solver to compute model solutions.</p></li>
+<li><p><strong>observations</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Observed data to match (passed to Objective).</p></li>
+<li><p><strong>initial_params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Dictionary of initial parameter values (Constrained space).
+If None, uses initial_params from ParameterSpace.</p></li>
+<li><p><strong>sample_size</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Effective sample size for variance calculations.
+Note: This argument is primarily for numerical estimation.
+If an analytical solution is found, this argument
+is ignored and the actual data size (n_obs) is used instead.</p></li>
+<li><p><strong>optimizer</strong> (<a class="reference internal" href="#econox.optim.Minimizer" title="econox.optim.Minimizer"><em>Minimizer</em></a>)</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>params</strong>: Estimated parameters (Constrained space).</p></li>
+<li><p><strong>loss</strong>: Final loss value.</p></li>
+<li><p><strong>success</strong>: Whether optimization was successful.</p></li>
+<li><p><strong>std_errors</strong>: Standard errors of estimates (if computed).</p></li>
+<li><p><strong>vcov</strong>: Variance-covariance matrix (if computed).</p></li>
+<li><p><strong>t_values</strong>: t-statistics of estimates (if computed).</p></li>
+<li><p><strong>solver_result</strong>: Final solver result (if applicable).</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>EstimationResult containing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="econox.methods.base.EstimationMethod.compute_loss">
-<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">compute_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/base.html#EstimationMethod.compute_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.base.EstimationMethod.compute_loss" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">compute_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/base.html#EstimationMethod.compute_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.base.EstimationMethod.compute_loss" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates the scalar loss metric to be minimized.</p>
 <p>This method is the core of the numerical estimation loop. It compares the
 model’s prediction (<cite>result</cite>) with the real-world data (<cite>observations</cite>).</p>
@@ -3296,33 +3334,6 @@ to numerical optimization using <cite>compute_loss</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="econox.methods.base.EstimationMethod.from_function">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/base.html#EstimationMethod.from_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.base.EstimationMethod.from_function" title="Link to this definition">¶</a></dt>
-<dd><p>Creates an <cite>EstimationMethod</cite> instance from a simple loss function.</p>
-<p>This factory method allows users to define objectives using a simple function
-instead of defining a full class. The created objective will rely on numerical
-optimization (solve returns None) and will not compute standard errors by default.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>func</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></span>) – A function with the signature:
-<cite>(result, observations, params, model) -&gt; Scalar</cite></p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">EstimationMethod</span></code></a></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>An instance of a dynamically created <cite>EstimationMethod</cite> subclass.</p>
-</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@method_from_loss</span>
-<span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">mse_loss</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">result</span><span class="o">.</span><span class="n">solution</span> <span class="o">-</span> <span class="n">observations</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="econox.methods.base.EstimationMethod.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.base.EstimationMethod.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -3337,31 +3348,91 @@ optimization (solve returns None) and will not compute standard errors by defaul
 
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="econox.methods.base.method_from_loss">
-<span class="sig-prename descclassname"><span class="pre">econox.methods.base.</span></span><span class="sig-name descname"><span class="pre">method_from_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.base.method_from_loss" title="Link to this definition">¶</a></dt>
-<dd><p>Creates an <cite>EstimationMethod</cite> instance from a simple loss function.</p>
-<p>This factory method allows users to define objectives using a simple function
-instead of defining a full class. The created objective will rely on numerical
-optimization (solve returns None) and will not compute standard errors by default.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.methods.base.CompositeMethod">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.base.</span></span><span class="sig-name descname"><span class="pre">CompositeMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/base.html#CompositeMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.base.CompositeMethod" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">EstimationMethod</span></code></a></p>
+<p>Combines multiple estimation methods into a single scalar loss.
+Assumes methods are independent (Block-Diagonal Weighting).</p>
+<p>Loss = sum( weight_i * loss_i )</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>func</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></span>) – A function with the signature:
-<cite>(result, observations, params, model) -&gt; Scalar</cite></p>
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>methods</strong> – Sequence[EstimationMethod]</p></li>
+<li><p><strong>weights</strong> – Sequence[float] | None
+Optional weights for each method. If None, equal weights are used.</p></li>
+<li><p><strong>variance</strong> – Variance | None
+Optional variance calculation strategy for inference.
+Note: By default, variance is not computed for composite methods because
+the combined loss may not correspond to a valid statistical model.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">EstimationMethod</span></code></a></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>An instance of a dynamically created <cite>EstimationMethod</cite> subclass.</p>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>methods</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><em>EstimationMethod</em></a><em>]</em>)</p></li>
+<li><p><strong>weights</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@method_from_loss</span>
-<span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">mse_loss</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">result</span><span class="o">.</span><span class="n">solution</span> <span class="o">-</span> <span class="n">observations</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-</pre></div>
-</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.methods.base.CompositeMethod.methods">
+<span class="sig-name descname"><span class="pre">methods</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><span class="pre">EstimationMethod</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.methods.base.CompositeMethod.methods" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.methods.base.CompositeMethod.weights">
+<span class="sig-name descname"><span class="pre">weights</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.methods.base.CompositeMethod.weights" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.methods.base.CompositeMethod.variance">
+<span class="sig-name descname"><span class="pre">variance</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><span class="pre">Variance</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.methods.base.CompositeMethod.variance" title="Link to this definition">¶</a></dt>
+<dd><p>Optional variance calculation strategy for inference.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.methods.base.CompositeMethod.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.base.CompositeMethod.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>methods</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><em>EstimationMethod</em></a><em>]</em>)</p></li>
+<li><p><strong>weights</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.methods.base.CompositeMethod.compute_loss">
+<span class="sig-name descname"><span class="pre">compute_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/base.html#CompositeMethod.compute_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.base.CompositeMethod.compute_loss" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the scalar loss metric to be minimized.</p>
+<p>This method is the core of the numerical estimation loop. It compares the
+model’s prediction (<cite>result</cite>) with the real-world data (<cite>observations</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – The output from the Solver (e.g., <cite>SolverResult</cite>).
+If an analytical solution is being evaluated, this may be None.</p></li>
+<li><p><strong>observations</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Observed data to fit the model against.</p></li>
+<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyTree</span></code></span>) – Current model parameters (useful for regularization terms).</p></li>
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – The structural model environment.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'']</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A scalar JAX array representing the loss (e.g., Negative Log-Likelihood).</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -3517,7 +3588,7 @@ optimization (solve returns None) and will not compute standard errors by defaul
 
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.methods.analytical.LinearMethod">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.analytical.</span></span><span class="sig-name descname"><span class="pre">LinearMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/analytical.html#LinearMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.analytical.LinearMethod" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.analytical.</span></span><span class="sig-name descname"><span class="pre">LinearMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/analytical.html#LinearMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.analytical.LinearMethod" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">EstimationMethod</span></code></a></p>
 <p>Base class providing the template method for analytical solving.</p>
 <dl class="field-list simple">
@@ -3527,6 +3598,7 @@ optimization (solve returns None) and will not compute standard errors by defaul
 <li><p><strong>target_key</strong> (<em>str</em>)</p></li>
 <li><p><strong>param_names</strong> (<em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>force_numerical</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3544,6 +3616,50 @@ optimization (solve returns None) and will not compute standard errors by defaul
 <dt class="sig sig-object py" id="econox.methods.analytical.LinearMethod.param_names">
 <span class="sig-name descname"><span class="pre">param_names</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.methods.analytical.LinearMethod.param_names" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.methods.analytical.LinearMethod.force_numerical">
+<span class="sig-name descname"><span class="pre">force_numerical</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#econox.methods.analytical.LinearMethod.force_numerical" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.methods.analytical.LinearMethod.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Minimizer()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/analytical.html#LinearMethod.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.analytical.LinearMethod.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Estimates the model parameters to minimize the objective function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – The structural model being estimated.</p></li>
+<li><p><strong>param_space</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.structures.params.ParameterSpace" title="econox.structures.params.ParameterSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterSpace</span></code></a></span>) – The parameter space definition.</p></li>
+<li><p><strong>solver</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.Solver" title="econox.protocols.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional solver to compute model solutions.</p></li>
+<li><p><strong>observations</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Observed data to match (passed to Objective).</p></li>
+<li><p><strong>initial_params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Dictionary of initial parameter values (Constrained space).
+If None, uses initial_params from ParameterSpace.</p></li>
+<li><p><strong>sample_size</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Effective sample size for variance calculations.
+Note: This argument is primarily for numerical estimation.
+If an analytical solution is found, this argument
+is ignored and the actual data size (n_obs) is used instead.</p></li>
+<li><p><strong>optimizer</strong> (<a class="reference internal" href="#econox.optim.Minimizer" title="econox.optim.Minimizer"><em>Minimizer</em></a>)</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>params</strong>: Estimated parameters (Constrained space).</p></li>
+<li><p><strong>loss</strong>: Final loss value.</p></li>
+<li><p><strong>success</strong>: Whether optimization was successful.</p></li>
+<li><p><strong>std_errors</strong>: Standard errors of estimates (if computed).</p></li>
+<li><p><strong>vcov</strong>: Variance-covariance matrix (if computed).</p></li>
+<li><p><strong>t_values</strong>: t-statistics of estimates (if computed).</p></li>
+<li><p><strong>solver_result</strong>: Final solver result (if applicable).</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>EstimationResult containing</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.methods.analytical.LinearMethod.solve">
@@ -3618,7 +3734,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.methods.analytical.LinearMethod.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.analytical.LinearMethod.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.analytical.LinearMethod.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3626,6 +3742,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 <li><p><strong>target_key</strong> (<em>str</em>)</p></li>
 <li><p><strong>param_names</strong> (<em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>force_numerical</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -3638,7 +3755,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.methods.analytical.LeastSquares">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.analytical.</span></span><span class="sig-name descname"><span class="pre">LeastSquares</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/analytical.html#LeastSquares"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.analytical.LeastSquares" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.analytical.</span></span><span class="sig-name descname"><span class="pre">LeastSquares</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/analytical.html#LeastSquares"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.analytical.LeastSquares" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#econox.methods.analytical.LinearMethod" title="econox.methods.analytical.LinearMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearMethod</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3648,6 +3765,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 <li><p><strong>param_names</strong> (<em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>feature_key</strong> (<em>str</em>)</p></li>
 <li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>force_numerical</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3658,7 +3776,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.methods.analytical.LeastSquares.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.analytical.LeastSquares.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.analytical.LeastSquares.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3667,6 +3785,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 <li><p><strong>param_names</strong> (<em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>feature_key</strong> (<em>str</em>)</p></li>
 <li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>force_numerical</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -3679,7 +3798,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.methods.analytical.TwoStageLeastSquares">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.analytical.</span></span><span class="sig-name descname"><span class="pre">TwoStageLeastSquares</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endog_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">controls_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/analytical.html#TwoStageLeastSquares"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.analytical.TwoStageLeastSquares" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.analytical.</span></span><span class="sig-name descname"><span class="pre">TwoStageLeastSquares</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endog_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">controls_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/analytical.html#TwoStageLeastSquares"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.analytical.TwoStageLeastSquares" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#econox.methods.analytical.LinearMethod" title="econox.methods.analytical.LinearMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearMethod</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3691,6 +3810,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 <li><p><strong>instrument_key</strong> (<em>str</em>)</p></li>
 <li><p><strong>controls_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>force_numerical</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3711,7 +3831,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.methods.analytical.TwoStageLeastSquares.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endog_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">controls_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.analytical.TwoStageLeastSquares.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endog_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">controls_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_numerical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.analytical.TwoStageLeastSquares.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3722,6 +3842,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 <li><p><strong>instrument_key</strong> (<em>str</em>)</p></li>
 <li><p><strong>controls_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>force_numerical</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -3738,83 +3859,56 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 <p>Numerical estimation methods (loss-based).
 Standard methods like Maximum Likelihood (MLE) and GMM.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="econox.methods.numerical.CompositeMethod">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.numerical.</span></span><span class="sig-name descname"><span class="pre">CompositeMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/numerical.html#CompositeMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.numerical.CompositeMethod" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="econox.methods.numerical.NumericalMethod">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.numerical.</span></span><span class="sig-name descname"><span class="pre">NumericalMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/numerical.html#NumericalMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.numerical.NumericalMethod" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">EstimationMethod</span></code></a></p>
-<p>Combines multiple estimation methods into a single scalar loss.
-Assumes methods are independent (Block-Diagonal Weighting).</p>
-<p>Loss = sum( weight_i * loss_i )</p>
+<p>Base class for numerical estimation methods based on minimizing a scalar loss function.</p>
+<p>Users should implement the <cite>compute_loss</cite> method to define the loss function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Variables<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>methods</strong> – Sequence[EstimationMethod]</p></li>
-<li><p><strong>weights</strong> – Sequence[float] | None
-Optional weights for each method. If None, equal weights are used.</p></li>
-<li><p><strong>variance</strong> – Variance | None
-Optional variance calculation strategy for inference.
-Note: By default, variance is not computed for composite methods because
-the combined loss may not correspond to a valid statistical model.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>variance</strong> – Variance | None
+Optional variance calculation strategy for inference.</p>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>methods</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><em>EstimationMethod</em></a><em>]</em>)</p></li>
-<li><p><strong>weights</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
-</ul>
+<dd class="field-even"><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p>
 </dd>
 </dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.methods.numerical.CompositeMethod.methods">
-<span class="sig-name descname"><span class="pre">methods</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><span class="pre">EstimationMethod</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.methods.numerical.CompositeMethod.methods" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.methods.numerical.CompositeMethod.weights">
-<span class="sig-name descname"><span class="pre">weights</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.methods.numerical.CompositeMethod.weights" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="econox.methods.numerical.CompositeMethod.variance">
-<span class="sig-name descname"><span class="pre">variance</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><span class="pre">Variance</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.methods.numerical.CompositeMethod.variance" title="Link to this definition">¶</a></dt>
-<dd><p>Optional variance calculation strategy for inference.</p>
-</dd></dl>
-
 <dl class="py method">
-<dt class="sig sig-object py" id="econox.methods.numerical.CompositeMethod.compute_loss">
-<span class="sig-name descname"><span class="pre">compute_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/numerical.html#CompositeMethod.compute_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.numerical.CompositeMethod.compute_loss" title="Link to this definition">¶</a></dt>
-<dd><p>Calculates the scalar loss metric to be minimized.</p>
-<p>This method is the core of the numerical estimation loop. It compares the
-model’s prediction (<cite>result</cite>) with the real-world data (<cite>observations</cite>).</p>
+<dt class="sig sig-object py" id="econox.methods.numerical.NumericalMethod.from_function">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Hessian()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/numerical.html#NumericalMethod.from_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.numerical.NumericalMethod.from_function" title="Link to this definition">¶</a></dt>
+<dd><p>Creates an <cite>NumericalMethod</cite> instance from a simple loss function.</p>
+<p>This factory method allows users to define objectives using a simple function
+instead of defining a full class. The created objective will rely on numerical
+optimization (solve returns None) and will compute standard errors using the Hessian method by default.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – The output from the Solver (e.g., <cite>SolverResult</cite>).
-If an analytical solution is being evaluated, this may be None.</p></li>
-<li><p><strong>observations</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Observed data to fit the model against.</p></li>
-<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyTree</span></code></span>) – Current model parameters (useful for regularization terms).</p></li>
-<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – The structural model environment.</p></li>
+<li><p><strong>func</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></span>) – A function with the signature:
+<cite>(result, observations, params, model) -&gt; Scalar</cite></p></li>
+<li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array,</span> <span class="pre">'']</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.methods.numerical.NumericalMethod" title="econox.methods.numerical.NumericalMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">NumericalMethod</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A scalar JAX array representing the loss (e.g., Negative Log-Likelihood).</p>
+<dd class="field-odd"><p>An instance of a dynamically created <cite>NumericalMethod</cite> subclass.</p>
 </dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">mse_loss</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">result</span><span class="o">.</span><span class="n">solution</span> <span class="o">-</span> <span class="n">observations</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">method</span> <span class="o">=</span> <span class="n">NumericalMethod</span><span class="o">.</span><span class="n">from_function</span><span class="p">(</span><span class="n">mse_loss</span><span class="p">,</span> <span class="n">variance</span><span class="o">=</span><span class="n">Hessian</span><span class="p">())</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="econox.methods.numerical.CompositeMethod.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.numerical.CompositeMethod.__init__" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="econox.methods.numerical.NumericalMethod.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.numerical.NumericalMethod.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>methods</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><em>EstimationMethod</em></a><em>]</em>)</p></li>
-<li><p><strong>weights</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
-</ul>
+<dd class="field-odd"><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
@@ -3824,10 +3918,40 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="econox.methods.numerical.method_from_loss">
+<span class="sig-prename descclassname"><span class="pre">econox.methods.numerical.</span></span><span class="sig-name descname"><span class="pre">method_from_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Hessian()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/numerical.html#method_from_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.numerical.method_from_loss" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator version of <cite>NumericalMethod.from_function</cite> for convenience.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="#econox.methods.numerical.NumericalMethod" title="econox.methods.numerical.NumericalMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">NumericalMethod</span></code></a>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>], <a class="reference internal" href="#econox.methods.numerical.NumericalMethod" title="econox.methods.numerical.NumericalMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">NumericalMethod</span></code></a>]]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>func</strong> (<em>Callable</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>variance</strong> (<a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><em>Variance</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># No variance specified (default: Hessian)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@method_from_loss</span>
+<span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">mse_loss</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">result</span><span class="o">.</span><span class="n">solution</span> <span class="o">-</span> <span class="n">observations</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># With variance specified</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@method_from_loss</span><span class="p">(</span><span class="n">variance</span><span class="o">=</span><span class="n">Hessian</span><span class="p">())</span>
+<span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">mse_loss</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">result</span><span class="o">.</span><span class="n">solution</span> <span class="o">-</span> <span class="n">observations</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.methods.numerical.MaximumLikelihood">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.numerical.</span></span><span class="sig-name descname"><span class="pre">MaximumLikelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choice_probs_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'profile'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/numerical.html#MaximumLikelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.numerical.MaximumLikelihood" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">EstimationMethod</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#econox.methods.numerical.NumericalMethod" title="econox.methods.numerical.NumericalMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">NumericalMethod</span></code></a></p>
 <p>Standard MLE for Discrete Choice (Migration/Occupation).
 Computes Negative Log-Likelihood (NLL) based on choice probabilities.</p>
 <dl class="field-list simple">
@@ -3889,7 +4013,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.methods.numerical.GaussianMomentMatch">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.numerical.</span></span><span class="sig-name descname"><span class="pre">GaussianMomentMatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_param_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/numerical.html#GaussianMomentMatch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.numerical.GaussianMomentMatch" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#econox.methods.base.EstimationMethod" title="econox.methods.base.EstimationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">EstimationMethod</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#econox.methods.numerical.NumericalMethod" title="econox.methods.numerical.NumericalMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">NumericalMethod</span></code></a></p>
 <p>Fits a continuous model variable (e.g. Rent, Wage) to observed data
 assuming a Gaussian (or Log-Normal) error structure.</p>
 <dl class="field-list simple">
@@ -4544,13 +4668,20 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#module-econox.methods.base">Base Classes</a><ul>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod"><code class="docutils literal notranslate"><span class="pre">EstimationMethod</span></code></a><ul>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod.variance"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.variance</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.base.EstimationMethod.fit"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.fit()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod.compute_loss"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.compute_loss()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod.solve"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.solve()</span></code></a></li>
-<li><a class="reference internal" href="#econox.methods.base.EstimationMethod.from_function"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.from_function()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod.__init__"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.__init__()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#econox.methods.base.method_from_loss"><code class="docutils literal notranslate"><span class="pre">method_from_loss()</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.base.CompositeMethod"><code class="docutils literal notranslate"><span class="pre">CompositeMethod</span></code></a><ul>
+<li><a class="reference internal" href="#econox.methods.base.CompositeMethod.methods"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.methods</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.base.CompositeMethod.weights"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.weights</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.base.CompositeMethod.variance"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.variance</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.base.CompositeMethod.__init__"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.base.CompositeMethod.compute_loss"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.compute_loss()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-econox.methods.analytical">Analytical Methods (OLS/2SLS)</a><ul>
@@ -4571,6 +4702,8 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.methods.analytical.LinearMethod.add_intercept"><code class="docutils literal notranslate"><span class="pre">LinearMethod.add_intercept</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.analytical.LinearMethod.target_key"><code class="docutils literal notranslate"><span class="pre">LinearMethod.target_key</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.analytical.LinearMethod.param_names"><code class="docutils literal notranslate"><span class="pre">LinearMethod.param_names</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.analytical.LinearMethod.force_numerical"><code class="docutils literal notranslate"><span class="pre">LinearMethod.force_numerical</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.analytical.LinearMethod.fit"><code class="docutils literal notranslate"><span class="pre">LinearMethod.fit()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.analytical.LinearMethod.solve"><code class="docutils literal notranslate"><span class="pre">LinearMethod.solve()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.analytical.LinearMethod.compute_loss"><code class="docutils literal notranslate"><span class="pre">LinearMethod.compute_loss()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.analytical.LinearMethod.__init__"><code class="docutils literal notranslate"><span class="pre">LinearMethod.__init__()</span></code></a></li>
@@ -4591,14 +4724,12 @@ and attribute-style (.key) access.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-econox.methods.numerical">Numerical Methods (MLE/GMM)</a><ul>
-<li><a class="reference internal" href="#econox.methods.numerical.CompositeMethod"><code class="docutils literal notranslate"><span class="pre">CompositeMethod</span></code></a><ul>
-<li><a class="reference internal" href="#econox.methods.numerical.CompositeMethod.methods"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.methods</span></code></a></li>
-<li><a class="reference internal" href="#econox.methods.numerical.CompositeMethod.weights"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.weights</span></code></a></li>
-<li><a class="reference internal" href="#econox.methods.numerical.CompositeMethod.variance"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.variance</span></code></a></li>
-<li><a class="reference internal" href="#econox.methods.numerical.CompositeMethod.compute_loss"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.compute_loss()</span></code></a></li>
-<li><a class="reference internal" href="#econox.methods.numerical.CompositeMethod.__init__"><code class="docutils literal notranslate"><span class="pre">CompositeMethod.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.numerical.NumericalMethod"><code class="docutils literal notranslate"><span class="pre">NumericalMethod</span></code></a><ul>
+<li><a class="reference internal" href="#econox.methods.numerical.NumericalMethod.from_function"><code class="docutils literal notranslate"><span class="pre">NumericalMethod.from_function()</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.numerical.NumericalMethod.__init__"><code class="docutils literal notranslate"><span class="pre">NumericalMethod.__init__()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#econox.methods.numerical.method_from_loss"><code class="docutils literal notranslate"><span class="pre">method_from_loss()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.numerical.MaximumLikelihood"><code class="docutils literal notranslate"><span class="pre">MaximumLikelihood</span></code></a><ul>
 <li><a class="reference internal" href="#econox.methods.numerical.MaximumLikelihood.choice_probs_key"><code class="docutils literal notranslate"><span class="pre">MaximumLikelihood.choice_probs_key</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.numerical.MaximumLikelihood.compute_loss"><code class="docutils literal notranslate"><span class="pre">MaximumLikelihood.compute_loss()</span></code></a></li>
@@ -4656,7 +4787,7 @@ and attribute-style (.key) access.</p>
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=65c0c18d"></script>
+</div><script src="_static/documentation_options.js?v=ae495140"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>

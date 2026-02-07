@@ -27,11 +27,12 @@ import jax.numpy as jnp
 import equinox as eqx
 from jaxtyping import Array, PyTree
 
-from econox.protocols import StructuralModel
+from econox.protocols import StructuralModel, Solver
 from econox.utils import get_from_pytree
 from econox.structures import EstimationResult, ParameterSpace
 from econox.methods.base import EstimationMethod
 from econox.methods.variance import Hessian, Variance
+from econox.optim import Minimizer
 
 
 class AnalyticalParameterHandler(eqx.Module):
@@ -123,7 +124,39 @@ class LinearMethod(EstimationMethod):
     # If None, defaults to "intercept", "beta_0", "beta_1", ...
     param_names: List[str] | None = eqx.field(default=None)
     
-    variance: Variance | None = eqx.field(default_factory=Hessian, kw_only=True)
+    force_numerical: bool = eqx.field(default=False, kw_only=True)
+
+    def fit(
+        self,
+        observations: Any, 
+        model: StructuralModel,
+        param_space: ParameterSpace,
+        solver: Solver | None = None,
+        optimizer: Minimizer = Minimizer(),
+        verbose: bool = False,
+        initial_params: dict | None = None,
+        sample_size: int | None = None,
+        ) -> EstimationResult:
+
+        if not self.force_numerical:
+            analytical_result: EstimationResult | None = self.solve(
+                model, observations, param_space
+            )
+            
+            if analytical_result is not None:
+                return analytical_result
+        
+        # Fallback to NumericalMethod
+        return super().fit(
+            observations=observations,
+            model=model,
+            param_space=param_space,
+            solver=solver,
+            optimizer=optimizer,
+            verbose=verbose,
+            initial_params=initial_params,
+            sample_size=sample_size
+        )
 
     # --- Template Method ---
     def solve(self, model: StructuralModel, observations: Any, param_space: ParameterSpace) -> EstimationResult | None:

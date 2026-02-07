@@ -4,10 +4,12 @@ Numerical estimation methods (loss-based).
 Standard methods like Maximum Likelihood (MLE) and GMM.
 """
 
-from typing import Any, Sequence
+from __future__ import annotations
+from typing import Any, Callable
 import jax.numpy as jnp
 import equinox as eqx
 from jaxtyping import PyTree, Scalar
+import logging
 
 from econox.protocols import StructuralModel
 from econox.utils import get_from_pytree
@@ -15,51 +17,83 @@ from econox.config import LOSS_PENALTY
 from econox.methods.base import EstimationMethod
 from econox.methods.variance import Variance, Hessian
 
-class CompositeMethod(EstimationMethod):
+logger = logging.getLogger(__name__)
+
+
+class NumericalMethod(EstimationMethod):
     """
-    Combines multiple estimation methods into a single scalar loss.
-    Assumes methods are independent (Block-Diagonal Weighting).
+    Base class for numerical estimation methods based on minimizing a scalar loss function.
     
-    Loss = sum( weight_i * loss_i )
+    Users should implement the `compute_loss` method to define the loss function.
 
     Attributes:
-        methods: Sequence[EstimationMethod]
-        weights: Sequence[float] | None
-            Optional weights for each method. If None, equal weights are used.
         variance: Variance | None
             Optional variance calculation strategy for inference.
-            Note: By default, variance is not computed for composite methods because
-            the combined loss may not correspond to a valid statistical model.
     """
-    methods: Sequence[EstimationMethod]
-    weights: Sequence[float] | None = eqx.field(default=None)
-    
-    variance: Variance | None = eqx.field(default=None, kw_only=True)
 
-    def compute_loss(
-        self,
-        result: Any | None,
-        observations: Any,
-        params: PyTree,
-        model: StructuralModel
-    ) -> Scalar:
-    
-        current_weights = self.weights
-        if current_weights is None:
-            current_weights = [1.0] * len(self.methods)
-        elif len(current_weights) != len(self.methods):
-            raise ValueError("Weights length must match methods length.")
+    @classmethod
+    def from_function(cls, func: Callable, variance: Variance | None = Hessian()) -> NumericalMethod:
+        """
+        Creates an `NumericalMethod` instance from a simple loss function.
         
-        total_loss = jnp.array(0.0)
+        This factory method allows users to define objectives using a simple function 
+        instead of defining a full class. The created objective will rely on numerical 
+        optimization (solve returns None) and will compute standard errors using the Hessian method by default.
+
+        Args:
+            func: A function with the signature:
+                  `(result, observations, params, model) -> Scalar`
+
+        Returns:
+            An instance of a dynamically created `NumericalMethod` subclass.
+
+        Example:
+            >>> def mse_loss(result, observations, params, model):
+            ...     return jnp.mean((result.solution - observations) ** 2)
+            >>> method = NumericalMethod.from_function(mse_loss, variance=Hessian())
+        """
+        # Dynamically create a subclass to wrap the function
+        class WrapperMethod(NumericalMethod):
+            def compute_loss(self, result, observations, params, model):
+                return func(result, observations, params, model)
+
+            def __repr__(self):
+                return f"WrapperMethod({func.__name__})"
+
+        return WrapperMethod(variance=variance)
+
+# Decorator
+def method_from_loss(
+    func: Callable | None = None,
+    *,
+    variance: Variance | None = Hessian()
+) -> NumericalMethod | Callable[[Callable], NumericalMethod]:
+    """
+    Decorator version of `NumericalMethod.from_function` for convenience.
+
+    Example:
+        >>> # No variance specified (default: Hessian)
+        >>> @method_from_loss
+        ... def mse_loss(result, observations, params, model):
+        ...     return jnp.mean((result.solution - observations) ** 2)
         
-        for method, w in zip(self.methods, current_weights):
-            loss = method.compute_loss(result, observations, params, model)
-            total_loss = total_loss + (w * loss)
-            
-        return total_loss
+        >>> # With variance specified
+        >>> @method_from_loss(variance=Hessian()) 
+        ... def mse_loss(result, observations, params, model):
+        ...     return jnp.mean((result.solution - observations) ** 2)
+    """
+    def decorator(f: Callable) -> NumericalMethod:
+        return NumericalMethod.from_function(f, variance=variance)
+
+    # Case 1: @method_from_loss(func) (no arguments decorator)
+    if func is not None:
+        return decorator(func)
+    
+    # Case 2: @method_from_loss(variance=...) (with arguments decorator)
+    return decorator
 
 
-class MaximumLikelihood(EstimationMethod):
+class MaximumLikelihood(NumericalMethod):
     """
     Standard MLE for Discrete Choice (Migration/Occupation).
     Computes Negative Log-Likelihood (NLL) based on choice probabilities.
@@ -117,7 +151,7 @@ class MaximumLikelihood(EstimationMethod):
         return robust_nll
 
 
-class GaussianMomentMatch(EstimationMethod):
+class GaussianMomentMatch(NumericalMethod):
     """
     Fits a continuous model variable (e.g. Rent, Wage) to observed data
     assuming a Gaussian (or Log-Normal) error structure.

@@ -49,7 +49,16 @@ from econox.solvers import ValueIterationSolver, EquilibriumSolver
 from econox.workflow import Estimator, Simulator, simulator_objective_from_func, SimulatorObjective, Scenario
 
 # 5. Methods (Estimation Techniques)
-from econox.methods import MaximumLikelihood, GaussianMomentMatch, CompositeMethod, LeastSquares, TwoStageLeastSquares
+from econox.methods import (
+    MaximumLikelihood, 
+    GaussianMomentMatch, 
+    CompositeMethod,
+    LeastSquares, 
+    TwoStageLeastSquares,
+    method_from_loss
+)
+
+from econox import optim, protocols, utils
 
 __all__ = [
     # Structures
@@ -87,5 +96,10 @@ __all__ = [
     "GaussianMomentMatch",
     "CompositeMethod",
     "LeastSquares",
-    "TwoStageLeastSquares"
+    "TwoStageLeastSquares",
+    "method_from_loss",
+    # Others
+    "optim",
+    "protocols",
+    "utils",
 ]

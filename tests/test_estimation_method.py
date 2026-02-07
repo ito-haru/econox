@@ -73,13 +73,14 @@ def test_ols_numerical_equivalence(simple_model, linear_data):
     param_space = ParameterSpace.create(initial_params)
     
     # Method: OLS with feature_key="x", target_key="y"
-    ols_method = LeastSquares(feature_key="x", target_key="y")
+    ols_method_analytical = LeastSquares(feature_key="x", target_key="y")
+    ols_method_numerical = LeastSquares(feature_key="x", target_key="y", force_numerical=True)
     
     # 1. Analytical Solution (solve)
     estimator_analytical = Estimator(
         model=simple_model,
         param_space=param_space,
-        method=ols_method
+        method=ols_method_analytical
     )
     res_analytical = estimator_analytical.fit(linear_data, sample_size=linear_data["N"])
     
@@ -87,7 +88,7 @@ def test_ols_numerical_equivalence(simple_model, linear_data):
     estimator_numerical = Estimator(
         model=simple_model,
         param_space=param_space,
-        method=ols_method
+        method=ols_method_numerical
     )
     res_numerical = estimator_numerical.fit(
         linear_data, 
@@ -464,19 +465,26 @@ def test_2sls_numerical_equivalence(iv_data):
     initial_params = {"intercept": 0.0, "beta_0": 0.0}
     param_space = ParameterSpace.create(initial_params)
     
-    tsls_method = TwoStageLeastSquares(
+    tsls_method_analytical = TwoStageLeastSquares(
         target_key="y",
         endog_key="X",
         instrument_key="Z"
     )
+
+    tsls_method_numerical = TwoStageLeastSquares(
+        target_key="y",
+        endog_key="X",
+        instrument_key="Z",
+        force_numerical=True
+    )
     
     # 1. Analytical solution
-    res_analytical = Estimator(model, param_space, tsls_method).fit(
+    res_analytical = Estimator(model, param_space, tsls_method_analytical).fit(
         data, sample_size=iv_data["N"]
     )
     
     # 2. Numerical solution (via optimizer)
-    res_numerical = Estimator(model, param_space, tsls_method).fit(
+    res_numerical = Estimator(model, param_space, tsls_method_numerical).fit(
         data, sample_size=iv_data["N"]
     )
     

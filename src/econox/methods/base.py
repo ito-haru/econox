@@ -5,7 +5,6 @@ Base module for method functions in the Econox framework.
 
 from __future__ import annotations
 from typing import Sequence, Any
-from abc import abstractmethod
 import equinox as eqx
 from jaxtyping import PyTree, Scalar, Array
 import jax

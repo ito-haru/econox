@@ -38,7 +38,7 @@ class NumericalMethod(EstimationMethod):
         
         This factory method allows users to define objectives using a simple function 
         instead of defining a full class. The created objective will rely on numerical 
-        optimization (solve returns None) and will not compute standard errors by default.
+        optimization (solve returns None) and will compute standard errors using the Hessian method by default.
 
         Args:
             func: A function with the signature:

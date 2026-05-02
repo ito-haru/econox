@@ -3,13 +3,90 @@
 Utility components for the Econox framework.
 """
 
+import jax
 import jax.numpy as jnp
 import equinox as eqx
 from typing import Callable
-from jaxtyping import Float, Array, PyTree
+from jaxtyping import Float, Array, PRNGKeyArray, PyTree
 
-from econox.protocols import StructuralModel
-from econox.utils import get_from_pytree
+from econox.protocols import StructuralModel, Utility, Distribution
+from econox.utils import get_from_pytree, set_in_pytree
+
+class FunctionUtility(eqx.Module):
+    """
+    Wraps a user-defined function to satisfy the Utility protocol.
+    Allows defining utility logic as a simple function.
+
+    Attributes:
+        func (Callable):
+            A function with signature `(params: PyTree, model: StructuralModel) -> Float[Array, "num_states num_actions"]`.
+            This function computes the flow utility matrix for the given parameters and model.
+    
+    Example:
+        >>> import econox as ecx
+        >>> # Define a custom utility function
+        >>> def my_utility(params, model):
+        ...     # params["beta"] is a scalar, model.data["x"] is (num_states, num_actions)
+        ...     return params["beta"] * model.data["x"]
+        >>> # Wrap it as a FunctionUtility
+        >>> utility: econox.protocols.Utility = ecx.utility(my_utility)
+        >>> u = utility.compute_flow_utility(params, model)
+        >>> u.shape
+        (num_states, num_actions)
+    """
+    func: Callable
+
+    def compute_flow_utility(
+        self, 
+        params: PyTree, 
+        model: StructuralModel
+    ) -> Float[Array, "num_states num_actions"]:
+        """
+        Calls the user-defined function to compute flow utility.
+        Args:
+            params: Parameter PyTree.
+            model: StructuralModel instance.
+
+        Returns:
+            Float[Array, "num_states num_actions"]: 
+                The computed flow utility matrix.
+        """
+        result = self.func(params, model)
+        if result.shape != (model.num_states, model.num_actions):
+            raise ValueError(f"Utility function returned shape {result.shape}, expected {(model.num_states, model.num_actions)}")
+        return result
+
+
+def utility(func: Callable) -> FunctionUtility:
+    """
+    Decorator to convert a function into a Utility module.
+
+    This allows you to define a utility function with the standard signature and
+    automatically wrap it as a module compatible with the Econox framework.
+
+    Args:
+        func (Callable): 
+            A function with signature `(params: PyTree, model: StructuralModel) -> Float[Array, "num_states num_actions"]`.
+            The function should compute and return the flow utility matrix for the given parameters and model.
+    
+    Returns:
+        FunctionUtility: 
+            An object with a `compute_flow_utility(params, model)` method that calls the provided function.
+    
+    Example:
+        >>> import econox as ecx
+        >>> # Define a custom utility function
+        >>> @ecx.utility
+        ... def my_utility(params, model):
+        ...     # params["beta"] is a scalar, model.data["x"] is (num_states, num_actions)
+        ...     return params["beta"] * model.data["x"]
+        >>> # my_utility is now a FunctionUtility instance
+        >>> u = my_utility.compute_flow_utility(params, model)
+        >>> u.shape
+        (num_states, num_actions)
+    """
+    return FunctionUtility(func=func)
+
 
 class LinearUtility(eqx.Module):
     """
@@ -96,77 +173,84 @@ class LinearUtility(eqx.Module):
         # 4. Compute Utility (Dot Product)
         return jnp.einsum("saf, f -> sa", X, coeffs)
 
-class FunctionUtility(eqx.Module):
+class MixedUtility(eqx.Module):
     """
-    Wraps a user-defined function to satisfy the Utility protocol.
-    Allows defining utility logic as a simple function.
+    Wrapper for random coefficients utility (mixed models).
+    """
+    base_utility: Utility
+    """Base utility function (e.g., LinearUtility)."""
+    distribution: Distribution
+    """Distribution of random coefficients (e.g., Normal, Gumbel)."""
+    draws: Float[Array, "num_draws num_params"]
+    """Pre-generated random draws for the random coefficients."""
+    coeff_keys: tuple[str, ...]
+    """Keys in params for random coefficients."""
+    scale_keys: tuple[str, ...]
+    """Keys in params for scales of random coefficients."""
 
-    Attributes:
-        func (Callable):
-            A function with signature `(params: PyTree, model: StructuralModel) -> Float[Array, "num_states num_actions"]`.
-            This function computes the flow utility matrix for the given parameters and model.
-    
-    Example:
-        >>> import econox as ecx
-        >>> # Define a custom utility function
-        >>> def my_utility(params, model):
-        ...     # params["beta"] is a scalar, model.data["x"] is (num_states, num_actions)
-        ...     return params["beta"] * model.data["x"]
-        >>> # Wrap it as a FunctionUtility
-        >>> utility: econox.protocols.Utility = ecx.utility(my_utility)
-        >>> u = utility.compute_flow_utility(params, model)
-        >>> u.shape
-        (num_states, num_actions)
-    """
-    func: Callable
+    def __init__(
+        self,
+        base_utility: Utility,
+        distribution: Distribution,
+        coeff_keys: tuple[str, ...],
+        scale_keys: tuple[str, ...],
+        num_draws: int,
+        num_params: int,
+        key: PRNGKeyArray
+    ):
+        """
+        Initializes MixedUtility by generating standard draws.
+
+        Args:
+            base_utility: Base utility function (e.g., LinearUtility).
+            distribution: Distribution of random coefficients.
+            coeff_keys: Keys in params for random coefficients.
+            scale_keys: Keys in params for scales of random coefficients.
+            num_draws: Number of random draws to generate.
+            num_params: Number of random coefficients.
+            key: Random key for reproducibility.
+        """
+        self.base_utility = base_utility
+        self.distribution = distribution
+        self.coeff_keys = coeff_keys
+        self.scale_keys = scale_keys
+        self.draws = distribution.generate_standard_draws(
+            key, shape=(num_draws, num_params)
+        )
 
     def compute_flow_utility(
-        self, 
-        params: PyTree, 
+        self,
+        params: PyTree,
         model: StructuralModel
-    ) -> Float[Array, "num_states num_actions"]:
+    ) -> Float[Array, "num_draws n_states n_actions"]:
         """
-        Calls the user-defined function to compute flow utility.
+        Computes flow utility for mixed models with random coefficients.
+
         Args:
-            params: Parameter PyTree.
+            params: Parameter PyTree containing means and scales.
             model: StructuralModel instance.
 
         Returns:
-            Float[Array, "num_states num_actions"]: 
-                The computed flow utility matrix.
+            Float[Array, "num_draws n_states n_actions"]:
+                The computed flow utility matrix for each draw.
         """
-        result = self.func(params, model)
-        if result.shape != (model.num_states, model.num_actions):
-            raise ValueError(f"Utility function returned shape {result.shape}, expected {(model.num_states, model.num_actions)}")
-        return result
+        loc = jnp.array([
+            get_from_pytree(params, k) for k in self.coeff_keys
+        ])
+        scale = jnp.array([
+            get_from_pytree(params, k) for k in self.scale_keys
+        ])
 
-
-def utility(func: Callable) -> FunctionUtility:
-    """
-    Decorator to convert a function into a Utility module.
-
-    This allows you to define a utility function with the standard signature and
-    automatically wrap it as a module compatible with the Econox framework.
-
-    Args:
-        func (Callable): 
-            A function with signature `(params: PyTree, model: StructuralModel) -> Float[Array, "num_states num_actions"]`.
-            The function should compute and return the flow utility matrix for the given parameters and model.
-    
-    Returns:
-        FunctionUtility: 
-            An object with a `compute_flow_utility(params, model)` method that calls the provided function.
-    
-    Example:
-        >>> import econox as ecx
-        >>> # Define a custom utility function
-        >>> @ecx.utility
-        ... def my_utility(params, model):
-        ...     # params["beta"] is a scalar, model.data["x"] is (num_states, num_actions)
-        ...     return params["beta"] * model.data["x"]
-        >>> # my_utility is now a FunctionUtility instance
-        >>> u = my_utility.compute_flow_utility(params, model)
-        >>> u.shape
-        (num_states, num_actions)
-    """
-    return FunctionUtility(func=func)
+        def single_draw_utility(draw):
+            rand_coeffs = self.distribution.transform(
+                draws=draw,
+                loc=loc,
+                scale=scale
+            )
+            # Create a temporary params PyTree with random coefficients
+            current_params = params
+            for i, k in enumerate(self.coeff_keys):
+                current_params = set_in_pytree(current_params, k, rand_coeffs[i])
+            return self.base_utility.compute_flow_utility(current_params, model)
+        
+        return jax.vmap(single_draw_utility)(self.draws)

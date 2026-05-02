@@ -9,7 +9,7 @@ utility functions or solver algorithms) without modifying the rest of the workfl
 
 from __future__ import annotations
 from typing import Protocol, Any, TypeAlias, runtime_checkable
-from jaxtyping import Array, Float, PyTree
+from jaxtyping import Array, Float, PRNGKeyArray, PyTree
 
 Scalar: TypeAlias = Float[Array, ""]
 
@@ -94,7 +94,7 @@ class Utility(Protocol):
     Defines the instantaneous payoff an agent receives from taking action :math:`a`
     in state :math:`s`.
     """
-    def compute_flow_utility(self, params: PyTree, model: StructuralModel) -> Float[Array, "n_states n_actions"]:
+    def compute_flow_utility(self, params: PyTree, model: StructuralModel) -> Float[Array, "... n_states n_actions"]:
         """Calculates the utility matrix given parameters and model state."""
         ...
 
@@ -119,6 +119,41 @@ class Distribution(Protocol):
         """
         Computes conditional choice probabilities (CCP):
         :math:`P(a | s) = P(v(s, a) + \\epsilon(a) \\ge v(s, a') + \\epsilon(a'), \\forall a')`
+        """
+        ...
+    
+    def transform(
+        self, 
+        draws: Float[Array, "..."], 
+        loc: PyTree, scale: PyTree
+        ) -> Float[Array, "..."]:
+        """
+        Transforms standard random draws into the specified distribution.
+        
+        Args:
+            draws: Array of standard random draws.
+            (outputs of generate_standard_draws)
+            loc: Location parameter (mean).
+            scale: Scale parameter (std dev).
+            
+        Returns:
+            Transformed random variables following the target distribution.
+        """
+        ...
+    
+    def generate_standard_draws(
+        self, 
+        key: PRNGKeyArray, 
+        shape: tuple[int, ...]
+        ) -> Float[Array, "..."]:
+        """
+        Generates standard random draws from the specified distribution.
+        
+        Args:
+            key: Random key/seed for reproducibility.
+            shape: Desired shape of the output array.
+        Returns:
+            Array of random variables following the target distribution.
         """
         ...
 

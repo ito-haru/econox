@@ -6,12 +6,13 @@ Handles stochastic parts of the model (error terms).
 
 import jax
 import equinox as eqx
-from jaxtyping import Array, Float
+from jaxtyping import Array, Float, PRNGKeyArray
 
 class GumbelDistribution(eqx.Module):
     """
     Type I Extreme Value (Gumbel) distribution logic for Logit models.
-    Provides Emax (LogSumExp) and choice probabilities (Softmax).
+    Provides Emax (LogSumExp), choice probabilities (Softmax) and 
+    transformation of random draws for Mixed Models.
 
     Attributes:
         scale (float): Scale parameter of the Gumbel distribution.
@@ -45,3 +46,93 @@ class GumbelDistribution(eqx.Module):
         Formula: exp(v / scale) / sum( exp(v / scale) )
         """
         return jax.nn.softmax(values / self.scale, axis=-1)
+    
+    def transform(
+        self,
+        draws: Float[Array, "..."],
+        loc: Float[Array, "..."],
+        scale: Float[Array, "..."]
+    )-> Float[Array, "..."]:
+        """
+        Transforms standard uniform draws into Gumbel-distributed variables.
+        
+        Uses the inverse CDF method:
+        Gumbel = loc - scale * log(-log(U)), where U ~ Uniform(0, 1)
+        """
+        return loc - scale * jax.numpy.log(-jax.numpy.log(draws))
+    
+    def generate_standard_draws(
+        self, 
+        key: PRNGKeyArray, 
+        shape: tuple[int, ...]
+        ) -> Float[Array, "..."]:
+        """
+        Generates standard uniform random draws for Gumbel transformation.
+        
+        Args:
+            key: Random key/seed for reproducibility.
+            shape: Desired shape of the output array.
+        Returns:
+            Array of random variables uniformly distributed in (0, 1).
+        """
+        # minval=1e-6 to avoid log(-log(0)) = -inf in the Gumbel transform
+        return jax.random.uniform(key, shape=shape, minval=1e-6, maxval=1.0)
+    
+class NormalDistribution(eqx.Module):
+    """
+    Normal distribution logic for Probit models.
+    Provides Emax, choice probabilities, and 
+    transformation of random draws for Mixed Models.
+
+    Attributes:
+        None
+    """
+
+    def expected_max(
+        self,
+        values: Float[Array, "num_states num_actions"]
+    ) -> Float[Array, "num_states"]:
+        """
+        Expected max under normal distribution.
+        # TODO: Implement via numerical integration.
+        """
+        raise NotImplementedError("Emax for Normal distribution is not implemented.")
+
+    def choice_probabilities(
+        self,
+        values: Float[Array, "num_states num_actions"]
+    ) -> Float[Array, "num_states num_actions"]:
+        """
+        Choice probabilities under normal distribution (Probit).
+        # TODO: Implement via GHK simulator or accept Monte Carlo draws from MixedUtility.
+        """
+        raise NotImplementedError("Choice probabilities for Normal distribution are not implemented.")
+    
+    def transform(
+        self,
+        draws: Float[Array, "..."],
+        loc: Float[Array, "..."],
+        scale: Float[Array, "..."]
+    ) -> Float[Array, "..."]:
+        """
+        Transforms standard normal draws into specified normal distribution.
+        
+        Formula: X = loc + scale * Z, where Z ~ N(0, 1)
+        """
+        return loc + scale * draws
+    
+    def generate_standard_draws(
+        self, 
+        key: PRNGKeyArray, 
+        shape: tuple[int, ...]
+        ) -> Float[Array, "..."]:
+        """
+        Generates standard normal random draws.
+        
+        Args:
+            key: Random key/seed for reproducibility.
+            shape: Desired shape of the output array.
+        Returns:
+            Array of random variables following N(0, 1).
+        """
+        return jax.random.normal(key, shape=shape)

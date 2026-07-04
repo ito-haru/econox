@@ -3,7 +3,6 @@
 General utility functions shared across the Econox package.
 """
 
-import copy
 from typing import Any, TypeVar, Union
 from collections.abc import Mapping
 import equinox as eqx
@@ -94,16 +93,7 @@ def set_in_pytree(
     # 2. Try attribute access (NamedTuple, dataclass, class instance)
     if hasattr(data, key):
         return eqx.tree_at(lambda d: getattr(d, key), data, value)
-    
-    # 3. Try __setitem__ as a fallback (but be careful not to iterate)
-    if hasattr(data, "__setitem__"):
-        try:
-            new_data = copy.copy(data)
-            new_data[key] = value
-            return new_data
-        except (KeyError, TypeError, IndexError):
-            pass
-    
+
     raise AttributeError(
         f"Could not set '{key}' in data object of type {type(data).__name__}. "
         f"Available keys/attributes could not be determined."

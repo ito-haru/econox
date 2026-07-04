@@ -80,12 +80,10 @@ class GumbelDistribution(eqx.Module):
     
 class NormalDistribution(eqx.Module):
     """
-    Normal distribution logic for Probit models.
-    Provides Emax, choice probabilities, and 
-    transformation of random draws for Mixed Models.
+    Normal distribution for Mixed Models (random coefficients).
 
-    Attributes:
-        None
+    NOTE: `expected_max` and `choice_probabilities` are not yet implemented.
+    Only `transform` and `generate_standard_draws` are available for use with MixedUtility.
     """
 
     def expected_max(
@@ -136,3 +134,4 @@ class NormalDistribution(eqx.Module):
             Array of random variables following N(0, 1).
         """
         return jax.random.normal(key, shape=shape)
+    

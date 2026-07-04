@@ -17,10 +17,12 @@ import pytest
 
 from econox import (
     Model,
-    SolverResult, 
-    LinearUtility, 
+    SolverResult,
+    LinearUtility,
+    MixedUtility,
     GumbelDistribution,
-    ValueIterationSolver
+    NormalDistribution,
+    ValueIterationSolver,
 )
 
 # =============================================================================
@@ -193,3 +195,73 @@ def test_value_iteration_invalid_inputs() -> None:
     
     with pytest.raises(ValueError, match="MVP Version only supports"):
         solver.solve({}, model_3d)
+
+
+# =============================================================================
+# Mixed Model: MixedUtility + ValueIterationSolver
+# =============================================================================
+
+NUM_MIXED_DRAWS = 16
+
+
+@pytest.fixture(scope="module")
+def mixed_solver_result(nfxp_example_data) -> Tuple[Any, int, int]:
+    """Runs ValueIterationSolver with MixedUtility (Normal random coefficients)."""
+    data = nfxp_example_data
+    model = Model.from_data(
+        num_states=data["num_states"],
+        num_actions=data["num_actions"],
+        data={"features": data["features"]},
+        transitions=data["transitions"],
+        num_periods=np.inf,
+    )
+    base_utility = LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features")
+    mixed_utility = MixedUtility(
+        base_utility=base_utility,
+        distribution=NormalDistribution(),
+        coeff_keys=("p0", "p1"),
+        scale_keys=("sigma0", "sigma1"),
+        num_draws=NUM_MIXED_DRAWS,
+        num_params=2,
+        key=jax.random.PRNGKey(0),
+    )
+    solver = ValueIterationSolver(
+        utility=mixed_utility,
+        dist=GumbelDistribution(scale=1.0),
+        discount_factor=0.9,
+    )
+    params = {"p0": 0.5, "p1": 1.0, "p2": -1.0, "sigma0": 0.3, "sigma1": 0.2}
+    return solver.solve(params, model), data["num_states"], data["num_actions"]
+
+
+def test_mixed_output_shapes(mixed_solver_result: Tuple[Any, int, int]) -> None:
+    """MixedUtility should produce (D, S, A) profile and (D, S) solution."""
+    result, num_states, num_actions = mixed_solver_result
+    assert result.profile.shape == (NUM_MIXED_DRAWS, num_states, num_actions)
+    assert result.solution.shape == (NUM_MIXED_DRAWS, num_states)
+
+
+def test_mixed_convergence(mixed_solver_result: Tuple[Any, int, int]) -> None:
+    """All draws should converge."""
+    result, _, _ = mixed_solver_result
+    assert jnp.all(result.success)
+
+
+def test_mixed_probability_constraints(mixed_solver_result: Tuple[Any, int, int]) -> None:
+    """Choice probabilities should sum to 1 for each draw and state."""
+    result, _, _ = mixed_solver_result
+    prob_sums = jnp.sum(result.profile, axis=-1)  # (D, S)
+    assert jnp.allclose(prob_sums, 1.0, atol=TOLERANCE)
+
+
+def test_mixed_all_finite(mixed_solver_result: Tuple[Any, int, int]) -> None:
+    """All output values should be finite."""
+    result, _, _ = mixed_solver_result
+    assert jnp.all(jnp.isfinite(result.profile))
+    assert jnp.all(jnp.isfinite(result.solution))
+
+
+def test_mixed_draws_produce_distinct_profiles(mixed_solver_result: Tuple[Any, int, int]) -> None:
+    """Different random-coefficient draws should produce distinct CCPs."""
+    result, _, _ = mixed_solver_result
+    assert not jnp.allclose(result.profile[0], result.profile[1])

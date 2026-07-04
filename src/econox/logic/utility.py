@@ -5,6 +5,7 @@ Utility components for the Econox framework.
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 import equinox as eqx
 from typing import Callable
 from jaxtyping import Float, Array, PRNGKeyArray, PyTree
@@ -181,8 +182,8 @@ class MixedUtility(eqx.Module):
     """Base utility function (e.g., LinearUtility)."""
     distribution: Distribution
     """Distribution of random coefficients (e.g., Normal, Gumbel)."""
-    draws: Float[Array, "num_draws num_params"]
-    """Pre-generated random draws for the random coefficients."""
+    draws: np.ndarray
+    """Pre-generated random draws. Stored as np.ndarray so eqx.filter_grad excludes it from differentiation."""
     coeff_keys: tuple[str, ...]
     """Keys in params for random coefficients."""
     scale_keys: tuple[str, ...]
@@ -214,9 +215,9 @@ class MixedUtility(eqx.Module):
         self.distribution = distribution
         self.coeff_keys = coeff_keys
         self.scale_keys = scale_keys
-        self.draws = distribution.generate_standard_draws(
+        self.draws = np.array(distribution.generate_standard_draws(
             key, shape=(num_draws, num_params)
-        )
+        ))
 
     def compute_flow_utility(
         self,
@@ -241,16 +242,17 @@ class MixedUtility(eqx.Module):
             get_from_pytree(params, k) for k in self.scale_keys
         ])
 
-        def single_draw_utility(draw):
-            rand_coeffs = self.distribution.transform(
-                draws=draw,
-                loc=loc,
-                scale=scale
-            )
-            # Create a temporary params PyTree with random coefficients
+        # Transform all draws at once outside vmap: (num_draws, num_params)
+        all_rand_coeffs = self.distribution.transform(
+            draws=jnp.asarray(self.draws),
+            loc=loc,
+            scale=scale,
+        )
+
+        def single_draw_utility(rand_coeffs):
             current_params = params
             for i, k in enumerate(self.coeff_keys):
                 current_params = set_in_pytree(current_params, k, rand_coeffs[i])
             return self.base_utility.compute_flow_utility(current_params, model)
-        
-        return jax.vmap(single_draw_utility)(self.draws)
+
+        return jax.vmap(single_draw_utility)(all_rand_coeffs)

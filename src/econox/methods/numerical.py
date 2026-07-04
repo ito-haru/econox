@@ -6,6 +6,7 @@ Standard methods like Maximum Likelihood (MLE) and GMM.
 
 from __future__ import annotations
 from typing import Any, Callable
+import jax
 import jax.numpy as jnp
 import equinox as eqx
 from jaxtyping import PyTree, Scalar
@@ -128,27 +129,42 @@ class MaximumLikelihood(NumericalMethod):
         obs_choices = get_from_pytree(observations, "choice_indices")
         obs_weights = get_from_pytree(observations, "weights", default=1.0)
 
-        # Indexing: Get probability of the chosen action in the current state
-        # P[s_i, a_i]
-        p_selected = choice_probs[obs_states, obs_choices]
-        
-        # Clip for numerical stability to avoid log(0)
-        p_selected = jnp.clip(p_selected, 1e-10, 1.0)
-        
-        # Calculate weighted log-likelihood
-        # Sum of weights (N)
         sum_weights = jnp.sum(obs_weights) if jnp.ndim(obs_weights) > 0 else obs_states.shape[0]
-        
-        # LL = sum( w_i * log(P_i) )
-        ll_choice = jnp.sum(jnp.log(p_selected) * obs_weights)
-        
-        # NLL = - LL / N (Mean Negative Log Likelihood)
-        nll = - (ll_choice / sum_weights)
-        
-        # Robustness check: Return huge penalty if NLL is NaN/Inf
-        robust_nll = jnp.where(jnp.isfinite(nll), nll, jnp.array(LOSS_PENALTY))
 
-        return robust_nll
+        if choice_probs.ndim == 3:
+            # Mixed model: choice_probs is (R, S, A) → SMLE
+            R = choice_probs.shape[0]
+            # p_selected[r, n] = P(a_n | s_n, β^(r))  shape: (R, N)
+            p_selected = jnp.clip(choice_probs[:, obs_states, obs_choices], 1e-10, 1.0)
+            log_p = jnp.log(p_selected)  # (R, N)
+
+            obs_individuals = get_from_pytree(observations, "individual_indices", default=None)
+            if obs_individuals is not None:
+                # Panel: Σ_t log L_{n,t}(β^(r)) within individual, then average over draws.
+                # num_individuals must be a concrete int for JAX tracing compatibility.
+                n_ind = int(get_from_pytree(
+                    observations, "num_individuals",
+                    default=int(obs_individuals.max()) + 1,
+                ))
+                weighted_log_p = log_p * obs_weights  # (R, N)
+                per_draw_per_ind = jax.vmap(
+                    lambda lp: jax.ops.segment_sum(lp, obs_individuals, n_ind)
+                )(weighted_log_p)  # (R, n_ind)
+                log_pn = jax.scipy.special.logsumexp(per_draw_per_ind, axis=0) - jnp.log(R)
+                ll = jnp.sum(log_pn)
+                sum_weights = jnp.array(n_ind, dtype=log_pn.dtype)
+            else:
+                # Cross-sectional (T=1 per individual):
+                # log P_n = logsumexp_r(log L_n(β^(r))) - log(R)  →  (N,)
+                log_pn = jax.scipy.special.logsumexp(log_p, axis=0) - jnp.log(R)
+                ll = jnp.sum(log_pn * obs_weights)
+        else:
+            # Standard: choice_probs is (S, A)
+            p_selected = jnp.clip(choice_probs[obs_states, obs_choices], 1e-10, 1.0)
+            ll = jnp.sum(jnp.log(p_selected) * obs_weights)
+
+        nll = -(ll / sum_weights)
+        return jnp.where(jnp.isfinite(nll), nll, jnp.array(LOSS_PENALTY))
 
 
 class GaussianMomentMatch(NumericalMethod):

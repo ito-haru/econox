@@ -9,6 +9,7 @@ a known Structural Model.
 import logging
 from typing import Dict, Any
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -20,8 +21,10 @@ from econox import (
     Estimator,
     MaximumLikelihood,
     LinearUtility,
+    MixedUtility,
     GumbelDistribution,
-    EstimationResult
+    NormalDistribution,
+    EstimationResult,
 )
 
 # =============================================================================
@@ -244,3 +247,79 @@ def test_standard_errors(nfxp_model, synthetic_data):
     for key, se in result.std_errors.items():
         assert jnp.isfinite(se), f"Standard error for {key} is not finite: {se}"
         assert se > 0, f"Standard error for {key} should be positive: {se}"
+
+
+# =============================================================================
+# Mixed Model (SMLE): MixedUtility + MaximumLikelihood
+# =============================================================================
+
+NUM_MIXED_DRAWS = 16
+
+
+@pytest.fixture(scope="module")
+def mixed_solver(nfxp_model) -> ValueIterationSolver:
+    """ValueIterationSolver with MixedUtility (Normal random coefficients)."""
+    base = LinearUtility(param_keys=("p0", "p1", "p2"), feature_key="features")
+    mixed = MixedUtility(
+        base_utility=base,
+        distribution=NormalDistribution(),
+        coeff_keys=("p0", "p1"),
+        scale_keys=("sigma0", "sigma1"),
+        num_draws=NUM_MIXED_DRAWS,
+        num_params=2,
+        key=jax.random.PRNGKey(0),
+    )
+    return ValueIterationSolver(
+        utility=mixed,
+        dist=GumbelDistribution(),
+        discount_factor=0.9,
+    )
+
+
+@pytest.fixture(scope="module")
+def mixed_true_parameters() -> Dict[str, float]:
+    return {"p0": 0.5, "p1": 1.0, "p2": -1.0, "sigma0": 0.3, "sigma1": 0.2}
+
+
+def test_mixed_smle_loss_valid(
+    nfxp_model, mixed_solver, mixed_true_parameters, synthetic_data
+) -> None:
+    """SMLE loss at true parameters is finite and positive."""
+    result = mixed_solver.solve(mixed_true_parameters, nfxp_model)
+    observations = synthetic_data["observations"]
+    loss = MaximumLikelihood().compute_loss(result, observations, mixed_true_parameters, nfxp_model)
+    assert jnp.isfinite(loss)
+    assert loss > 0.0
+
+
+def test_mixed_smle_loss_decreases_near_true_params(
+    nfxp_model, mixed_solver, mixed_true_parameters, synthetic_data
+) -> None:
+    """SMLE loss at true parameters should be lower than at a strongly mis-specified point."""
+    params_bad = {"p0": 5.0, "p1": -5.0, "p2": 5.0, "sigma0": 0.3, "sigma1": 0.2}
+    observations = synthetic_data["observations"]
+
+    result_true = mixed_solver.solve(mixed_true_parameters, nfxp_model)
+    result_bad = mixed_solver.solve(params_bad, nfxp_model)
+
+    loss_true = MaximumLikelihood().compute_loss(result_true, observations, mixed_true_parameters, nfxp_model)
+    loss_bad = MaximumLikelihood().compute_loss(result_bad, observations, params_bad, nfxp_model)
+    assert loss_true < loss_bad
+
+
+def test_mixed_estimator_execution(
+    nfxp_model, mixed_solver, synthetic_data
+) -> None:
+    """Estimator runs to completion with MixedUtility (SMLE path)."""
+    initial_params = {"p0": 1.0, "p1": 2.0, "p2": -2.0, "sigma0": 0.5, "sigma1": 0.4}
+    estimator = Estimator(
+        model=nfxp_model,
+        param_space=ParameterSpace.create(initial_params=initial_params),
+        solver=mixed_solver,
+        method=MaximumLikelihood(),
+        verbose=False,
+    )
+    result = estimator.fit(synthetic_data["observations"], sample_size=100000)
+    assert isinstance(result, EstimationResult)
+    assert result.success
+    assert jnp.isfinite(result.loss)

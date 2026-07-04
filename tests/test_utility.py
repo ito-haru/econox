@@ -148,3 +148,120 @@ def test_utility_error_handling(mock_model_data):
 
     with pytest.raises(RuntimeError, match="User logic failed"):
         error_utility.compute_flow_utility(params, model)
+
+
+# =============================================================================
+# MixedUtility
+# =============================================================================
+
+@pytest.fixture
+def mixed_setup(mock_model_data):
+    """Builds a MixedUtility with NormalDistribution over LinearUtility."""
+    model, params, features = mock_model_data
+    S, A = model.num_states, model.num_actions  # 4, 2
+    F = features.shape[-1]  # 3
+
+    # Add scale parameters to params
+    mixed_params = dict(params)
+    mixed_params["sigma_beta_0"] = 0.5
+    mixed_params["sigma_beta_1"] = 0.3
+
+    base_utility = ecx.LinearUtility(
+        param_keys=("beta_0", "beta_1", "beta_2"),
+        feature_key="features"
+    )
+    dist = ecx.NormalDistribution()
+    key = jax.random.PRNGKey(7)
+    num_draws = 32
+
+    mixed_utility = ecx.MixedUtility(
+        base_utility=base_utility,
+        distribution=dist,
+        coeff_keys=("beta_0", "beta_1"),
+        scale_keys=("sigma_beta_0", "sigma_beta_1"),
+        num_draws=num_draws,
+        num_params=2,
+        key=key
+    )
+    return mixed_utility, mixed_params, model, num_draws
+
+
+def test_mixed_utility_output_shape(mixed_setup):
+    """compute_flow_utility returns (num_draws, S, A)."""
+    mixed_utility, mixed_params, model, num_draws = mixed_setup
+    result = mixed_utility.compute_flow_utility(mixed_params, model)
+    assert result.shape == (num_draws, model.num_states, model.num_actions)
+
+
+def test_mixed_utility_output_finite(mixed_setup):
+    """All output values are finite."""
+    import jax.numpy as jnp
+    mixed_utility, mixed_params, model, num_draws = mixed_setup
+    result = mixed_utility.compute_flow_utility(mixed_params, model)
+    assert jnp.all(jnp.isfinite(result))
+
+
+def test_mixed_utility_draws_vary_across_draws(mixed_setup):
+    """Different draws should produce different utility values (not all identical)."""
+    import jax.numpy as jnp
+    mixed_utility, mixed_params, model, _ = mixed_setup
+    result = mixed_utility.compute_flow_utility(mixed_params, model)
+    # At least two draw-slices should differ
+    assert not jnp.allclose(result[0], result[1])
+
+
+def test_mixed_utility_zero_scale_collapses_to_mean(mock_model_data):
+    """With scale=0, all draws collapse to the mean → all draw slices equal."""
+    import jax.numpy as jnp
+    model, params, _ = mock_model_data
+
+    params_zero_scale = dict(params)
+    params_zero_scale["sigma_beta_0"] = 0.0
+    params_zero_scale["sigma_beta_1"] = 0.0
+
+    base_utility = ecx.LinearUtility(
+        param_keys=("beta_0", "beta_1", "beta_2"),
+        feature_key="features"
+    )
+    dist = ecx.NormalDistribution()
+    mixed_utility = ecx.MixedUtility(
+        base_utility=base_utility,
+        distribution=dist,
+        coeff_keys=("beta_0", "beta_1"),
+        scale_keys=("sigma_beta_0", "sigma_beta_1"),
+        num_draws=16,
+        num_params=2,
+        key=jax.random.PRNGKey(0)
+    )
+    result = mixed_utility.compute_flow_utility(params_zero_scale, model)
+    # All draws should give the same utility matrix
+    assert jnp.allclose(result[0], result[1])
+
+
+def test_mixed_utility_with_gumbel_distribution(mock_model_data):
+    """MixedUtility also works with GumbelDistribution."""
+    import jax.numpy as jnp
+    model, params, _ = mock_model_data
+
+    mixed_params = dict(params)
+    mixed_params["sigma_beta_0"] = 0.5
+    mixed_params["sigma_beta_1"] = 0.3
+
+    base_utility = ecx.LinearUtility(
+        param_keys=("beta_0", "beta_1", "beta_2"),
+        feature_key="features"
+    )
+    dist = ecx.GumbelDistribution(scale=1.0)
+    num_draws = 20
+    mixed_utility = ecx.MixedUtility(
+        base_utility=base_utility,
+        distribution=dist,
+        coeff_keys=("beta_0", "beta_1"),
+        scale_keys=("sigma_beta_0", "sigma_beta_1"),
+        num_draws=num_draws,
+        num_params=2,
+        key=jax.random.PRNGKey(1)
+    )
+    result = mixed_utility.compute_flow_utility(mixed_params, model)
+    assert result.shape == (num_draws, model.num_states, model.num_actions)
+    assert jnp.all(jnp.isfinite(result))

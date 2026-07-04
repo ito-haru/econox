@@ -4,6 +4,7 @@ Dynamic programming solver module for economic models.
 Can be used for static models as well by setting discount_factor=0.
 """
 
+import jax
 import jax.numpy as jnp
 import equinox as eqx
 from typing import Any
@@ -102,32 +103,36 @@ class ValueIterationSolver(eqx.Module):
 
         flow_utility: Array = utility.compute_flow_utility(params, model)
 
+        if flow_utility.ndim == 3:  # (D, S, A) → Mixed model
+            return jax.vmap(
+                lambda fu: self._solve_core(fu, params, model, transitions, num_states, num_actions)
+            )(flow_utility)
+        return self._solve_core(flow_utility, params, model, transitions, num_states, num_actions)
+
+    def _solve_core(
+        self,
+        flow_utility: Float[Array, "num_states num_actions"],
+        params: PyTree,
+        model: Any,
+        transitions: Any,
+        num_states: int,
+        num_actions: int,
+    ) -> SolverResult:
+        dist = self.dist
+
         # ---------------------------------------------------------
         # Bellman Operator
         # ---------------------------------------------------------
         def bellman_operator(current_ev: Array, args=None) -> Array:
-            """
-            Bellman operator for value iteration.
-            
-            Args:
-                current_ev: Current expected value vector (S,)
-                args: Unused. Required by FixedPoint.find_fixed_point signature.
-            
-            Returns:
-                Updated expected value vector (S,)
-            """
-            # current_ev: (S,)
             expected_flat = transitions @ current_ev
             expected = expected_flat.reshape(num_states, num_actions)
-            
-            # Apply terminal value approximation
             expected, _ = self.terminal_approximator.approximate(expected, params, model, self.discount_factor)
-            
             choice_values = flow_utility + self.discount_factor * expected
-            next_ev = dist.expected_max(choice_values)
-            return next_ev
-        
+            return dist.expected_max(choice_values)
+
         initial_ev = jnp.zeros((num_states,))
+        if self.initial_value is not None:
+            initial_ev = self.initial_value
 
         result: FixedPointResult = self.numerical_solver.find_fixed_point(
             step_fn=bellman_operator,
@@ -141,13 +146,11 @@ class ValueIterationSolver(eqx.Module):
         # ---------------------------------------------------------
         expected_final_flat = transitions @ final_ev
         expected_final = expected_final_flat.reshape(num_states, num_actions)
-        
-        # Apply terminal value approximation
         expected_final, is_clipped = self.terminal_approximator.approximate(expected_final, params, model, self.discount_factor)
-            
+
         value_choices = flow_utility + self.discount_factor * expected_final
         choice_probs = dist.choice_probabilities(value_choices)
-        
+
         return SolverResult(
             solution=final_ev,
             profile=choice_probs,
@@ -155,7 +158,7 @@ class ValueIterationSolver(eqx.Module):
             aux={
                 "num_steps": result.steps,
                 "terminal_clipping": is_clipped
-                },
+            },
             meta={
                 "solver": "ValueIterationSolver",
                 "terminal_approximator": type(self.terminal_approximator).__name__,

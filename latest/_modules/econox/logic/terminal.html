@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.logic.terminal - Econox 0.1.3.post1.dev4 documentation</title>
+        <title>econox.logic.terminal - Econox 0.1.3.post1.dev5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.3.post1.dev4)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.3.post1.dev5)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.3.post1.dev4 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.3.post1.dev5 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.3.post1.dev4 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.3.post1.dev5 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -252,7 +252,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_from_pytree</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">econox.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">NUMERICAL_EPSILON</span><span class="p">,</span> <span class="n">STABILITY_MARGIN</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">econox.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">STABILITY_MARGIN</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_retrieve_and_validate_param</span><span class="p">(</span>
@@ -392,39 +392,28 @@
 <a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.ExponentialTrendTerminal">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ExponentialTrendTerminal</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Exponential trend terminal approximator with Adaptive Branching.</span>
-<span class="sd">    </span>
-<span class="sd">    This approximator handles non-stationary growth at the horizon by applying </span>
-<span class="sd">    a growth rate :math:`\gamma_s` to the value function. </span>
+<span class="sd">    Exponential trend terminal approximator.</span>
 
-<span class="sd">    **Branching Priority**:</span>
-<span class="sd">    </span>
-<span class="sd">    1. **Exogenous (Parameter-driven)**: If `growth_rate_keys` is not None, </span>
-<span class="sd">       the solver uses growth rates :math:`\gamma` from `params`.</span>
-<span class="sd">    2. **Endogenous (Data-driven)**: If `growth_rate_keys` is None and </span>
-<span class="sd">       `pre_prev_idx` is provided, the solver extrapolates the trend from </span>
-<span class="sd">       the model&#39;s internal dynamics (:math:`T-1` and :math:`T-2`).</span>
-<span class="sd">    </span>
+<span class="sd">    This approximator handles non-stationary growth at the horizon by applying</span>
+<span class="sd">    an exogenous growth rate :math:`\gamma_s` (from `params`) to the value function.</span>
+
 <span class="sd">    It supports growth rates through three parameter specification patterns:</span>
-<span class="sd">    </span>
-<span class="sd">    1. **Global Scalar**: A single key mapping to a scalar value (e.g., ``&quot;g&quot;``). </span>
+
+<span class="sd">    1. **Global Scalar**: A single key mapping to a scalar value (e.g., ``&quot;g&quot;``).</span>
 <span class="sd">       The same growth rate is applied to all terminal states.</span>
-<span class="sd">    2. **Aggregated Scalars**: A list or tuple of keys (e.g., ``[&quot;g1&quot;, &quot;g2&quot;, &quot;g3&quot;]``). </span>
-<span class="sd">       The number of keys must match the length of ``term_idx`` (and ``prev_idx``). </span>
+<span class="sd">    2. **Aggregated Scalars**: A list or tuple of keys (e.g., ``[&quot;g1&quot;, &quot;g2&quot;, &quot;g3&quot;]``).</span>
+<span class="sd">       The number of keys must match the length of ``term_idx`` (and ``prev_idx``).</span>
 <span class="sd">       Each scalar parameter corresponds to a terminal state in order.</span>
-<span class="sd">    3. **State-Indexed Vector**: A single key mapping to an array of length :math:`n` </span>
-<span class="sd">       (e.g., ``&quot;g_vector&quot;``), where :math:`n` is the length of ``term_idx``. </span>
+<span class="sd">    3. **State-Indexed Vector**: A single key mapping to an array of length :math:`n`</span>
+<span class="sd">       (e.g., ``&quot;g_vector&quot;``), where :math:`n` is the length of ``term_idx``.</span>
 <span class="sd">       Each element corresponds to a terminal state in order.</span>
 
 <span class="sd">    .. math::</span>
-<span class="sd">        \mathbb{E}V_T(s, a) = \begin{cases} </span>
-<span class="sd">        (1 + \gamma_s) \mathbb{E}V_{T-1}(s&#39;, a) &amp; \text{if keys provided (Exogenous)} \\</span>
-<span class="sd">        \frac{\mathbb{E}V_{T-1}(s&#39;, a)}{\mathbb{E}V_{T-2}(s&#39;&#39;, a)} \mathbb{E}V_{T-1}(s&#39;, a) &amp; \text{if pre_prev_idx provided (Endogenous)}</span>
-<span class="sd">        \end{cases}</span>
-<span class="sd">    </span>
+<span class="sd">        \mathbb{E}V_T(s, a) = (1 + \gamma_s) \mathbb{E}V_{T-1}(s&#39;, a)</span>
+
 <span class="sd">    **Stability Mechanism (Soft-Clipping)**:</span>
-<span class="sd">    </span>
-<span class="sd">    To prevent the value function from diverging (which occurs if growth rate :math:`\ge 1/\beta`), </span>
+
+<span class="sd">    To prevent the value function from diverging (which occurs if growth rate :math:`\ge 1/\beta`),</span>
 <span class="sd">    this class applies a differentiable **Tanh Soft-Clipping** mechanism.</span>
 <span class="sd">    The effective growth rate :math:`\gamma_{safe}` is constrained as:</span>
 
@@ -433,28 +422,27 @@
 <span class="sd">        \gamma_{raw} &amp;= \text{input\_ratio} - 1 \\</span>
 <span class="sd">        \gamma_{safe} &amp;= \gamma_{limit} \cdot \tanh\left(\frac{\gamma_{raw}}{\gamma_{limit}}\right)</span>
 
-<span class="sd">    This ensures that the growth rate smoothly approaches the theoretical limit </span>
+<span class="sd">    This ensures that the growth rate smoothly approaches the theoretical limit</span>
 <span class="sd">    without hitting a hard boundary, preserving gradients for the optimizer.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        term_idx: Indices of the terminal states :math:`T`.</span>
 <span class="sd">        prev_idx: Indices of the predecessor states :math:`T-1`.</span>
-<span class="sd">        pre_prev_idx: Indices of the states :math:`T-2`. Required for endogenous mode.</span>
-<span class="sd">        growth_rate_keys: Identifier(s) for growth rate :math:`\gamma`. </span>
-<span class="sd">            Accepts a single ``str`` for global/vector parameters, or a ``list[str]`` </span>
+<span class="sd">        growth_rate_keys: Identifier(s) for growth rate :math:`\gamma`.</span>
+<span class="sd">            Accepts a single ``str`` for global/vector parameters, or a ``list[str]``</span>
 <span class="sd">            to aggregate multiple regional scalars.</span>
-<span class="sd">        scale: Scaling factor for numerical stability. Input parameters are divided </span>
+<span class="sd">        scale: Scaling factor for numerical stability. Input parameters are divided</span>
 <span class="sd">            by this value (e.g., set to 100.0 if parameters are estimated in percentage).</span>
 <span class="sd">            This helps the optimizer by keeping gradients in a manageable range.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If both `growth_rate_keys` and `pre_prev_idx` are None.</span>
+<span class="sd">        ValueError: If `growth_rate_keys` is None.</span>
 
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; # Pattern 1: Global scalar growth</span>
 <span class="sd">        &gt;&gt;&gt; approx = ExponentialTrendTerminal(term_idx, prev_idx, growth_rate_keys=&quot;g&quot;, scale=100.0)</span>
 <span class="sd">        &gt;&gt;&gt; params = {&quot;g&quot;: 2.0}  # 2% growth</span>
-<span class="sd">        </span>
+
 <span class="sd">        &gt;&gt;&gt; # Pattern 2: Aggregated scalars (3 terminal states)</span>
 <span class="sd">        &gt;&gt;&gt; term_idx = (13, 14, 15)</span>
 <span class="sd">        &gt;&gt;&gt; prev_idx = (10, 11, 12)</span>
@@ -462,79 +450,51 @@
 <span class="sd">        ...     term_idx, prev_idx, growth_rate_keys=[&quot;g1&quot;, &quot;g2&quot;, &quot;g3&quot;], scale=100.0</span>
 <span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; params = {&quot;g1&quot;: 2.0, &quot;g2&quot;: 3.0, &quot;g3&quot;: 1.0}</span>
-<span class="sd">        </span>
-<span class="sd">        &gt;&gt;&gt; # Pattern 3: Endogenous dynamic extrapolation (No params needed)</span>
-<span class="sd">        &gt;&gt;&gt; approx = ExponentialTrendTerminal(term_idx, prev_idx, pre_prev_idx=pre_prev)</span>
-<span class="sd">        &gt;&gt;&gt; adjusted_ev = approx.approximate(expected, {}, model, discount_factor)</span>
-<span class="sd">    </span>
+
 <span class="sd">    Note:</span>
-<span class="sd">        The ``is_clipped`` flag in the results returns ``True`` if the raw growth rate </span>
-<span class="sd">        exceeded the theoretical stability limit :math:`1/\beta`. In this case, </span>
+<span class="sd">        The ``is_clipped`` flag in the results returns ``True`` if the raw growth rate</span>
+<span class="sd">        exceeded the theoretical stability limit :math:`1/\beta`. In this case,</span>
 <span class="sd">        the actual used growth rate was compressed by the Tanh function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">term_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">pre_prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">growth_rate_keys</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__check_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;ExponentialTrendTerminal: term_idx and prev_idx must have the same shape. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">growth_rate_keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;ExponentialTrendTerminal requires &#39;growth_rate_keys&#39; to be set.&quot;</span>
+            <span class="p">)</span>
 
 <div class="viewcode-block" id="ExponentialTrendTerminal.approximate">
 <a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.ExponentialTrendTerminal.approximate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">approximate</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> 
-        <span class="n">expected</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span> 
-        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> 
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expected</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span><span class="p">,</span>
         <span class="n">discount_factor</span><span class="p">:</span> <span class="nb">float</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span> <span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Applies exponential growth to the terminal horizon.</span>
 
-<span class="sd">        The method adaptively switches between:</span>
-<span class="sd">        </span>
-<span class="sd">        * **Exogenous Growth**: Multiplying :math:`T-1` values by :math:`(1 + \gamma)` from `params`.</span>
-<span class="sd">        * **Endogenous Extrapolation**: Multiplying :math:`T-1` values by the ratio :math:`EV_{T-1} / EV_{T-2}`.</span>
-<span class="sd">        </span>
-<span class="sd">        It automatically handles spatial heterogeneity by mapping parameter keys </span>
-<span class="sd">        or vector elements to the corresponding state indices.</span>
+<span class="sd">        Multiplies :math:`T-1` values by :math:`(1 + \gamma)`, with :math:`\gamma`</span>
+<span class="sd">        retrieved from `params`. Automatically handles spatial heterogeneity by</span>
+<span class="sd">        mapping parameter keys or vector elements to the corresponding state indices.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;ExponentialTrendTerminal: term_idx and prev_idx must have the same shape. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
-            <span class="p">)</span>
         <span class="n">val_t_minus_1</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="p">:]</span>
 
-        <span class="c1"># Case 1: Growth rates provided</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">growth_rate_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">gamma_eff</span> <span class="o">=</span> <span class="n">_retrieve_and_validate_param</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">growth_rate_keys</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="s2">&quot;ExponentialTrendTerminal: gamma&quot;</span>
-            <span class="p">)</span>
-            <span class="n">ratio</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">gamma_eff</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
+        <span class="n">gamma_eff</span> <span class="o">=</span> <span class="n">_retrieve_and_validate_param</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">growth_rate_keys</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="s2">&quot;ExponentialTrendTerminal: gamma&quot;</span>
+        <span class="p">)</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">gamma_eff</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
 
-        <span class="c1"># Case 2: Pre-previous indices provided    </span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;ExponentialTrendTerminal: pre_prev_idx and prev_idx must have the same shape. &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
-                <span class="p">)</span>
-            <span class="n">val_t_minus_2</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">,</span> <span class="p">:]</span>
-            <span class="c1"># Use jnp.where for numerical stability: fallback to stationary (ratio=1.0) when denominator is near zero</span>
-            <span class="c1"># Note: jnp.where evaluates both branches, so we must avoid division by zero in the computation itself</span>
-            <span class="n">denominator</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">val_t_minus_2</span><span class="p">)</span>
-            <span class="n">safe_denom</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">denominator</span> <span class="o">&gt;</span> <span class="n">NUMERICAL_EPSILON</span><span class="p">,</span> <span class="n">val_t_minus_2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-            <span class="n">ratio</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-                <span class="n">denominator</span> <span class="o">&gt;</span> <span class="n">NUMERICAL_EPSILON</span><span class="p">,</span>
-                <span class="n">val_t_minus_1</span> <span class="o">/</span> <span class="n">safe_denom</span><span class="p">,</span>
-                <span class="mf">1.0</span>
-            <span class="p">)</span>
-            
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;ExponentialTrendTerminal requires either &#39;growth_rate_keys&#39; or &#39;pre_prev_idx&#39; to be set.&quot;</span>
-            <span class="p">)</span>
-        
         <span class="n">limit_growth</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">discount_factor</span> <span class="o">-</span> <span class="n">STABILITY_MARGIN</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="n">raw_growth</span> <span class="o">=</span> <span class="n">ratio</span> <span class="o">-</span> <span class="mf">1.0</span>
         <span class="n">safe_growth</span> <span class="o">=</span> <span class="n">limit_growth</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">raw_growth</span> <span class="o">/</span> <span class="n">limit_growth</span><span class="p">)</span>
@@ -551,44 +511,33 @@
 <a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.LinearTrendTerminal">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LinearTrendTerminal</span><span class="p">(</span><span class="n">eqx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Linear trend terminal approximator with Adaptive Branching.</span>
-<span class="sd">    </span>
-<span class="sd">    Approximates the terminal value by adding a drift component :math:`\delta_s`. </span>
+<span class="sd">    Linear trend terminal approximator.</span>
 
-<span class="sd">    **Branching Priority**:</span>
-<span class="sd">    </span>
-<span class="sd">    1. **Exogenous (Parameter-driven)**: If `drift_keys` is not None, </span>
-<span class="sd">       uses drift terms :math:`\delta` from `params`.</span>
-<span class="sd">    2. **Endogenous (Data-driven)**: If `drift_keys` is None and </span>
-<span class="sd">       `pre_prev_idx` is provided, extrapolates the linear difference </span>
-<span class="sd">       between :math:`T-1` and :math:`T-2`.</span>
+<span class="sd">    Approximates the terminal value by adding an exogenous drift component</span>
+<span class="sd">    :math:`\delta_s` (from `params`) to the value function.</span>
 
-<span class="sd">    Similar to the exponential variant, it supports three patterns for :math:`\delta`:</span>
-<span class="sd">    </span>
+<span class="sd">    It supports three patterns for :math:`\delta`:</span>
+
 <span class="sd">    1. **Global Drift**: A single key mapping to a scalar drift value applied to all terminal states.</span>
-<span class="sd">    2. **Aggregated Drifts**: A list or tuple of keys. The number of keys must match </span>
+<span class="sd">    2. **Aggregated Drifts**: A list or tuple of keys. The number of keys must match</span>
 <span class="sd">       the length of ``term_idx`` (and ``prev_idx``). Each scalar corresponds to a terminal state in order.</span>
-<span class="sd">    3. **Drift Vector**: A single key mapping to an array of length :math:`n`, </span>
+<span class="sd">    3. **Drift Vector**: A single key mapping to an array of length :math:`n`,</span>
 <span class="sd">       where :math:`n` is the length of ``term_idx``. Each element corresponds to a terminal state in order.</span>
 
 <span class="sd">    .. math::</span>
-<span class="sd">        \mathbb{E}V_T(s, a) = \begin{cases} </span>
-<span class="sd">        \mathbb{E}V_{T-1}(s&#39;, a) + \delta_s &amp; \text{if keys provided (Exogenous)} \\</span>
-<span class="sd">        \mathbb{E}V_{T-1}(s&#39;, a) + (\mathbb{E}V_{T-1}(s&#39;, a) - \mathbb{E}V_{T-2}(s&#39;&#39;, a)) &amp; \text{if pre_prev_idx provided (Endogenous)}</span>
-<span class="sd">        \end{cases}</span>
+<span class="sd">        \mathbb{E}V_T(s, a) = \mathbb{E}V_{T-1}(s&#39;, a) + \delta_s</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        term_idx: Indices of the terminal states :math:`T`.</span>
 <span class="sd">        prev_idx: Indices of the predecessor states :math:`T-1`.</span>
-<span class="sd">        pre_prev_idx: Indices of the states :math:`T-2`. Required for endogenous mode.</span>
-<span class="sd">        drift_keys: Identifier(s) for drift :math:`\delta`. Accepts a single ``str`` </span>
-<span class="sd">            for global/vector parameters, or a ``list[str]`` to aggregate </span>
+<span class="sd">        drift_keys: Identifier(s) for drift :math:`\delta`. Accepts a single ``str``</span>
+<span class="sd">            for global/vector parameters, or a ``list[str]`` to aggregate</span>
 <span class="sd">            multiple regional scalars.</span>
-<span class="sd">        scale: Scaling factor for numerical stability. Input parameters are divided </span>
+<span class="sd">        scale: Scaling factor for numerical stability. Input parameters are divided</span>
 <span class="sd">            by this value. Useful when drift values have a large absolute magnitude.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If both `drift_keys` and `pre_prev_idx` are None.</span>
+<span class="sd">        ValueError: If `drift_keys` is None.</span>
 
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; # Linear drift via parameter keys</span>
@@ -598,52 +547,41 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">term_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">pre_prev_idx</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">drift_keys</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">static</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__check_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;LinearTrendTerminal: term_idx and prev_idx must have the same shape. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drift_keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;LinearTrendTerminal requires &#39;drift_keys&#39; to be set.&quot;</span>
+            <span class="p">)</span>
 
 <div class="viewcode-block" id="LinearTrendTerminal.approximate">
 <a class="viewcode-back" href="../../../api_reference.html#econox.logic.terminal.LinearTrendTerminal.approximate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">approximate</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> 
-        <span class="n">expected</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span> 
-        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> 
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expected</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span><span class="p">,</span>
         <span class="n">discount_factor</span><span class="p">:</span> <span class="nb">float</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;S A&quot;</span><span class="p">],</span> <span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Applies linear drift to the terminal horizon.</span>
 
-<span class="sd">        The method adaptively switches between:</span>
-<span class="sd">        </span>
-<span class="sd">        * **Exogenous Drift**: Adding :math:`\delta` from `params` to :math:`T-1` values.</span>
-<span class="sd">        * **Endogenous Extrapolation**: Adding the difference :math:`(EV_{T-1} - EV_{T-2})` to :math:`EV_{T-1}`.</span>
+<span class="sd">        Adds :math:`\delta` from `params` to :math:`T-1` values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">val_t_minus_1</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="p">:]</span>
 
-        <span class="c1"># Case 1: Drift keys provided</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drift_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">delta_effective</span> <span class="o">=</span> <span class="n">_retrieve_and_validate_param</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">drift_keys</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="s2">&quot;LinearTrendTerminal: delta&quot;</span>
-            <span class="p">)</span>
-            <span class="n">updated_val</span> <span class="o">=</span> <span class="n">val_t_minus_1</span> <span class="o">+</span> <span class="n">delta_effective</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
-        
-        <span class="c1"># Case 2: Pre-previous indices provided</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;LinearTrendTerminal: pre_prev_idx and prev_idx must have the same shape. &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
-                <span class="p">)</span>
-            <span class="n">val_t_minus_2</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_prev_idx</span><span class="p">,</span> <span class="p">:]</span>
-            <span class="n">diff</span> <span class="o">=</span> <span class="n">val_t_minus_1</span> <span class="o">-</span> <span class="n">val_t_minus_2</span>
-            <span class="n">updated_val</span> <span class="o">=</span> <span class="n">val_t_minus_1</span> <span class="o">+</span> <span class="n">diff</span>
-        
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;LinearTrendTerminal requires either &#39;drift_keys&#39; or &#39;pre_prev_idx&#39; to be set.&quot;</span>
-            <span class="p">)</span>
-        
+        <span class="n">delta_effective</span> <span class="o">=</span> <span class="n">_retrieve_and_validate_param</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drift_keys</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_idx</span><span class="p">,</span> <span class="s2">&quot;LinearTrendTerminal: delta&quot;</span>
+        <span class="p">)</span>
+        <span class="n">updated_val</span> <span class="o">=</span> <span class="n">val_t_minus_1</span> <span class="o">+</span> <span class="n">delta_effective</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
+
         <span class="k">return</span> <span class="n">expected</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">term_idx</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">updated_val</span><span class="p">),</span> <span class="kc">None</span></div>
 </div>
 
@@ -679,7 +617,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=ae495140"></script>
+</div><script src="../../../_static/documentation_options.js?v=0a31d559"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

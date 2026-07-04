@@ -15,7 +15,7 @@ from econox.logic.terminal import (
     LinearTrendTerminal,
     _retrieve_and_validate_param
 )
-from econox.config import NUMERICAL_EPSILON, STABILITY_MARGIN
+from econox.config import STABILITY_MARGIN
 
 
 # =============================================================================
@@ -276,74 +276,6 @@ def test_exponential_trend_exogenous_list_keys(sample_expected_values, sample_pa
     assert is_clipped
 
 
-def test_exponential_trend_endogenous(sample_expected_values, sample_params, mock_model):
-    """Test exponential trend with endogenous extrapolation."""
-    term_idx = (8, 9)
-    prev_idx = (6, 7)
-    pre_prev_idx = (4, 5)
-    
-    approximator = ExponentialTrendTerminal(
-        term_idx=term_idx,
-        prev_idx=prev_idx,
-        pre_prev_idx=pre_prev_idx
-    )
-    discount_factor = 0.99
-    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=discount_factor)
-    
-    # Expected: val_t_minus_1 * soft_clipped(val_t_minus_1 / val_t_minus_2)
-    val_t_minus_1 = jnp.array(sample_expected_values[prev_idx, :])
-    val_t_minus_2 = jnp.array(sample_expected_values[pre_prev_idx, :])
-    
-    # Check numerical stability: ratio should be 1.0 where denominator is near zero
-    denominator = jnp.abs(val_t_minus_2)
-    safe_denom = jnp.where(denominator > NUMERICAL_EPSILON, val_t_minus_2, 1.0)
-    ratio = jnp.where(
-        denominator > NUMERICAL_EPSILON,
-        val_t_minus_1 / safe_denom,
-        1.0
-    )
-    
-    # Apply soft clipping
-    limit_growth = 1.0 / discount_factor - STABILITY_MARGIN - 1
-    raw_growth = ratio - 1.0
-    safe_growth = limit_growth * jnp.tanh(raw_growth / limit_growth)
-    safe_ratio = safe_growth + 1.0
-    actual_ratio = jnp.clip(safe_ratio, min=0.0, max=limit_growth + 1.0)
-    expected_vals = val_t_minus_1 * actual_ratio
-    
-    assert jnp.allclose(result[8, :], expected_vals[0, :])
-    assert jnp.allclose(result[9, :], expected_vals[1, :])
-
-
-def test_exponential_trend_endogenous_numerical_stability(sample_params, mock_model):
-    """Test numerical stability when val_t_minus_2 is near zero."""
-    # Create expected values where some T-2 values are very small
-    expected = jnp.array([
-        [100.0, 50.0, 30.0],
-        [1e-10, 1e-9, 20.0],  # Near-zero values
-        [120.0, 60.0, 40.0],
-        [0.0, 1e-12, 25.0]    # Zero and near-zero
-    ])
-    
-    term_idx = (2, 3)
-    prev_idx = (2, 3)
-    pre_prev_idx = (1, 1)
-    
-    approximator = ExponentialTrendTerminal(
-        term_idx=term_idx,
-        prev_idx=prev_idx,
-        pre_prev_idx=pre_prev_idx
-    )
-    result, is_clipped = approximator.approximate(expected, sample_params, mock_model, discount_factor=0.99)
-    
-    # Should not produce NaN or Inf
-    assert jnp.all(jnp.isfinite(result))
-    
-    # When denominator is near zero, ratio should be 1.0 (stationary)
-    # So result should be close to val_t_minus_1
-    assert jnp.allclose(result[2, 0], expected[2, 0], rtol=1e-5)  # Stationary for near-zero
-
-
 def test_exponential_trend_negative_values(sample_params, mock_model):
     """Test exponential trend with negative value functions (cost minimization)."""
     # Create expected values with negative costs
@@ -353,30 +285,22 @@ def test_exponential_trend_negative_values(sample_params, mock_model):
         [-120.0, -100.0, -70.0],
         [-60.0, -50.0, -35.0]
     ])
-    
+
     term_idx = (2, 3)
     prev_idx = (2, 3)
-    pre_prev_idx = (0, 1)
-    
+
     approximator = ExponentialTrendTerminal(
         term_idx=term_idx,
         prev_idx=prev_idx,
-        pre_prev_idx=pre_prev_idx
+        growth_rate_keys="g"
     )
     discount_factor = 0.99
     result, is_clipped = approximator.approximate(expected, sample_params, mock_model, discount_factor=discount_factor)
-    
+
     # Should handle negative values correctly with soft clipping
     val_t_minus_1 = jnp.array(expected[prev_idx, :])
-    val_t_minus_2 = jnp.array(expected[pre_prev_idx, :])
-    denominator = jnp.abs(val_t_minus_2)
-    safe_denom = jnp.where(denominator > NUMERICAL_EPSILON, val_t_minus_2, 1.0)
-    ratio = jnp.where(
-        denominator > NUMERICAL_EPSILON,
-        val_t_minus_1 / safe_denom,
-        1.0
-    )
-    
+    ratio = 1.0 + sample_params["g"]
+
     # Apply soft clipping
     limit_growth = 1.0 / discount_factor - STABILITY_MARGIN - 1
     raw_growth = ratio - 1.0
@@ -384,41 +308,35 @@ def test_exponential_trend_negative_values(sample_params, mock_model):
     safe_ratio = safe_growth + 1.0
     actual_ratio = jnp.clip(safe_ratio, min=0.0, max=limit_growth + 1.0)
     expected_vals = val_t_minus_1 * actual_ratio
-    
+
     assert jnp.allclose(result[2, :], expected_vals[0, :])
     assert jnp.allclose(result[3, :], expected_vals[1, :])
 
 
-def test_exponential_trend_requires_keys_or_indices(sample_expected_values, mock_model):
-    """Test that ExponentialTrendTerminal requires either keys or pre_prev_idx."""
+def test_exponential_trend_requires_growth_rate_keys():
+    """Test that ExponentialTrendTerminal requires growth_rate_keys."""
     term_idx = (8, 9)
     prev_idx = (6, 7)
-    
-    approximator = ExponentialTrendTerminal(
-        term_idx=term_idx,
-        prev_idx=prev_idx,
-        growth_rate_keys=None,
-        pre_prev_idx=None
-    )
-    
-    with pytest.raises(ValueError, match="requires either"):
-        approximator.approximate(sample_expected_values, {}, mock_model, discount_factor=0.99)
+
+    with pytest.raises(ValueError, match="requires"):
+        ExponentialTrendTerminal(
+            term_idx=term_idx,
+            prev_idx=prev_idx,
+            growth_rate_keys=None
+        )
 
 
-def test_exponential_trend_index_shape_validation(sample_expected_values, sample_params, mock_model):
-    """Test index shape validation for pre_prev_idx."""
+def test_exponential_trend_index_shape_validation():
+    """Test that ExponentialTrendTerminal validates term_idx/prev_idx shape at construction."""
     term_idx = (8, 9)
-    prev_idx = (6, 7)
-    pre_prev_idx = (4,)  # Mismatched length
-    
-    approximator = ExponentialTrendTerminal(
-        term_idx=term_idx,
-        prev_idx=prev_idx,
-        pre_prev_idx=pre_prev_idx
-    )
-    
+    prev_idx = (6,)  # Mismatched length
+
     with pytest.raises(ValueError, match="must have the same shape"):
-        approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
+        ExponentialTrendTerminal(
+            term_idx=term_idx,
+            prev_idx=prev_idx,
+            growth_rate_keys="g"
+        )
 
 
 # =============================================================================
@@ -489,29 +407,6 @@ def test_linear_trend_exogenous_list_keys(sample_expected_values, sample_params,
     assert jnp.allclose(result[9, :], expected_9)
 
 
-def test_linear_trend_endogenous(sample_expected_values, sample_params, mock_model):
-    """Test linear trend with endogenous extrapolation."""
-    term_idx = (8, 9)
-    prev_idx = (6, 7)
-    pre_prev_idx = (4, 5)
-    
-    approximator = LinearTrendTerminal(
-        term_idx=term_idx,
-        prev_idx=prev_idx,
-        pre_prev_idx=pre_prev_idx
-    )
-    result, is_clipped = approximator.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
-    
-    # Expected: val_t_minus_1 + (val_t_minus_1 - val_t_minus_2)
-    val_t_minus_1 = jnp.array(sample_expected_values[prev_idx, :])
-    val_t_minus_2 = jnp.array(sample_expected_values[pre_prev_idx, :])
-    diff = val_t_minus_1 - val_t_minus_2
-    expected_vals = val_t_minus_1 + diff
-    
-    assert jnp.allclose(result[8, :], expected_vals[0, :])
-    assert jnp.allclose(result[9, :], expected_vals[1, :])
-
-
 def test_linear_trend_negative_values(sample_params, mock_model):
     """Test linear trend with negative value functions."""
     expected = jnp.array([
@@ -520,59 +415,59 @@ def test_linear_trend_negative_values(sample_params, mock_model):
         [-120.0, -100.0, -70.0],
         [-60.0, -50.0, -35.0]
     ])
-    
+
     term_idx = (2, 3)
     prev_idx = (2, 3)
-    pre_prev_idx = (0, 1)
-    
+
     approximator = LinearTrendTerminal(
         term_idx=term_idx,
         prev_idx=prev_idx,
-        pre_prev_idx=pre_prev_idx
+        drift_keys="drift"
     )
     result, is_clipped = approximator.approximate(expected, sample_params, mock_model, discount_factor=0.99)
-    
+
     # Should handle negative values correctly
     val_t_minus_1 = jnp.array(expected[prev_idx, :])
-    val_t_minus_2 = jnp.array(expected[pre_prev_idx, :])
-    diff = val_t_minus_1 - val_t_minus_2
-    expected_vals = val_t_minus_1 + diff
-    
+    expected_vals = val_t_minus_1 + sample_params["drift"]
+
     assert jnp.allclose(result[2, :], expected_vals[0, :])
     assert jnp.allclose(result[3, :], expected_vals[1, :])
 
 
-def test_linear_trend_requires_keys_or_indices(sample_expected_values, mock_model):
-    """Test that LinearTrendTerminal requires either keys or pre_prev_idx."""
+def test_linear_trend_requires_drift_keys():
+    """Test that LinearTrendTerminal requires drift_keys."""
     term_idx = (8, 9)
     prev_idx = (6, 7)
-    
-    approximator = LinearTrendTerminal(
-        term_idx=term_idx,
-        prev_idx=prev_idx,
-        drift_keys=None,
-        pre_prev_idx=None
-    )
-    
-    with pytest.raises(ValueError, match="requires either"):
-        approximator.approximate(sample_expected_values, {}, mock_model, discount_factor=0.99)
+
+    with pytest.raises(ValueError, match="requires"):
+        LinearTrendTerminal(
+            term_idx=term_idx,
+            prev_idx=prev_idx,
+            drift_keys=None
+        )
+
+
+def test_linear_trend_index_shape_validation():
+    """Test that LinearTrendTerminal validates term_idx/prev_idx shape at construction."""
+    term_idx = (8, 9)
+    prev_idx = (6,)  # Mismatched length
+
+    with pytest.raises(ValueError, match="must have the same shape"):
+        LinearTrendTerminal(
+            term_idx=term_idx,
+            prev_idx=prev_idx,
+            drift_keys="drift"
+        )
 
 
 def test_linear_trend_structure_consistency(sample_expected_values, sample_params, mock_model):
-    """Test that LinearTrendTerminal returns consistently at the end (not in branches)."""
+    """Test that LinearTrendTerminal returns consistently."""
     term_idx = (8, 9)
     prev_idx = (6, 7)
-    
-    # Test with exogenous keys
+
     approx1 = LinearTrendTerminal(term_idx=term_idx, prev_idx=prev_idx, drift_keys="drift")
     result1, is_clipped1 = approx1.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
     assert result1.shape == sample_expected_values.shape
-    
-    # Test with endogenous
-    pre_prev_idx = (4, 5)
-    approx2 = LinearTrendTerminal(term_idx=term_idx, prev_idx=prev_idx, pre_prev_idx=pre_prev_idx)
-    result2, is_clipped2 = approx2.approximate(sample_expected_values, sample_params, mock_model, discount_factor=0.99)
-    assert result2.shape == sample_expected_values.shape
 
 
 # =============================================================================

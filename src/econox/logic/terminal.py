@@ -13,7 +13,7 @@ from jaxtyping import Array, Float, PyTree
 
 from econox.protocols import StructuralModel
 from econox.utils import get_from_pytree
-from econox.config import NUMERICAL_EPSILON, STABILITY_MARGIN
+from econox.config import STABILITY_MARGIN
 
 
 def _retrieve_and_validate_param(
@@ -139,39 +139,28 @@ class StationaryTerminal(eqx.Module):
 
 class ExponentialTrendTerminal(eqx.Module):
     r"""
-    Exponential trend terminal approximator with Adaptive Branching.
-    
-    This approximator handles non-stationary growth at the horizon by applying 
-    a growth rate :math:`\gamma_s` to the value function. 
+    Exponential trend terminal approximator.
 
-    **Branching Priority**:
-    
-    1. **Exogenous (Parameter-driven)**: If `growth_rate_keys` is not None, 
-       the solver uses growth rates :math:`\gamma` from `params`.
-    2. **Endogenous (Data-driven)**: If `growth_rate_keys` is None and 
-       `pre_prev_idx` is provided, the solver extrapolates the trend from 
-       the model's internal dynamics (:math:`T-1` and :math:`T-2`).
-    
+    This approximator handles non-stationary growth at the horizon by applying
+    an exogenous growth rate :math:`\gamma_s` (from `params`) to the value function.
+
     It supports growth rates through three parameter specification patterns:
-    
-    1. **Global Scalar**: A single key mapping to a scalar value (e.g., ``"g"``). 
+
+    1. **Global Scalar**: A single key mapping to a scalar value (e.g., ``"g"``).
        The same growth rate is applied to all terminal states.
-    2. **Aggregated Scalars**: A list or tuple of keys (e.g., ``["g1", "g2", "g3"]``). 
-       The number of keys must match the length of ``term_idx`` (and ``prev_idx``). 
+    2. **Aggregated Scalars**: A list or tuple of keys (e.g., ``["g1", "g2", "g3"]``).
+       The number of keys must match the length of ``term_idx`` (and ``prev_idx``).
        Each scalar parameter corresponds to a terminal state in order.
-    3. **State-Indexed Vector**: A single key mapping to an array of length :math:`n` 
-       (e.g., ``"g_vector"``), where :math:`n` is the length of ``term_idx``. 
+    3. **State-Indexed Vector**: A single key mapping to an array of length :math:`n`
+       (e.g., ``"g_vector"``), where :math:`n` is the length of ``term_idx``.
        Each element corresponds to a terminal state in order.
 
     .. math::
-        \mathbb{E}V_T(s, a) = \begin{cases} 
-        (1 + \gamma_s) \mathbb{E}V_{T-1}(s', a) & \text{if keys provided (Exogenous)} \\
-        \frac{\mathbb{E}V_{T-1}(s', a)}{\mathbb{E}V_{T-2}(s'', a)} \mathbb{E}V_{T-1}(s', a) & \text{if pre_prev_idx provided (Endogenous)}
-        \end{cases}
-    
+        \mathbb{E}V_T(s, a) = (1 + \gamma_s) \mathbb{E}V_{T-1}(s', a)
+
     **Stability Mechanism (Soft-Clipping)**:
-    
-    To prevent the value function from diverging (which occurs if growth rate :math:`\ge 1/\beta`), 
+
+    To prevent the value function from diverging (which occurs if growth rate :math:`\ge 1/\beta`),
     this class applies a differentiable **Tanh Soft-Clipping** mechanism.
     The effective growth rate :math:`\gamma_{safe}` is constrained as:
 
@@ -180,28 +169,27 @@ class ExponentialTrendTerminal(eqx.Module):
         \gamma_{raw} &= \text{input\_ratio} - 1 \\
         \gamma_{safe} &= \gamma_{limit} \cdot \tanh\left(\frac{\gamma_{raw}}{\gamma_{limit}}\right)
 
-    This ensures that the growth rate smoothly approaches the theoretical limit 
+    This ensures that the growth rate smoothly approaches the theoretical limit
     without hitting a hard boundary, preserving gradients for the optimizer.
 
     Args:
         term_idx: Indices of the terminal states :math:`T`.
         prev_idx: Indices of the predecessor states :math:`T-1`.
-        pre_prev_idx: Indices of the states :math:`T-2`. Required for endogenous mode.
-        growth_rate_keys: Identifier(s) for growth rate :math:`\gamma`. 
-            Accepts a single ``str`` for global/vector parameters, or a ``list[str]`` 
+        growth_rate_keys: Identifier(s) for growth rate :math:`\gamma`.
+            Accepts a single ``str`` for global/vector parameters, or a ``list[str]``
             to aggregate multiple regional scalars.
-        scale: Scaling factor for numerical stability. Input parameters are divided 
+        scale: Scaling factor for numerical stability. Input parameters are divided
             by this value (e.g., set to 100.0 if parameters are estimated in percentage).
             This helps the optimizer by keeping gradients in a manageable range.
-    
+
     Raises:
-        ValueError: If both `growth_rate_keys` and `pre_prev_idx` are None.
+        ValueError: If `growth_rate_keys` is None.
 
     Examples:
         >>> # Pattern 1: Global scalar growth
         >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, growth_rate_keys="g", scale=100.0)
         >>> params = {"g": 2.0}  # 2% growth
-        
+
         >>> # Pattern 2: Aggregated scalars (3 terminal states)
         >>> term_idx = (13, 14, 15)
         >>> prev_idx = (10, 11, 12)
@@ -209,77 +197,49 @@ class ExponentialTrendTerminal(eqx.Module):
         ...     term_idx, prev_idx, growth_rate_keys=["g1", "g2", "g3"], scale=100.0
         ... )
         >>> params = {"g1": 2.0, "g2": 3.0, "g3": 1.0}
-        
-        >>> # Pattern 3: Endogenous dynamic extrapolation (No params needed)
-        >>> approx = ExponentialTrendTerminal(term_idx, prev_idx, pre_prev_idx=pre_prev)
-        >>> adjusted_ev = approx.approximate(expected, {}, model, discount_factor)
-    
+
     Note:
-        The ``is_clipped`` flag in the results returns ``True`` if the raw growth rate 
-        exceeded the theoretical stability limit :math:`1/\beta`. In this case, 
+        The ``is_clipped`` flag in the results returns ``True`` if the raw growth rate
+        exceeded the theoretical stability limit :math:`1/\beta`. In this case,
         the actual used growth rate was compressed by the Tanh function.
     """
     term_idx: tuple[int, ...] = eqx.field(static=True)
     prev_idx: tuple[int, ...] = eqx.field(static=True)
-    pre_prev_idx: tuple[int, ...] | None = eqx.field(static=True, default=None)
     growth_rate_keys: Union[str, List[str], Tuple[str, ...]] | None = eqx.field(static=True, default=None)
     scale: float = eqx.field(static=True, default=1.0)
 
+    def __check_init__(self) -> None:
+        if len(self.term_idx) != len(self.prev_idx):
+            raise ValueError(
+                f"ExponentialTrendTerminal: term_idx and prev_idx must have the same shape. "
+                f"Got {len(self.term_idx)} and {len(self.prev_idx)}."
+            )
+        if self.growth_rate_keys is None:
+            raise ValueError(
+                "ExponentialTrendTerminal requires 'growth_rate_keys' to be set."
+            )
+
     def approximate(
-        self, 
-        expected: Float[Array, "S A"], 
-        params: PyTree, 
+        self,
+        expected: Float[Array, "S A"],
+        params: PyTree,
         model: StructuralModel,
         discount_factor: float
     ) -> tuple[Float[Array, "S A"], Array | None]:
         r"""
         Applies exponential growth to the terminal horizon.
 
-        The method adaptively switches between:
-        
-        * **Exogenous Growth**: Multiplying :math:`T-1` values by :math:`(1 + \gamma)` from `params`.
-        * **Endogenous Extrapolation**: Multiplying :math:`T-1` values by the ratio :math:`EV_{T-1} / EV_{T-2}`.
-        
-        It automatically handles spatial heterogeneity by mapping parameter keys 
-        or vector elements to the corresponding state indices.
+        Multiplies :math:`T-1` values by :math:`(1 + \gamma)`, with :math:`\gamma`
+        retrieved from `params`. Automatically handles spatial heterogeneity by
+        mapping parameter keys or vector elements to the corresponding state indices.
         """
-        if len(self.term_idx) != len(self.prev_idx):
-            raise ValueError(
-                f"ExponentialTrendTerminal: term_idx and prev_idx must have the same shape. "
-                f"Got {len(self.term_idx)} and {len(self.prev_idx)}."
-            )
         val_t_minus_1 = expected[self.prev_idx, :]
 
-        # Case 1: Growth rates provided
-        if self.growth_rate_keys is not None:
-            gamma_eff = _retrieve_and_validate_param(
-                self.growth_rate_keys, params, self.prev_idx, "ExponentialTrendTerminal: gamma"
-            )
-            ratio = (1.0 + gamma_eff / self.scale)
+        gamma_eff = _retrieve_and_validate_param(
+            self.growth_rate_keys, params, self.prev_idx, "ExponentialTrendTerminal: gamma"
+        )
+        ratio = (1.0 + gamma_eff / self.scale)
 
-        # Case 2: Pre-previous indices provided    
-        elif self.pre_prev_idx is not None:
-            if len(self.pre_prev_idx) != len(self.prev_idx):
-                raise ValueError(
-                    f"ExponentialTrendTerminal: pre_prev_idx and prev_idx must have the same shape. "
-                    f"Got {len(self.pre_prev_idx)} and {len(self.prev_idx)}."
-                )
-            val_t_minus_2 = expected[self.pre_prev_idx, :]
-            # Use jnp.where for numerical stability: fallback to stationary (ratio=1.0) when denominator is near zero
-            # Note: jnp.where evaluates both branches, so we must avoid division by zero in the computation itself
-            denominator = jnp.abs(val_t_minus_2)
-            safe_denom = jnp.where(denominator > NUMERICAL_EPSILON, val_t_minus_2, 1.0)
-            ratio = jnp.where(
-                denominator > NUMERICAL_EPSILON,
-                val_t_minus_1 / safe_denom,
-                1.0
-            )
-            
-        else:
-            raise ValueError(
-                "ExponentialTrendTerminal requires either 'growth_rate_keys' or 'pre_prev_idx' to be set."
-            )
-        
         limit_growth = 1.0 / discount_factor - STABILITY_MARGIN - 1
         raw_growth = ratio - 1.0
         safe_growth = limit_growth * jnp.tanh(raw_growth / limit_growth)
@@ -292,44 +252,33 @@ class ExponentialTrendTerminal(eqx.Module):
 
 class LinearTrendTerminal(eqx.Module):
     r"""
-    Linear trend terminal approximator with Adaptive Branching.
-    
-    Approximates the terminal value by adding a drift component :math:`\delta_s`. 
+    Linear trend terminal approximator.
 
-    **Branching Priority**:
-    
-    1. **Exogenous (Parameter-driven)**: If `drift_keys` is not None, 
-       uses drift terms :math:`\delta` from `params`.
-    2. **Endogenous (Data-driven)**: If `drift_keys` is None and 
-       `pre_prev_idx` is provided, extrapolates the linear difference 
-       between :math:`T-1` and :math:`T-2`.
+    Approximates the terminal value by adding an exogenous drift component
+    :math:`\delta_s` (from `params`) to the value function.
 
-    Similar to the exponential variant, it supports three patterns for :math:`\delta`:
-    
+    It supports three patterns for :math:`\delta`:
+
     1. **Global Drift**: A single key mapping to a scalar drift value applied to all terminal states.
-    2. **Aggregated Drifts**: A list or tuple of keys. The number of keys must match 
+    2. **Aggregated Drifts**: A list or tuple of keys. The number of keys must match
        the length of ``term_idx`` (and ``prev_idx``). Each scalar corresponds to a terminal state in order.
-    3. **Drift Vector**: A single key mapping to an array of length :math:`n`, 
+    3. **Drift Vector**: A single key mapping to an array of length :math:`n`,
        where :math:`n` is the length of ``term_idx``. Each element corresponds to a terminal state in order.
 
     .. math::
-        \mathbb{E}V_T(s, a) = \begin{cases} 
-        \mathbb{E}V_{T-1}(s', a) + \delta_s & \text{if keys provided (Exogenous)} \\
-        \mathbb{E}V_{T-1}(s', a) + (\mathbb{E}V_{T-1}(s', a) - \mathbb{E}V_{T-2}(s'', a)) & \text{if pre_prev_idx provided (Endogenous)}
-        \end{cases}
+        \mathbb{E}V_T(s, a) = \mathbb{E}V_{T-1}(s', a) + \delta_s
 
     Args:
         term_idx: Indices of the terminal states :math:`T`.
         prev_idx: Indices of the predecessor states :math:`T-1`.
-        pre_prev_idx: Indices of the states :math:`T-2`. Required for endogenous mode.
-        drift_keys: Identifier(s) for drift :math:`\delta`. Accepts a single ``str`` 
-            for global/vector parameters, or a ``list[str]`` to aggregate 
+        drift_keys: Identifier(s) for drift :math:`\delta`. Accepts a single ``str``
+            for global/vector parameters, or a ``list[str]`` to aggregate
             multiple regional scalars.
-        scale: Scaling factor for numerical stability. Input parameters are divided 
+        scale: Scaling factor for numerical stability. Input parameters are divided
             by this value. Useful when drift values have a large absolute magnitude.
 
     Raises:
-        ValueError: If both `drift_keys` and `pre_prev_idx` are None.
+        ValueError: If `drift_keys` is None.
 
     Examples:
         >>> # Linear drift via parameter keys
@@ -339,48 +288,37 @@ class LinearTrendTerminal(eqx.Module):
     """
     term_idx: tuple[int, ...] = eqx.field(static=True)
     prev_idx: tuple[int, ...] = eqx.field(static=True)
-    pre_prev_idx: tuple[int, ...] | None = eqx.field(static=True, default=None)
     drift_keys: Union[str, List[str], Tuple[str, ...]] | None = None
     scale: float = eqx.field(static=True, default=1.0)
 
+    def __check_init__(self) -> None:
+        if len(self.term_idx) != len(self.prev_idx):
+            raise ValueError(
+                f"LinearTrendTerminal: term_idx and prev_idx must have the same shape. "
+                f"Got {len(self.term_idx)} and {len(self.prev_idx)}."
+            )
+        if self.drift_keys is None:
+            raise ValueError(
+                "LinearTrendTerminal requires 'drift_keys' to be set."
+            )
+
     def approximate(
-        self, 
-        expected: Float[Array, "S A"], 
-        params: PyTree, 
+        self,
+        expected: Float[Array, "S A"],
+        params: PyTree,
         model: StructuralModel,
         discount_factor: float
     ) -> tuple[Float[Array, "S A"], Array | None]:
         r"""
         Applies linear drift to the terminal horizon.
 
-        The method adaptively switches between:
-        
-        * **Exogenous Drift**: Adding :math:`\delta` from `params` to :math:`T-1` values.
-        * **Endogenous Extrapolation**: Adding the difference :math:`(EV_{T-1} - EV_{T-2})` to :math:`EV_{T-1}`.
+        Adds :math:`\delta` from `params` to :math:`T-1` values.
         """
         val_t_minus_1 = expected[self.prev_idx, :]
 
-        # Case 1: Drift keys provided
-        if self.drift_keys is not None:
-            delta_effective = _retrieve_and_validate_param(
-                self.drift_keys, params, self.prev_idx, "LinearTrendTerminal: delta"
-            )
-            updated_val = val_t_minus_1 + delta_effective / self.scale
-        
-        # Case 2: Pre-previous indices provided
-        elif self.pre_prev_idx is not None:
-            if len(self.pre_prev_idx) != len(self.prev_idx):
-                raise ValueError(
-                    f"LinearTrendTerminal: pre_prev_idx and prev_idx must have the same shape. "
-                    f"Got {len(self.pre_prev_idx)} and {len(self.prev_idx)}."
-                )
-            val_t_minus_2 = expected[self.pre_prev_idx, :]
-            diff = val_t_minus_1 - val_t_minus_2
-            updated_val = val_t_minus_1 + diff
-        
-        else:
-            raise ValueError(
-                "LinearTrendTerminal requires either 'drift_keys' or 'pre_prev_idx' to be set."
-            )
-        
+        delta_effective = _retrieve_and_validate_param(
+            self.drift_keys, params, self.prev_idx, "LinearTrendTerminal: delta"
+        )
+        updated_val = val_t_minus_1 + delta_effective / self.scale
+
         return expected.at[self.term_idx, :].set(updated_val), None

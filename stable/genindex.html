@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="#"><link rel="search" title="Search" href="search.html">
 
-    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 --><title>Index - Econox 0.1.3 documentation</title>
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 --><title>Index - Econox 0.1.4 documentation</title>
 <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -169,7 +169,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">Econox 0.1.3 documentation</div></a>
+      <a href="index.html"><div class="brand">Econox 0.1.4 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -190,7 +190,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.3 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -277,13 +277,15 @@
 </li>
           <li><a href="api_reference.html#econox.methods.analytical.TwoStageLeastSquares.__init__">(econox.methods.analytical.TwoStageLeastSquares method)</a>
 </li>
-          <li><a href="api_reference.html#econox.methods.base.EstimationMethod.__init__">(econox.methods.base.EstimationMethod method)</a>
+          <li><a href="api_reference.html#econox.methods.base.CompositeMethod.__init__">(econox.methods.base.CompositeMethod method)</a>
 </li>
-          <li><a href="api_reference.html#econox.methods.numerical.CompositeMethod.__init__">(econox.methods.numerical.CompositeMethod method)</a>
+          <li><a href="api_reference.html#econox.methods.base.EstimationMethod.__init__">(econox.methods.base.EstimationMethod method)</a>
 </li>
           <li><a href="api_reference.html#econox.methods.numerical.GaussianMomentMatch.__init__">(econox.methods.numerical.GaussianMomentMatch method)</a>
 </li>
           <li><a href="api_reference.html#econox.methods.numerical.MaximumLikelihood.__init__">(econox.methods.numerical.MaximumLikelihood method)</a>
+</li>
+          <li><a href="api_reference.html#econox.methods.numerical.NumericalMethod.__init__">(econox.methods.numerical.NumericalMethod method)</a>
 </li>
           <li><a href="api_reference.html#econox.methods.variance.Hessian.__init__">(econox.methods.variance.Hessian method)</a>
 </li>
@@ -386,7 +388,7 @@
 </li>
         <li><a href="api_reference.html#econox.logic.feedback.CompositeFeedback">CompositeFeedback (class in econox.logic.feedback)</a>
 </li>
-        <li><a href="api_reference.html#econox.methods.numerical.CompositeMethod">CompositeMethod (class in econox.methods.numerical)</a>
+        <li><a href="api_reference.html#econox.methods.base.CompositeMethod">CompositeMethod (class in econox.methods.base)</a>
 </li>
         <li><a href="api_reference.html#econox.methods.variance.Hessian.compute">compute() (econox.methods.variance.Hessian method)</a>
 
@@ -407,9 +409,9 @@
         <li><a href="api_reference.html#econox.methods.analytical.LinearMethod.compute_loss">compute_loss() (econox.methods.analytical.LinearMethod method)</a>
 
         <ul>
-          <li><a href="api_reference.html#econox.methods.base.EstimationMethod.compute_loss">(econox.methods.base.EstimationMethod method)</a>
+          <li><a href="api_reference.html#econox.methods.base.CompositeMethod.compute_loss">(econox.methods.base.CompositeMethod method)</a>
 </li>
-          <li><a href="api_reference.html#econox.methods.numerical.CompositeMethod.compute_loss">(econox.methods.numerical.CompositeMethod method)</a>
+          <li><a href="api_reference.html#econox.methods.base.EstimationMethod.compute_loss">(econox.methods.base.EstimationMethod method)</a>
 </li>
           <li><a href="api_reference.html#econox.methods.numerical.GaussianMomentMatch.compute_loss">(econox.methods.numerical.GaussianMomentMatch method)</a>
 </li>
@@ -654,8 +656,14 @@
 </li>
         <li><a href="api_reference.html#econox.optim.FixedPoint.find_fixed_point">find_fixed_point() (econox.optim.FixedPoint method)</a>
 </li>
-        <li><a href="api_reference.html#econox.workflow.estimator.Estimator.fit">fit() (econox.workflow.estimator.Estimator method)</a>
+        <li><a href="api_reference.html#econox.methods.analytical.LinearMethod.fit">fit() (econox.methods.analytical.LinearMethod method)</a>
+
+        <ul>
+          <li><a href="api_reference.html#econox.methods.base.EstimationMethod.fit">(econox.methods.base.EstimationMethod method)</a>
 </li>
+          <li><a href="api_reference.html#econox.workflow.estimator.Estimator.fit">(econox.workflow.estimator.Estimator method)</a>
+</li>
+        </ul></li>
         <li><a href="api_reference.html#econox.structures.params.ParameterSpace.fixed_mask">fixed_mask (econox.structures.params.ParameterSpace property)</a>
 
         <ul>
@@ -664,17 +672,19 @@
         </ul></li>
         <li><a href="api_reference.html#econox.methods.analytical.AnalyticalParameterHandler.fixed_values_vec">fixed_values_vec (econox.methods.analytical.AnalyticalParameterHandler attribute)</a>
 </li>
-        <li><a href="api_reference.html#econox.optim.FixedPoint">FixedPoint (class in econox.optim)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api_reference.html#econox.optim.FixedPoint">FixedPoint (class in econox.optim)</a>
+</li>
         <li><a href="api_reference.html#econox.optim.FixedPointResult">FixedPointResult (class in econox.optim)</a>
 </li>
         <li><a href="api_reference.html#econox.config.FLATTEN_MULTIDIM_ARRAYS">FLATTEN_MULTIDIM_ARRAYS (in module econox.config)</a>
 </li>
+        <li><a href="api_reference.html#econox.methods.analytical.LinearMethod.force_numerical">force_numerical (econox.methods.analytical.LinearMethod attribute)</a>
+</li>
         <li><a href="api_reference.html#econox.structures.model.Model.from_data">from_data() (econox.structures.model.Model class method)</a>
 </li>
-        <li><a href="api_reference.html#econox.methods.base.EstimationMethod.from_function">from_function() (econox.methods.base.EstimationMethod class method)</a>
+        <li><a href="api_reference.html#econox.methods.numerical.NumericalMethod.from_function">from_function() (econox.methods.numerical.NumericalMethod class method)</a>
 </li>
         <li><a href="api_reference.html#econox.methods.analytical.AnalyticalParameterHandler.from_params">from_params() (econox.methods.analytical.AnalyticalParameterHandler class method)</a>
 </li>
@@ -744,10 +754,12 @@
           <li><a href="api_reference.html#econox.structures.results.EstimationResult.initial_params">(econox.structures.results.EstimationResult attribute)</a>
 </li>
         </ul></li>
-        <li><a href="api_reference.html#econox.config.INLINE_ARRAY_SIZE_THRESHOLD">INLINE_ARRAY_SIZE_THRESHOLD (in module econox.config)</a>
+        <li><a href="api_reference.html#econox.solvers.dynamic_programming.ValueIterationSolver.initial_value">initial_value (econox.solvers.dynamic_programming.ValueIterationSolver attribute)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api_reference.html#econox.config.INLINE_ARRAY_SIZE_THRESHOLD">INLINE_ARRAY_SIZE_THRESHOLD (in module econox.config)</a>
+</li>
         <li><a href="api_reference.html#econox.structures.results.SolverResult.inner_result">inner_result (econox.structures.results.SolverResult attribute)</a>
 </li>
         <li><a href="api_reference.html#econox.solvers.equilibrium.EquilibriumSolver.inner_solver">inner_solver (econox.solvers.equilibrium.EquilibriumSolver attribute)</a>
@@ -807,7 +819,11 @@
         <li><a href="api_reference.html#econox.methods.numerical.MaximumLikelihood">MaximumLikelihood (class in econox.methods.numerical)</a>
 </li>
         <li><a href="api_reference.html#econox.structures.results.EstimationResult.meta">meta (econox.structures.results.EstimationResult attribute)</a>
+
+        <ul>
+          <li><a href="api_reference.html#econox.structures.results.SolverResult.meta">(econox.structures.results.SolverResult attribute)</a>
 </li>
+        </ul></li>
         <li><a href="api_reference.html#econox.optim.FixedPoint.method">method (econox.optim.FixedPoint attribute)</a>
 
         <ul>
@@ -816,11 +832,11 @@
           <li><a href="api_reference.html#econox.workflow.estimator.Estimator.method">(econox.workflow.estimator.Estimator attribute)</a>
 </li>
         </ul></li>
-        <li><a href="api_reference.html#econox.methods.base.method_from_loss">method_from_loss() (in module econox.methods.base)</a>
+        <li><a href="api_reference.html#econox.methods.numerical.method_from_loss">method_from_loss() (in module econox.methods.numerical)</a>
 </li>
         <li><a href="api_reference.html#econox.optim.Minimizer.method_name">method_name (econox.optim.Minimizer property)</a>
 </li>
-        <li><a href="api_reference.html#econox.methods.numerical.CompositeMethod.methods">methods (econox.methods.numerical.CompositeMethod attribute)</a>
+        <li><a href="api_reference.html#econox.methods.base.CompositeMethod.methods">methods (econox.methods.base.CompositeMethod attribute)</a>
 </li>
         <li><a href="api_reference.html#econox.optim.Minimizer.minimize">minimize() (econox.optim.Minimizer method)</a>
 </li>
@@ -907,14 +923,14 @@
         </ul></li>
         <li><a href="api_reference.html#econox.structures.params.ParameterSpace.num_free_params">num_free_params (econox.structures.params.ParameterSpace property)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api_reference.html#econox.protocols.StructuralModel.num_periods">num_periods (econox.protocols.StructuralModel property)</a>
 
         <ul>
           <li><a href="api_reference.html#econox.structures.model.Model.num_periods">(econox.structures.model.Model attribute)</a>
 </li>
         </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api_reference.html#econox.protocols.StructuralModel.num_states">num_states (econox.protocols.StructuralModel property)</a>
 
         <ul>
@@ -929,6 +945,8 @@
           <li><a href="api_reference.html#econox.solvers.equilibrium.EquilibriumSolver.numerical_solver">(econox.solvers.equilibrium.EquilibriumSolver attribute)</a>
 </li>
         </ul></li>
+        <li><a href="api_reference.html#econox.methods.numerical.NumericalMethod">NumericalMethod (class in econox.methods.numerical)</a>
+</li>
     </ul></td>
   </tr></table>
 </section>
@@ -965,18 +983,12 @@
 </li>
         <li><a href="api_reference.html#econox.structures.params.ParameterSpace">ParameterSpace (class in econox.structures.params)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api_reference.html#econox.optim.MinimizerResult.params">params (econox.optim.MinimizerResult attribute)</a>
 
         <ul>
           <li><a href="api_reference.html#econox.structures.results.EstimationResult.params">(econox.structures.results.EstimationResult attribute)</a>
-</li>
-        </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api_reference.html#econox.logic.terminal.ExponentialTrendTerminal.pre_prev_idx">pre_prev_idx (econox.logic.terminal.ExponentialTrendTerminal attribute)</a>
-
-        <ul>
-          <li><a href="api_reference.html#econox.logic.terminal.LinearTrendTerminal.pre_prev_idx">(econox.logic.terminal.LinearTrendTerminal attribute)</a>
 </li>
         </ul></li>
         <li><a href="api_reference.html#econox.logic.terminal.ExponentialTrendTerminal.prev_idx">prev_idx (econox.logic.terminal.ExponentialTrendTerminal attribute)</a>
@@ -1022,7 +1034,13 @@
         <li><a href="api_reference.html#econox.structures.results.ResultMixin.save">save() (econox.structures.results.ResultMixin method)</a>
 </li>
         <li><a href="api_reference.html#econox.logic.distribution.GumbelDistribution.scale">scale (econox.logic.distribution.GumbelDistribution attribute)</a>
+
+        <ul>
+          <li><a href="api_reference.html#econox.logic.terminal.ExponentialTrendTerminal.scale">(econox.logic.terminal.ExponentialTrendTerminal attribute)</a>
 </li>
+          <li><a href="api_reference.html#econox.logic.terminal.LinearTrendTerminal.scale">(econox.logic.terminal.LinearTrendTerminal attribute)</a>
+</li>
+        </ul></li>
         <li><a href="api_reference.html#econox.methods.numerical.GaussianMomentMatch.scale_param_key">scale_param_key (econox.methods.numerical.GaussianMomentMatch attribute)</a>
 </li>
         <li><a href="api_reference.html#econox.workflow.simulator.Scenario">Scenario (class in econox.workflow.simulator)</a>
@@ -1053,14 +1071,14 @@
         </ul></li>
         <li><a href="api_reference.html#econox.protocols.Solver">Solver (class in econox.protocols)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api_reference.html#econox.workflow.estimator.Estimator.solver">solver (econox.workflow.estimator.Estimator attribute)</a>
 
         <ul>
           <li><a href="api_reference.html#econox.workflow.simulator.Simulator.solver">(econox.workflow.simulator.Simulator attribute)</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api_reference.html#econox.structures.results.EstimationResult.solver_result">solver_result (econox.structures.results.EstimationResult attribute)</a>
 </li>
         <li><a href="api_reference.html#econox.structures.results.SolverResult">SolverResult (class in econox.structures.results)</a>
@@ -1197,10 +1215,10 @@
 </li>
         <li><a href="api_reference.html#econox.methods.variance.Variance">Variance (class in econox.methods.variance)</a>
 </li>
-        <li><a href="api_reference.html#econox.methods.base.EstimationMethod.variance">variance (econox.methods.base.EstimationMethod attribute)</a>
+        <li><a href="api_reference.html#econox.methods.base.CompositeMethod.variance">variance (econox.methods.base.CompositeMethod attribute)</a>
 
         <ul>
-          <li><a href="api_reference.html#econox.methods.numerical.CompositeMethod.variance">(econox.methods.numerical.CompositeMethod attribute)</a>
+          <li><a href="api_reference.html#econox.methods.base.EstimationMethod.variance">(econox.methods.base.EstimationMethod attribute)</a>
 </li>
           <li><a href="api_reference.html#econox.methods.numerical.GaussianMomentMatch.variance">(econox.methods.numerical.GaussianMomentMatch attribute)</a>
 </li>
@@ -1219,7 +1237,7 @@
   <h2>W</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api_reference.html#econox.methods.numerical.CompositeMethod.weights">weights (econox.methods.numerical.CompositeMethod attribute)</a>
+        <li><a href="api_reference.html#econox.methods.base.CompositeMethod.weights">weights (econox.methods.base.CompositeMethod attribute)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -1257,7 +1275,7 @@
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=360bc84d"></script>
+</div><script src="_static/documentation_options.js?v=fd825880"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>

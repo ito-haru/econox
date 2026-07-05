@@ -21,7 +21,9 @@ jax.config.update("jax_enable_x64", True)
 
 # Threshold for saving arrays inline vs. as CSV files
 INLINE_ARRAY_SIZE_THRESHOLD: int = 10
-"""Arrays with size <= this value will be saved inline in summary.txt and metadata.json."""
+"""1-D arrays with size strictly less than this value will be saved inline in summary.txt
+and metadata.json; multi-dimensional arrays (ndim > 1) are always saved as CSV regardless
+of size."""
 
 # Maximum string length in summary.txt before truncation
 SUMMARY_STRING_MAX_LENGTH: int = 50

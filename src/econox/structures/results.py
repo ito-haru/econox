@@ -286,7 +286,9 @@ class SolverResult(ResultMixin, eqx.Module):
 
     - **DP**: Conditional Choice Probabilities (CCP) :math:`P(a|s)`.
       The probability of choosing action :math:`a` given state :math:`s`.
-    - **GE**: Market prices (Wage, Rent) or aggregate states corresponding to the solution.
+    - **GE**: Equilibrium Policy :math:`P(a|s)` inherited from the inner solver
+      (same object as the DP case). Market prices / aggregate states are stored
+      separately in ``aux["equilibrium_data"]``.
     """
 
     inner_result: SolverResult | None = None

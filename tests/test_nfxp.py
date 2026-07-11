@@ -179,7 +179,7 @@ def test_estimator_execution(nfxp_model, synthetic_data):
     )
 
     observations = synthetic_data["observations"]
-    result = estimator.fit(observations, sample_size=100000)
+    result = estimator.fit(observations)
 
     assert result.success, "Estimator failed to converge."
     assert isinstance(result, EstimationResult)
@@ -205,7 +205,7 @@ def test_parameter_recovery(nfxp_model, true_parameters, synthetic_data):
     )
 
     observations = synthetic_data["observations"]
-    result = estimator.fit(observations, sample_size=100000)
+    result = estimator.fit(observations)
 
     estimated_params = result.params
     
@@ -237,7 +237,7 @@ def test_standard_errors(nfxp_model, synthetic_data):
     )
 
     observations = synthetic_data["observations"]
-    result = estimator.fit(observations, sample_size=100000)
+    result = estimator.fit(observations)
 
     assert result.std_errors is not None, "Standard errors were not computed."
     

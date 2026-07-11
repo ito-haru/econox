@@ -82,7 +82,7 @@ def test_ols_numerical_equivalence(simple_model, linear_data):
         param_space=param_space,
         method=ols_method_analytical
     )
-    res_analytical = estimator_analytical.fit(linear_data, sample_size=linear_data["N"])
+    res_analytical = estimator_analytical.fit(linear_data)
     
     # 2. Numerical Solution (compute_loss + optimizer)
     estimator_numerical = Estimator(
@@ -90,10 +90,7 @@ def test_ols_numerical_equivalence(simple_model, linear_data):
         param_space=param_space,
         method=ols_method_numerical
     )
-    res_numerical = estimator_numerical.fit(
-        linear_data, 
-        sample_size=linear_data["N"], 
-    )
+    res_numerical = estimator_numerical.fit(linear_data)
     
     # Verification: Check parameters match
     print("Analytical:", res_analytical.params)
@@ -130,15 +127,11 @@ def test_composite_weights(simple_model, linear_data):
 
     # Run 1: Weight [1.0, 0.0] -> Pure Method 1 (valid OLS, beta should be ~2.0)
     comp_method_1 = CompositeMethod(methods=[method_1, method_2], weights=[1.0, 0.0])
-    res_1 = Estimator(model, param_space, comp_method_1).fit(
-        data_with_noise, sample_size=100
-    )
+    res_1 = Estimator(model, param_space, comp_method_1).fit(data_with_noise)
     
     # Run 2: Weight [0.5, 0.5] -> Mixed (beta should be pulled toward 0)
     comp_method_mix = CompositeMethod(methods=[method_1, method_2], weights=[0.5, 0.5])
-    res_mix = Estimator(model, param_space, comp_method_mix).fit(
-        data_with_noise, sample_size=100
-    )
+    res_mix = Estimator(model, param_space, comp_method_mix).fit(data_with_noise)
     
     # Verification
     beta_1 = res_1.params["beta_0"]
@@ -171,10 +164,7 @@ def test_fixed_parameter(simple_model, linear_data):
         method=method
     )
     
-    result = estimator.fit(
-        linear_data, 
-        sample_size=linear_data["N"],
-    )
+    result = estimator.fit(linear_data)
     
     # Verification
     assert result.params["intercept"] == 10.0, "Fixed parameter 'intercept' changed!"
@@ -231,8 +221,8 @@ def test_parameter_order_with_fixed_params_maximum_likelihood():
     method = MaximumLikelihood()
     
     estimator = Estimator(model, param_space, method, solver=solver)
-    result = estimator.fit(data, sample_size=N)
-    
+    result = estimator.fit(data)
+
     # Check order
     param_keys = list(initial_params.keys())
     assert result.std_errors is not None, "Standard errors not computed"
@@ -326,8 +316,8 @@ def test_fixed_parameter_with_variance_dynamic_model():
         method=method
     )
     
-    result = estimator.fit(observations, sample_size=n_obs)
-    
+    result = estimator.fit(observations)
+
     # Verify estimation success
     assert result.success, "Estimation failed"
     assert result.std_errors is not None, "Standard errors not computed"
@@ -419,7 +409,7 @@ def test_2sls_recovery(iv_data):
     ols_method = LeastSquares(feature_key="X", target_key="y")
     estimator_ols = Estimator(model, param_space, ols_method)
     
-    res_ols = estimator_ols.fit(data, sample_size=iv_data["N"])
+    res_ols = estimator_ols.fit(data)
     beta_ols = res_ols.params["beta_0"]
     
     # 2. Run 2SLS (expected to be consistent)
@@ -430,7 +420,7 @@ def test_2sls_recovery(iv_data):
     )
     estimator_tsls = Estimator(model, param_space, tsls_method)
     
-    res_tsls = estimator_tsls.fit(data, sample_size=iv_data["N"])
+    res_tsls = estimator_tsls.fit(data)
     beta_tsls = res_tsls.params["beta_0"]
     intercept_tsls = res_tsls.params["intercept"]
     
@@ -479,14 +469,10 @@ def test_2sls_numerical_equivalence(iv_data):
     )
     
     # 1. Analytical solution
-    res_analytical = Estimator(model, param_space, tsls_method_analytical).fit(
-        data, sample_size=iv_data["N"]
-    )
-    
+    res_analytical = Estimator(model, param_space, tsls_method_analytical).fit(data)
+
     # 2. Numerical solution (via optimizer)
-    res_numerical = Estimator(model, param_space, tsls_method_numerical).fit(
-        data, sample_size=iv_data["N"]
-    )
+    res_numerical = Estimator(model, param_space, tsls_method_numerical).fit(data)
     
     print("\n2SLS Analytical:", res_analytical.params)
     print("2SLS Numerical: ", res_numerical.params)
@@ -494,7 +480,99 @@ def test_2sls_numerical_equivalence(iv_data):
     # Verification: Parameters should match closely
     for k in res_analytical.params:
         assert jnp.allclose(
-            res_analytical.params[k], 
-            res_numerical.params[k], 
+            res_analytical.params[k],
+            res_numerical.params[k],
             atol=1e-2
         ), f"Parameter {k} mismatch between Analytical and Numerical 2SLS."
+
+
+# =============================================================================
+# Loss-scale / weighting inference tests
+# =============================================================================
+
+def _build_wellspecified_dcm(n_obs: int = 5000, seed: int = 42):
+    """
+    Build a correctly-specified 2-state, 2-action dynamic discrete choice model and
+    generate observations from its true choice probabilities. Returns everything needed
+    to run an Estimator.
+    """
+    num_states = 2
+    num_actions = 2
+
+    features = jnp.array([
+        [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],  # State 0
+        [[1.0, 1.0, 0.0], [0.0, 0.5, 0.0]],  # State 1
+    ])
+    transitions = jnp.array([
+        [0.7, 0.3],  # State 0, Action 0
+        [0.4, 0.6],  # State 0, Action 1
+        [0.6, 0.4],  # State 1, Action 0
+        [0.3, 0.7],  # State 1, Action 1
+    ])
+
+    model = Model.from_data(
+        num_states=num_states,
+        num_actions=num_actions,
+        data={"features": features},
+        transitions=transitions,
+        num_periods=np.inf
+    )
+
+    true_params = {"beta_0": 1.0, "beta_1": 0.5, "beta_2": 0.1}
+    solver = ValueIterationSolver(
+        utility=LinearUtility(param_keys=("beta_0", "beta_1", "beta_2"), feature_key="features"),
+        dist=GumbelDistribution(),
+        discount_factor=0.9
+    )
+    choice_probs = solver.solve(true_params, model).profile
+
+    np.random.seed(seed)
+    states = np.random.randint(0, num_states, size=n_obs)
+    choices = np.array([
+        np.random.choice(num_actions, p=np.array(choice_probs[s]))
+        for s in states
+    ])
+    observations = {
+        "state_indices": jnp.array(states),
+        "choice_indices": jnp.array(choices)
+    }
+    return model, solver, observations, n_obs
+
+
+def test_loss_scale_recorded_in_meta():
+    """
+    The normalization constant used for inference is recorded in ``meta`` so the saved
+    result is self-describing. Unweighted: it equals the observation count / n_obs.
+    """
+    model, solver, observations, n_obs = _build_wellspecified_dcm(n_obs=2000)
+    param_space = ParameterSpace.create({"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1})
+
+    result = Estimator(model, param_space, MaximumLikelihood(), solver=solver).fit(
+        observations
+    )
+
+    assert result.meta["loss_scale"] == float(n_obs)
+    assert result.meta["loss_scale"] == float(result.meta["n_obs"])
+
+
+def test_weighted_loss_scale_uses_sum_of_weights():
+    """
+    Under weighting the loss divisor is the sum of weights, which differs from the row
+    count. ``loss_scale`` (and the variance scaling) must follow the actual divisor
+    (sum of weights = effective sample size), while ``n_obs`` reports the number of
+    observation rows, so the two are recorded distinctly and honestly.
+    """
+    model, solver, observations, n_obs = _build_wellspecified_dcm(n_obs=2000)
+    # Constant weights of 2.0 -> sum of weights = 2 * n_obs, distinct from the row count.
+    observations = {**observations, "weights": jnp.full((n_obs,), 2.0)}
+    param_space = ParameterSpace.create({"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1})
+
+    result = Estimator(model, param_space, MaximumLikelihood(), solver=solver).fit(
+        observations
+    )
+
+    assert result.success
+    # loss_scale = sum of weights (effective N); n_obs = row count. They differ here.
+    assert result.meta["loss_scale"] == float(2 * n_obs)
+    assert result.meta["n_obs"] == n_obs
+    assert all(jnp.isfinite(result.std_errors[k]) for k in ("beta_0", "beta_1", "beta_2"))

@@ -65,9 +65,8 @@ class Estimator(eqx.Module):
 
     def fit(
         self,
-        observations: Any, 
+        observations: Any,
         initial_params: dict | None = None,
-        sample_size: int | None = None
         ) -> EstimationResult:
         """
         Estimates the model parameters to minimize the objective function.
@@ -76,10 +75,6 @@ class Estimator(eqx.Module):
             observations: Observed data to match (passed to Objective).
             initial_params: Dictionary of initial parameter values (Constrained space).
                             If None, uses initial_params from ParameterSpace.
-            sample_size: Effective sample size for variance calculations.
-                         Note: This argument is primarily for numerical estimation.
-                         If an analytical solution is found, this argument 
-                         is ignored and the actual data size (n_obs) is used instead.
 
         Returns:
             EstimationResult containing:
@@ -99,7 +94,6 @@ class Estimator(eqx.Module):
             optimizer=self.optimizer,
             verbose=self.verbose,
             initial_params=initial_params,
-            sample_size=sample_size
         )
         return result
         

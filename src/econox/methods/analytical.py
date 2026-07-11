@@ -135,7 +135,6 @@ class LinearMethod(EstimationMethod):
         optimizer: Minimizer = Minimizer(),
         verbose: bool = False,
         initial_params: dict | None = None,
-        sample_size: int | None = None,
         ) -> EstimationResult:
 
         if not self.force_numerical:
@@ -155,7 +154,6 @@ class LinearMethod(EstimationMethod):
             optimizer=optimizer,
             verbose=verbose,
             initial_params=initial_params,
-            sample_size=sample_size
         )
 
     # --- Template Method ---

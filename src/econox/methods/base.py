@@ -4,7 +4,7 @@ Base module for method functions in the Econox framework.
 """
 
 from __future__ import annotations
-from typing import Sequence, Any
+from typing import Sequence, Any, Callable
 import equinox as eqx
 from jaxtyping import PyTree, Scalar, Array
 import jax
@@ -15,7 +15,7 @@ import logging
 from econox.optim import Minimizer, MinimizerResult
 from econox.protocols import StructuralModel, Solver
 from econox.structures import EstimationResult
-from econox.methods.variance import Variance
+from econox.methods.variance import Variance, InferenceInputs
 from econox.structures import ParameterSpace
 from econox.utils import get_from_pytree
 
@@ -51,7 +51,6 @@ class EstimationMethod(eqx.Module):
         optimizer: Minimizer = Minimizer(),
         verbose: bool = False,
         initial_params: dict | None = None,
-        sample_size: int | None = None
         ) -> EstimationResult:
         """
         Estimates the model parameters to minimize the objective function.
@@ -63,10 +62,6 @@ class EstimationMethod(eqx.Module):
             observations: Observed data to match (passed to Objective).
             initial_params: Dictionary of initial parameter values (Constrained space).
                             If None, uses initial_params from ParameterSpace.
-            sample_size: Effective sample size for variance calculations.
-                         Note: This argument is primarily for numerical estimation.
-                         If an analytical solution is found, this argument 
-                         is ignored and the actual data size (n_obs) is used instead.
 
         Returns:
             EstimationResult containing:
@@ -86,7 +81,6 @@ class EstimationMethod(eqx.Module):
             optimizer=optimizer,
             verbose=verbose,
             initial_params=initial_params,
-            sample_size=sample_size
         )
         return result
     
@@ -99,7 +93,6 @@ class EstimationMethod(eqx.Module):
         optimizer: Minimizer = Minimizer(),
         verbose: bool = False,
         initial_params: dict | None = None,
-        sample_size: int | None = None,
         ) -> EstimationResult:
         # Prepare Initial Parameters
         # Convert constrained initial params to raw (unconstrained) space for the optimizer
@@ -110,32 +103,12 @@ class EstimationMethod(eqx.Module):
             
         raw_init = param_space.inverse_transform(constrained_init)
 
-        # Sample Size Handling
-        sum_weights = self._get_sum_weights(observations)
-        final_N = None
-    
-        if sample_size is not None:
-            # Use provided sample size
-            final_N = sample_size
-            # Warn if provided sample size differs from sum of weights
-            if sum_weights is not None:
-                if abs(final_N - sum_weights) > 1.0: 
-                    logger.warning(
-                        f"Provided sample_size ({final_N}) differs from sum of weights ({sum_weights}). "
-                        "Using provided sample_size."
-                    )
-        else:
-            # Try to infer sample size from weights in observations
-            if sum_weights is not None:
-                final_N = int(sum_weights)
-                logger.info(f"Using sum of weights (N={final_N}) as sample size.")
-            else:
-                # Unable to determine sample size
-                raise ValueError(
-                    "Sample size could not be determined.\n"
-                    "Please provide `sample_size` argument explicitly, or ensure `observations` contains 'weights'."
-                )
-        
+        # Fail fast before the (expensive) optimization: each strategy checks its own
+        # prerequisites (e.g. Hessian needs a declared loss scale) via `validate`,
+        # keeping this loop agnostic to concrete strategy types.
+        if self.variance is not None:
+            self.variance.validate(self, observations)
+
         # Define Loss Function (The core pipeline)
         @eqx.filter_jit
         def loss_fn(raw_params: PyTree, args: Any) -> Scalar:
@@ -193,7 +166,26 @@ class EstimationMethod(eqx.Module):
         std_errors = None
         vcov = None
 
-        if opt_result.success and final_N is not None and self.variance is not None:
+        # Divisor `compute_loss` normalized by (e.g. sum of weights), which variance
+        # estimators need to recover the un-normalized objective. Under frequency
+        # weights this is the weighted observation count (the effective sample size).
+        # `None` when undeclared (never guessed); Hessian rejects that case in
+        # `validate` above, sum-form strategies ignore it.
+        loss_scale = self._loss_scale(observations)
+
+        # Row count reported as `n_obs` in `meta`. With frequency weights this differs
+        # from the effective sample size (sum of weights, carried by `loss_scale`): the
+        # weight vector has one entry per row, so its length is the number of distinct
+        # observations. Unweighted, the two coincide, so fall back to `loss_scale`;
+        # `None` when neither is available (e.g. GMM without weights).
+        obs_weights = self._get_validated_weights(observations)
+        n_obs = (
+            int(obs_weights.shape[0]) if obs_weights is not None
+            else int(loss_scale) if loss_scale is not None
+            else None
+        )
+
+        if opt_result.success and self.variance is not None:
             try:
                 # A. Create separate unravel functions for raw and constrained spaces
                 # Use the actual optimization results as templates to ensure structure matching
@@ -203,19 +195,27 @@ class EstimationMethod(eqx.Module):
                 # B. Get flat vector of free parameters (optimizer output)
                 flat_raw_params_free, _ = ravel_pytree(final_raw_params_free)
 
-                # C. Define wrapper loss for free params only
-                # Must match the structure used during JIT-compilation of loss_fn
-                def loss_fn_for_inference(free_params_vec: Array) -> Scalar:
-                    raw_pytree = unravel_raw_fn(free_params_vec)
-                    return loss_fn(raw_pytree, observations)
+                # C. Sum-form loss for inference: mean loss * divisor = un-normalized
+                # objective, so the Hessian already carries the 1/N scaling and no
+                # sample-size constant threads through the variance interface. The unravel
+                # must match the structure used when loss_fn was JIT-compiled. `None` when
+                # no scale is declared (only sum-form-free strategies are then usable).
+                total_loss_fn: Callable[[Array], Scalar] | None = None
+                if loss_scale is not None:
+                    def total_loss_fn(free_params_vec: Array) -> Scalar:
+                        raw_pytree = unravel_raw_fn(free_params_vec)
+                        return loss_fn(raw_pytree, observations) * loss_scale
 
-                # D. Compute variance in the free raw space
+                # D. Compute variance in the free raw space. Everything a strategy might
+                # need is bundled into `InferenceInputs`; each strategy reads only what it
+                # uses (Hessian: total_loss_fn).
                 _, vcov_free = self.variance.compute(
-                    loss_fn=loss_fn_for_inference,
-                    params=flat_raw_params_free,
-                    observations=observations,
-                    num_observations=final_N
+                    InferenceInputs(
+                        params=flat_raw_params_free,
+                        observations=observations,
+                        total_loss_fn=total_loss_fn,
                     )
+                )
 
                 if vcov_free is not None:
                     # E. Delta method: Map free raw vector -> full constrained vector
@@ -280,7 +280,8 @@ class EstimationMethod(eqx.Module):
                 "estimation_method": self.__class__.__name__,
                 "inference_method": 
                     self.variance.__class__.__name__ if self.variance is not None else None,
-                "n_obs": final_N,
+                "n_obs": n_obs,
+                "loss_scale": float(loss_scale) if loss_scale is not None else None,
                 "n_params": param_space.num_total_params,
                 "n_free_params": param_space.num_free_params,
                 "n_fixed": param_space.num_total_params - param_space.num_free_params
@@ -316,6 +317,19 @@ class EstimationMethod(eqx.Module):
             "compute_loss is not implemented for this EstimationMethod."
         )
 
+    def _loss_scale(self, observations: Any) -> Scalar | None:
+        """
+        The constant :meth:`compute_loss` normalizes by (e.g. sum of weights for a mean
+        loss). Variance estimators divide by this to recover the un-normalized objective.
+        Under frequency weights this is the effective sample size (sum of weights), which
+        differs from the number of observation rows reported as ``n_obs``.
+
+        Returns ``None`` when the objective is not a simple normalized sum (e.g. GMM),
+        in which case sum-form variance strategies are unavailable (enforced by
+        :meth:`~econox.methods.variance.Variance.validate`).
+        """
+        return None
+
     def solve(
         self,
         model: StructuralModel,
@@ -341,15 +355,27 @@ class EstimationMethod(eqx.Module):
         """
         return None
     
-    def _get_sum_weights(self, observations: Any) -> int | None:
+    def _get_validated_weights(self, observations: Any) -> Array | None:
         """
-        Extract sum of weights from observations if available.
-        Returns None if 'weights' key is not found.
+        Return observation weights as a validated 1-D array, or ``None`` if absent.
+
+        Weights are **frequency weights** (replication counts) and must be omitted or
+        1-D with one entry per observation. A non-1-D ``weights`` (e.g. a scalar) is
+        rejected rather than silently broadcast into the numerator while dropped from the
+        denominator, which would desynchronize the loss and variance. Shapes are static
+        under JIT, so this check is trace-safe.
         """
         weights = get_from_pytree(observations, "weights", default=None)
-        if weights is not None:
-            return int(jnp.sum(weights))
-        return None
+        if weights is None:
+            return None
+        weights = jnp.asarray(weights)
+        if weights.ndim != 1:
+            raise ValueError(
+                "'weights' must be a 1-D array with one entry per observation "
+                f"(or omitted), but got a {weights.ndim}-D array of shape "
+                f"{tuple(weights.shape)}."
+            )
+        return weights
 
 
 class CompositeMethod(EstimationMethod):

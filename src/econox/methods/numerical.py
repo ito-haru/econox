@@ -32,30 +32,60 @@ class NumericalMethod(EstimationMethod):
     """
 
     @classmethod
-    def from_function(cls, func: Callable, variance: Variance | None = Hessian()) -> NumericalMethod:
+    def from_function(
+        cls,
+        func: Callable,
+        variance: Variance | None = None,
+        loss_scale: Callable[[Any], Scalar] | float | None = None,
+    ) -> NumericalMethod:
         """
         Creates an `NumericalMethod` instance from a simple loss function.
-        
-        This factory method allows users to define objectives using a simple function 
-        instead of defining a full class. The created objective will rely on numerical 
-        optimization (solve returns None) and will compute standard errors using the Hessian method by default.
+
+        This factory method allows users to define objectives using a simple function
+        instead of defining a full class. The created objective relies on numerical
+        optimization (solve returns None).
+
+        Inference is **off by default** (``variance=None``): an arbitrary loss function
+        has no guaranteed statistical interpretation. Pass ``variance=Hessian()`` to opt
+        in — it also needs ``loss_scale`` (see below), so the two go together.
 
         Args:
             func: A function with the signature:
                   `(result, observations, params, model) -> Scalar`
+            variance: Variance strategy for inference. ``None`` (default) means no
+                  standard errors are computed.
+            loss_scale: The constant `func` normalizes by (its divisor), needed by a
+                  Hessian ``variance`` to recover the un-normalized objective. A constant,
+                  or a callable ``(observations) -> scalar`` for a data-dependent divisor
+                  (e.g. the observation count of a mean loss). Only consumed by Hessian
+                  variance, which raises rather than guess if it is undeclared.
 
         Returns:
             An instance of a dynamically created `NumericalMethod` subclass.
 
         Example:
             >>> def mse_loss(result, observations, params, model):
-            ...     return jnp.mean((result.solution - observations) ** 2)
-            >>> method = NumericalMethod.from_function(mse_loss, variance=Hessian())
+            ...     return jnp.mean((result.solution - observations["y"]) ** 2)
+            >>> # No inference (default)
+            >>> method = NumericalMethod.from_function(mse_loss)
+            >>> # Opt into Hessian standard errors, declaring the divisor
+            >>> method = NumericalMethod.from_function(
+            ...     mse_loss, variance=Hessian(), loss_scale=lambda obs: obs["y"].shape[0]
+            ... )
         """
         # Dynamically create a subclass to wrap the function
         class WrapperMethod(NumericalMethod):
             def compute_loss(self, result, observations, params, model):
                 return func(result, observations, params, model)
+
+            def _loss_scale(self, observations):
+                # Report the user-declared divisor; ``None`` (default) leaves it
+                # undeclared and disables the Hessian path (see base `_loss_scale`).
+                if loss_scale is None:
+                    return None
+                if callable(loss_scale):
+                    return loss_scale(observations)
+                return loss_scale
 
             def __repr__(self):
                 return f"WrapperMethod({func.__name__})"
@@ -66,24 +96,30 @@ class NumericalMethod(EstimationMethod):
 def method_from_loss(
     func: Callable | None = None,
     *,
-    variance: Variance | None = Hessian()
+    variance: Variance | None = None,
+    loss_scale: Callable[[Any], Scalar] | float | None = None,
 ) -> NumericalMethod | Callable[[Callable], NumericalMethod]:
     """
     Decorator version of `NumericalMethod.from_function` for convenience.
 
+    Inference is off by default (``variance=None``). See
+    :meth:`NumericalMethod.from_function` for the ``loss_scale`` contract: when a
+    Hessian variance is requested it needs the loss divisor declared, else it raises
+    rather than guessing.
+
     Example:
-        >>> # No variance specified (default: Hessian)
+        >>> # No inference (default)
         >>> @method_from_loss
         ... def mse_loss(result, observations, params, model):
-        ...     return jnp.mean((result.solution - observations) ** 2)
-        
-        >>> # With variance specified
-        >>> @method_from_loss(variance=Hessian()) 
+        ...     return jnp.mean((result.solution - observations["y"]) ** 2)
+
+        >>> # Opt into Hessian standard errors, declaring the divisor
+        >>> @method_from_loss(variance=Hessian(), loss_scale=lambda obs: obs["y"].shape[0])
         ... def mse_loss(result, observations, params, model):
-        ...     return jnp.mean((result.solution - observations) ** 2)
+        ...     return jnp.mean((result.solution - observations["y"]) ** 2)
     """
     def decorator(f: Callable) -> NumericalMethod:
-        return NumericalMethod.from_function(f, variance=variance)
+        return NumericalMethod.from_function(f, variance=variance, loss_scale=loss_scale)
 
     # Case 1: @method_from_loss(func) (no arguments decorator)
     if func is not None:
@@ -97,9 +133,28 @@ class MaximumLikelihood(NumericalMethod):
     """
     Standard MLE for Discrete Choice (Migration/Occupation).
     Computes Negative Log-Likelihood (NLL) based on choice probabilities.
+
+    Observations:
+        The ``observations`` container (a dict or any PyTree readable by
+        :func:`~econox.utils.get_from_pytree`) must provide:
+
+        * ``state_indices`` (**required**): 1-D integer array indexing the observed
+          state of each observation.
+        * ``choice_indices`` (**required**): 1-D integer array (same length as
+          ``state_indices``) indexing the chosen action of each observation.
+        * ``weights`` (*optional*): 1-D float array of per-observation **frequency
+          weights** (replication counts), same length as ``state_indices``; omitted means
+          equal weighting. Estimates and standard errors behave as if each observation
+          appeared ``weight`` times, and ``sum(weights)`` is the effective sample size.
+          Sampling / probability weights are not supported. Must be 1-D or omitted (see
+          :meth:`~econox.methods.base.EstimationMethod._get_validated_weights`).
+
+        The choice probabilities themselves come from the solver output (``result``),
+        under the field named by :attr:`choice_probs_key`; they are indexed as
+        ``choice_probs[state_indices, choice_indices]``.
     """
     choice_probs_key: str = "profile"  # Field name in SolverResult containing P(a|s)
-    
+
     variance: Variance | None = eqx.field(default_factory=Hessian, kw_only=True)
     """
     Variance calculation strategy for standard errors (default: Hessian).
@@ -131,35 +186,65 @@ class MaximumLikelihood(NumericalMethod):
         # Indexing: Get probability of the chosen action in the current state
         # P[s_i, a_i]
         p_selected = choice_probs[obs_states, obs_choices]
-        
+
         # Clip for numerical stability to avoid log(0)
         p_selected = jnp.clip(p_selected, 1e-10, 1.0)
-        
+
         # Calculate weighted log-likelihood
         # Sum of weights (N)
         sum_weights = jnp.sum(obs_weights) if jnp.ndim(obs_weights) > 0 else obs_states.shape[0]
-        
+
         # LL = sum( w_i * log(P_i) )
         ll_choice = jnp.sum(jnp.log(p_selected) * obs_weights)
-        
+
         # NLL = - LL / N (Mean Negative Log Likelihood)
         nll = - (ll_choice / sum_weights)
-        
+
         # Robustness check: Return huge penalty if NLL is NaN/Inf
         robust_nll = jnp.where(jnp.isfinite(nll), nll, jnp.array(LOSS_PENALTY))
 
         return robust_nll
+
+    def _loss_scale(self, observations: Any) -> Scalar:
+        """
+        Divisor used by :meth:`compute_loss`: the sum of (frequency) weights, or the
+        observation count when weights are absent. Variance estimators divide by this to
+        recover the un-normalized objective. Under frequency weights this equals the
+        effective sample size. See :meth:`EstimationMethod._loss_scale`.
+        """
+        obs_weights = self._get_validated_weights(observations)
+        if obs_weights is not None:
+            return jnp.sum(obs_weights)
+        obs_states = get_from_pytree(observations, "state_indices")
+        return obs_states.shape[0]
 
 
 class GaussianMomentMatch(NumericalMethod):
     """
     Fits a continuous model variable (e.g. Rent, Wage) to observed data
     assuming a Gaussian (or Log-Normal) error structure.
+
+    Unlike :class:`MaximumLikelihood`, the data keys are not fixed names but are
+    configured per instance via the fields below, so the same method can target any
+    observed/predicted variable pair.
+
+    Observations:
+        ``observations`` must provide the observed values under the key named by
+        :attr:`obs_key`. The matching model prediction is read under :attr:`model_key`
+        from ``result.aux["equilibrium_data"]`` when present, otherwise from
+        ``model.data``. The noise scale is read under :attr:`scale_param_key` from the
+        estimated ``params``.
+
+    Attributes:
+        obs_key: Key of the observed values in ``observations``.
+        model_key: Key of the predicted values in the equilibrium data / ``model.data``.
+        scale_param_key: Key of the Gaussian scale (sigma) in ``params``.
+        log_transform: If True, compare values in log space (Log-Normal error).
     """
-    obs_key: str 
-    model_key: str 
-    scale_param_key: str 
-    
+    obs_key: str
+    model_key: str
+    scale_param_key: str
+
     log_transform: bool = False
     variance: Variance | None = eqx.field(default=None, kw_only=True)
 

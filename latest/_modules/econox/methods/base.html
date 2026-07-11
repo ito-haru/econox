@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.methods.base - Econox 0.1.3.post1.dev6 documentation</title>
+        <title>econox.methods.base - Econox 0.1.4.post1.dev1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.3.post1.dev6)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.4.post1.dev1)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.3.post1.dev6 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.4.post1.dev1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.3.post1.dev6 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -243,7 +243,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">equinox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">eqx</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">Scalar</span><span class="p">,</span> <span class="n">Array</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
@@ -254,7 +254,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Minimizer</span><span class="p">,</span> <span class="n">MinimizerResult</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralModel</span><span class="p">,</span> <span class="n">Solver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.structures</span><span class="w"> </span><span class="kn">import</span> <span class="n">EstimationResult</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">econox.methods.variance</span><span class="w"> </span><span class="kn">import</span> <span class="n">Variance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">econox.methods.variance</span><span class="w"> </span><span class="kn">import</span> <span class="n">Variance</span><span class="p">,</span> <span class="n">InferenceInputs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.structures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterSpace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_from_pytree</span>
 
@@ -294,7 +294,6 @@
         <span class="n">optimizer</span><span class="p">:</span> <span class="n">Minimizer</span> <span class="o">=</span> <span class="n">Minimizer</span><span class="p">(),</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">initial_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">sample_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EstimationResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Estimates the model parameters to minimize the objective function.</span>
@@ -306,10 +305,6 @@
 <span class="sd">            observations: Observed data to match (passed to Objective).</span>
 <span class="sd">            initial_params: Dictionary of initial parameter values (Constrained space).</span>
 <span class="sd">                            If None, uses initial_params from ParameterSpace.</span>
-<span class="sd">            sample_size: Effective sample size for variance calculations.</span>
-<span class="sd">                         Note: This argument is primarily for numerical estimation.</span>
-<span class="sd">                         If an analytical solution is found, this argument </span>
-<span class="sd">                         is ignored and the actual data size (n_obs) is used instead.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            EstimationResult containing:</span>
@@ -329,7 +324,6 @@
             <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
             <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
             <span class="n">initial_params</span><span class="o">=</span><span class="n">initial_params</span><span class="p">,</span>
-            <span class="n">sample_size</span><span class="o">=</span><span class="n">sample_size</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
@@ -343,7 +337,6 @@
         <span class="n">optimizer</span><span class="p">:</span> <span class="n">Minimizer</span> <span class="o">=</span> <span class="n">Minimizer</span><span class="p">(),</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">initial_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">sample_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EstimationResult</span><span class="p">:</span>
         <span class="c1"># Prepare Initial Parameters</span>
         <span class="c1"># Convert constrained initial params to raw (unconstrained) space for the optimizer</span>
@@ -354,32 +347,12 @@
             
         <span class="n">raw_init</span> <span class="o">=</span> <span class="n">param_space</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">constrained_init</span><span class="p">)</span>
 
-        <span class="c1"># Sample Size Handling</span>
-        <span class="n">sum_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sum_weights</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span>
-        <span class="n">final_N</span> <span class="o">=</span> <span class="kc">None</span>
-    
-        <span class="k">if</span> <span class="n">sample_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Use provided sample size</span>
-            <span class="n">final_N</span> <span class="o">=</span> <span class="n">sample_size</span>
-            <span class="c1"># Warn if provided sample size differs from sum of weights</span>
-            <span class="k">if</span> <span class="n">sum_weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">final_N</span> <span class="o">-</span> <span class="n">sum_weights</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span> 
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Provided sample_size (</span><span class="si">{</span><span class="n">final_N</span><span class="si">}</span><span class="s2">) differs from sum of weights (</span><span class="si">{</span><span class="n">sum_weights</span><span class="si">}</span><span class="s2">). &quot;</span>
-                        <span class="s2">&quot;Using provided sample_size.&quot;</span>
-                    <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Try to infer sample size from weights in observations</span>
-            <span class="k">if</span> <span class="n">sum_weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">final_N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sum_weights</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using sum of weights (N=</span><span class="si">{</span><span class="n">final_N</span><span class="si">}</span><span class="s2">) as sample size.&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Unable to determine sample size</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Sample size could not be determined.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                    <span class="s2">&quot;Please provide `sample_size` argument explicitly, or ensure `observations` contains &#39;weights&#39;.&quot;</span>
-                <span class="p">)</span>
-        
+        <span class="c1"># Fail fast before the (expensive) optimization: each strategy checks its own</span>
+        <span class="c1"># prerequisites (e.g. Hessian needs a declared loss scale) via `validate`,</span>
+        <span class="c1"># keeping this loop agnostic to concrete strategy types.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">variance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variance</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">)</span>
+
         <span class="c1"># Define Loss Function (The core pipeline)</span>
         <span class="nd">@eqx</span><span class="o">.</span><span class="n">filter_jit</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">loss_fn</span><span class="p">(</span><span class="n">raw_params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span><span class="p">:</span>
@@ -437,7 +410,26 @@
         <span class="n">std_errors</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">vcov</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="n">opt_result</span><span class="o">.</span><span class="n">success</span> <span class="ow">and</span> <span class="n">final_N</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">variance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Divisor `compute_loss` normalized by (e.g. sum of weights), which variance</span>
+        <span class="c1"># estimators need to recover the un-normalized objective. Under frequency</span>
+        <span class="c1"># weights this is the weighted observation count (the effective sample size).</span>
+        <span class="c1"># `None` when undeclared (never guessed); Hessian rejects that case in</span>
+        <span class="c1"># `validate` above, sum-form strategies ignore it.</span>
+        <span class="n">loss_scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scale</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span>
+
+        <span class="c1"># Row count reported as `n_obs` in `meta`. With frequency weights this differs</span>
+        <span class="c1"># from the effective sample size (sum of weights, carried by `loss_scale`): the</span>
+        <span class="c1"># weight vector has one entry per row, so its length is the number of distinct</span>
+        <span class="c1"># observations. Unweighted, the two coincide, so fall back to `loss_scale`;</span>
+        <span class="c1"># `None` when neither is available (e.g. GMM without weights).</span>
+        <span class="n">obs_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_validated_weights</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span>
+        <span class="n">n_obs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">obs_weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">obs_weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">loss_scale</span><span class="p">)</span> <span class="k">if</span> <span class="n">loss_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">opt_result</span><span class="o">.</span><span class="n">success</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">variance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="c1"># A. Create separate unravel functions for raw and constrained spaces</span>
                 <span class="c1"># Use the actual optimization results as templates to ensure structure matching</span>
@@ -447,19 +439,27 @@
                 <span class="c1"># B. Get flat vector of free parameters (optimizer output)</span>
                 <span class="n">flat_raw_params_free</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ravel_pytree</span><span class="p">(</span><span class="n">final_raw_params_free</span><span class="p">)</span>
 
-                <span class="c1"># C. Define wrapper loss for free params only</span>
-                <span class="c1"># Must match the structure used during JIT-compilation of loss_fn</span>
-                <span class="k">def</span><span class="w"> </span><span class="nf">loss_fn_for_inference</span><span class="p">(</span><span class="n">free_params_vec</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span><span class="p">:</span>
-                    <span class="n">raw_pytree</span> <span class="o">=</span> <span class="n">unravel_raw_fn</span><span class="p">(</span><span class="n">free_params_vec</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">raw_pytree</span><span class="p">,</span> <span class="n">observations</span><span class="p">)</span>
+                <span class="c1"># C. Sum-form loss for inference: mean loss * divisor = un-normalized</span>
+                <span class="c1"># objective, so the Hessian already carries the 1/N scaling and no</span>
+                <span class="c1"># sample-size constant threads through the variance interface. The unravel</span>
+                <span class="c1"># must match the structure used when loss_fn was JIT-compiled. `None` when</span>
+                <span class="c1"># no scale is declared (only sum-form-free strategies are then usable).</span>
+                <span class="n">total_loss_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Array</span><span class="p">],</span> <span class="n">Scalar</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">loss_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">def</span><span class="w"> </span><span class="nf">total_loss_fn</span><span class="p">(</span><span class="n">free_params_vec</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span><span class="p">:</span>
+                        <span class="n">raw_pytree</span> <span class="o">=</span> <span class="n">unravel_raw_fn</span><span class="p">(</span><span class="n">free_params_vec</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">raw_pytree</span><span class="p">,</span> <span class="n">observations</span><span class="p">)</span> <span class="o">*</span> <span class="n">loss_scale</span>
 
-                <span class="c1"># D. Compute variance in the free raw space</span>
+                <span class="c1"># D. Compute variance in the free raw space. Everything a strategy might</span>
+                <span class="c1"># need is bundled into `InferenceInputs`; each strategy reads only what it</span>
+                <span class="c1"># uses (Hessian: total_loss_fn).</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">vcov_free</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variance</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span>
-                    <span class="n">loss_fn</span><span class="o">=</span><span class="n">loss_fn_for_inference</span><span class="p">,</span>
-                    <span class="n">params</span><span class="o">=</span><span class="n">flat_raw_params_free</span><span class="p">,</span>
-                    <span class="n">observations</span><span class="o">=</span><span class="n">observations</span><span class="p">,</span>
-                    <span class="n">num_observations</span><span class="o">=</span><span class="n">final_N</span>
+                    <span class="n">InferenceInputs</span><span class="p">(</span>
+                        <span class="n">params</span><span class="o">=</span><span class="n">flat_raw_params_free</span><span class="p">,</span>
+                        <span class="n">observations</span><span class="o">=</span><span class="n">observations</span><span class="p">,</span>
+                        <span class="n">total_loss_fn</span><span class="o">=</span><span class="n">total_loss_fn</span><span class="p">,</span>
                     <span class="p">)</span>
+                <span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">vcov_free</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># E. Delta method: Map free raw vector -&gt; full constrained vector</span>
@@ -524,7 +524,8 @@
                 <span class="s2">&quot;estimation_method&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
                 <span class="s2">&quot;inference_method&quot;</span><span class="p">:</span> 
                     <span class="bp">self</span><span class="o">.</span><span class="n">variance</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">variance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s2">&quot;n_obs&quot;</span><span class="p">:</span> <span class="n">final_N</span><span class="p">,</span>
+                <span class="s2">&quot;n_obs&quot;</span><span class="p">:</span> <span class="n">n_obs</span><span class="p">,</span>
+                <span class="s2">&quot;loss_scale&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">loss_scale</span><span class="p">)</span> <span class="k">if</span> <span class="n">loss_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s2">&quot;n_params&quot;</span><span class="p">:</span> <span class="n">param_space</span><span class="o">.</span><span class="n">num_total_params</span><span class="p">,</span>
                 <span class="s2">&quot;n_free_params&quot;</span><span class="p">:</span> <span class="n">param_space</span><span class="o">.</span><span class="n">num_free_params</span><span class="p">,</span>
                 <span class="s2">&quot;n_fixed&quot;</span><span class="p">:</span> <span class="n">param_space</span><span class="o">.</span><span class="n">num_total_params</span> <span class="o">-</span> <span class="n">param_space</span><span class="o">.</span><span class="n">num_free_params</span>
@@ -563,6 +564,19 @@
         <span class="p">)</span></div>
 
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_loss_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The constant :meth:`compute_loss` normalizes by (e.g. sum of weights for a mean</span>
+<span class="sd">        loss). Variance estimators divide by this to recover the un-normalized objective.</span>
+<span class="sd">        Under frequency weights this is the effective sample size (sum of weights), which</span>
+<span class="sd">        differs from the number of observation rows reported as ``n_obs``.</span>
+
+<span class="sd">        Returns ``None`` when the objective is not a simple normalized sum (e.g. GMM),</span>
+<span class="sd">        in which case sum-form variance strategies are unavailable (enforced by</span>
+<span class="sd">        :meth:`~econox.methods.variance.Variance.validate`).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
 <div class="viewcode-block" id="EstimationMethod.solve">
 <a class="viewcode-back" href="../../../api_reference.html#econox.methods.base.EstimationMethod.solve">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span>
@@ -591,15 +605,27 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
     
-    <span class="k">def</span><span class="w"> </span><span class="nf">_get_sum_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_validated_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Extract sum of weights from observations if available.</span>
-<span class="sd">        Returns None if &#39;weights&#39; key is not found.</span>
+<span class="sd">        Return observation weights as a validated 1-D array, or ``None`` if absent.</span>
+
+<span class="sd">        Weights are **frequency weights** (replication counts) and must be omitted or</span>
+<span class="sd">        1-D with one entry per observation. A non-1-D ``weights`` (e.g. a scalar) is</span>
+<span class="sd">        rejected rather than silently broadcast into the numerator while dropped from the</span>
+<span class="sd">        denominator, which would desynchronize the loss and variance. Shapes are static</span>
+<span class="sd">        under JIT, so this check is trace-safe.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">))</span>
-        <span class="k">return</span> <span class="kc">None</span></div>
+        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;&#39;weights&#39; must be a 1-D array with one entry per observation &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(or omitted), but got a </span><span class="si">{</span><span class="n">weights</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s2">-D array of shape &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">weights</span></div>
 
 
 
@@ -683,7 +709,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=3dc95f33"></script>
+</div><script src="../../../_static/documentation_options.js?v=b0eccb15"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

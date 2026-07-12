@@ -55,8 +55,9 @@ from econox.methods import (
     CompositeMethod,
     LeastSquares, 
     TwoStageLeastSquares,
-    method_from_loss
+    method_from_loss,
 )
+from econox.methods import variance  # ecx.variance.Hessian / .Sandwich / .Variance
 
 from econox import optim, protocols, utils
 
@@ -98,6 +99,7 @@ __all__ = [
     "LeastSquares",
     "TwoStageLeastSquares",
     "method_from_loss",
+    "variance",
     # Others
     "optim",
     "protocols",

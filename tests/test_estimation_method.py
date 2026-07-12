@@ -155,7 +155,7 @@ def test_fixed_parameter(simple_model, linear_data):
     initial_params = {"beta_0": 0.0, "intercept": 10.0}
     param_space = ParameterSpace.create(
         initial_params=initial_params,
-        constraints={"intercept": "fixed"}
+        constraints={"intercept": ConstraintKind.FIXED}
     )
     
     method = LeastSquares(feature_key="x", target_key="y")
@@ -178,7 +178,7 @@ def test_parameter_order_with_fixed_params_maximum_likelihood():
     Case 1: 'xi' style parameters with MaximumLikelihood.
     """
     initial_params = {"xi_1": 0.0, "xi_10": 1.0, "xi_2": 2.0, "xi_12": 3.0}
-    constraints: dict[str, ConstraintKind] = {"xi_10": "fixed", "xi_12": "fixed"}
+    constraints: dict[str, ConstraintKind] = {"xi_10": ConstraintKind.FIXED, "xi_12": ConstraintKind.FIXED}
     
     param_space = ParameterSpace.create(initial_params=initial_params, constraints=constraints)
     
@@ -302,7 +302,7 @@ def test_fixed_parameter_with_variance_dynamic_model():
     initial_params = {"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1}
     param_space = ParameterSpace.create(
         initial_params=initial_params,
-        constraints={"beta_2": "fixed"}
+        constraints={"beta_2": ConstraintKind.FIXED}
     )
     
     method = MaximumLikelihood(variance=Hessian())
@@ -551,7 +551,7 @@ def test_sandwich_variance_dynamic_model():
     initial_params = {"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1}
     param_space = ParameterSpace.create(
         initial_params=initial_params,
-        constraints={"beta_2": "fixed"}
+        constraints={"beta_2": ConstraintKind.FIXED}
     )
 
     method = MaximumLikelihood(variance=Sandwich())

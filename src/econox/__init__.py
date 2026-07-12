@@ -19,6 +19,7 @@ Main components:
 from econox.structures import (
     Model,
     ParameterSpace,
+    ConstraintKind,
     SolverResult,
     EstimationResult
 )
@@ -65,6 +66,7 @@ __all__ = [
     # Structures
     "Model",
     "ParameterSpace",
+    "ConstraintKind",
     "SolverResult",
     "EstimationResult",
     # Logic

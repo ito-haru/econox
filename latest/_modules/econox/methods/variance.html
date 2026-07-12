@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.methods.variance - Econox 0.1.4.post1.dev1 documentation</title>
+        <title>econox.methods.variance - Econox 0.1.4.post1.dev2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.4.post1.dev1)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.4.post1.dev2)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.4.post1.dev1 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.4.post1.dev2 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev1 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev2 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -245,7 +245,6 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">equinox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">eqx</span>
@@ -278,10 +277,18 @@
 <span class="sd">            ``None`` when the method declares no loss scale</span>
 <span class="sd">            (:meth:`~econox.methods.base.EstimationMethod._loss_scale`); a strategy that</span>
 <span class="sd">            needs it (e.g. :class:`Hessian`) rejects that in :meth:`Variance.validate`.</span>
+<span class="sd">        per_obs_loss_fn: The **un-weighted** per-observation loss contributions as a</span>
+<span class="sd">            function of ``params`` (shape ``(n_obs,)``), or ``None`` when the method</span>
+<span class="sd">            cannot decompose its objective. Required by robust estimators</span>
+<span class="sd">            (:class:`Sandwich`) for the &quot;meat&quot; term.</span>
+<span class="sd">        weights: Optional 1-D **frequency weights** (replication counts) aligned with</span>
+<span class="sd">            ``per_obs_loss_fn``. ``None`` means unweighted.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">params</span><span class="p">:</span> <span class="n">Array</span>
     <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span>
-    <span class="n">total_loss_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Array</span><span class="p">],</span> <span class="n">Scalar</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="n">total_loss_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Array</span><span class="p">],</span> <span class="n">Scalar</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">per_obs_loss_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Array</span><span class="p">],</span> <span class="n">Array</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
@@ -304,10 +311,10 @@
 <span class="sd">        clear error if not. Called once, *before* optimization, so a misconfiguration</span>
 <span class="sd">        is caught up-front rather than after a costly fit.</span>
 
-<span class="sd">        The default is a no-op: a strategy that degrades gracefully at compute time need</span>
-<span class="sd">        not override it. Keeping the check inside the strategy, rather than having the</span>
-<span class="sd">        estimation loop special-case concrete types, lets new strategies declare their own</span>
-<span class="sd">        needs without touching the caller.</span>
+<span class="sd">        The default is a no-op: a strategy with no prerequisites need not override it.</span>
+<span class="sd">        Keeping the check inside the strategy, rather than having the estimation loop</span>
+<span class="sd">        special-case concrete types, lets new strategies declare their own needs without</span>
+<span class="sd">        touching the caller.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            method: The :class:`~econox.methods.base.EstimationMethod` being fit.</span>
@@ -363,7 +370,8 @@
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not declare a loss normalization &quot;</span>
                 <span class="s2">&quot;constant (`_loss_scale` returned None), which Hessian variance &quot;</span>
                 <span class="s2">&quot;requires. Declare it (e.g. `loss_scale=...` on method_from_loss, or &quot;</span>
-                <span class="s2">&quot;override `_loss_scale`), or use `variance=None`.&quot;</span>
+                <span class="s2">&quot;override `_loss_scale`), or use `variance=None` / a sum-form strategy &quot;</span>
+                <span class="s2">&quot;like Sandwich.&quot;</span>
             <span class="p">)</span></div>
 
 
@@ -383,23 +391,164 @@
 <span class="sd">            tuple: ``(std_errors, vcov)``; ``(None, None)`` if the Hessian is singular</span>
 <span class="sd">            or its inversion fails.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># Hessian of the *summed* loss: the 1/N scaling is already baked in, so the</span>
-            <span class="c1"># inverse is directly the covariance (no division by a sample-size constant).</span>
-            <span class="n">H</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">hessian</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">total_loss_fn</span><span class="p">)(</span><span class="n">inputs</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="c1"># Hessian of the *summed* loss: the 1/N scaling is already baked in, so the</span>
+        <span class="c1"># inverse is directly the covariance (no division by a sample-size constant).</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">hessian</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">total_loss_fn</span><span class="p">)(</span><span class="n">inputs</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 
-            <span class="c1"># pinv for numerical stability against singular matrices.</span>
-            <span class="n">vcov</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
+        <span class="c1"># pinv for numerical stability against singular matrices.</span>
+        <span class="n">vcov</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
 
-            <span class="c1"># Standard Errors: sqrt of the diagonal; maximum(0) guards against negative</span>
-            <span class="c1"># diagonal elements from numerical noise.</span>
-            <span class="n">std_errors_flat</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">vcov</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="c1"># pinv never raises on a singular/ill-conditioned Hessian; a degenerate or</span>
+        <span class="c1"># non-finite H instead propagates as NaN/inf through the inverse. Detect that</span>
+        <span class="c1"># explicitly and signal failure with (None, None) rather than returning a</span>
+        <span class="c1"># silently-invalid covariance.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">vcov</span><span class="p">))):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Hessian inversion produced non-finite values; returning None.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
-            <span class="k">return</span> <span class="n">std_errors_flat</span><span class="p">,</span> <span class="n">vcov</span>
+        <span class="c1"># Standard Errors: sqrt of the diagonal; maximum(0) guards against negative</span>
+        <span class="c1"># diagonal elements from numerical noise.</span>
+        <span class="n">std_errors_flat</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">vcov</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">))</span>
 
-        <span class="k">except</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hessian inversion failed due to numerical instability: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+        <span class="k">return</span> <span class="n">std_errors_flat</span><span class="p">,</span> <span class="n">vcov</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Sandwich">
+<a class="viewcode-back" href="../../../api_reference.html#econox.methods.variance.Sandwich">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Sandwich</span><span class="p">(</span><span class="n">Variance</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Robust (Huber-White / QMLE) &quot;sandwich&quot; variance estimator.</span>
+
+<span class="sd">    Combines the inverse Hessian (&quot;bread&quot;) with the outer product of per-observation</span>
+<span class="sd">    scores (&quot;meat&quot;) to obtain standard errors that are consistent even under</span>
+<span class="sd">    distributional misspecification or heteroskedasticity. Also known as the robust</span>
+<span class="sd">    Hessian estimator.</span>
+
+<span class="sd">    :math:`V = H^{-1} B H^{-1}`</span>
+
+<span class="sd">    where :math:`H = \sum_i \partial^2 \ell_i` is the Hessian of the *summed* loss</span>
+<span class="sd">    (bread) and :math:`B = \sum_i g_i g_i^\top` is the outer product of the</span>
+<span class="sd">    per-observation scores :math:`g_i = \partial \ell_i` (meat).</span>
+
+<span class="sd">    Working in this un-normalized (sum) form means no explicit sample-size or</span>
+<span class="sd">    normalization constant is needed: the :math:`1/N` scaling emerges naturally from</span>
+<span class="sd">    the magnitudes of the bread and meat. Both are derived from the *same* un-weighted</span>
+<span class="sd">    per-observation scores, so they are mutually consistent by construction.</span>
+
+<span class="sd">    Under correct specification the information matrix equality gives :math:`H \approx B`,</span>
+<span class="sd">    so :math:`V \approx H^{-1}`, matching the observed-information (:class:`Hessian`)</span>
+<span class="sd">    estimator.</span>
+
+<span class="sd">    **Weights are treated as frequency weights** (replication counts). Both the bread</span>
+<span class="sd">    and the meat scale *linearly* in the weights,</span>
+
+<span class="sd">    .. math:: H = \sum_i w_i \partial^2 \ell_i, \qquad B = \sum_i w_i\, g_i g_i^\top,</span>
+
+<span class="sd">    so a weight of :math:`w_i` behaves exactly like :math:`w_i` identical copies of</span>
+<span class="sd">    observation :math:`i`, consistent with the frequency-weight semantics used</span>
+<span class="sd">    throughout the library.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">       Sampling / probability weights (Horvitz--Thompson, :math:`w_i = 1/\pi_i`) are</span>
+<span class="sd">       **not** supported: they would need a *quadratic* meat</span>
+<span class="sd">       :math:`B = \sum_i w_i^2 g_i g_i^\top`, deliberately left disabled so the</span>
+<span class="sd">       frequency-weight contract stays unambiguous.</span>
+
+<span class="sd">    Requires the method to supply per-observation scores</span>
+<span class="sd">    (:meth:`~econox.methods.base.EstimationMethod.compute_loss_per_obs`). This is checked</span>
+<span class="sd">    up-front in :meth:`validate`, so a method that cannot provide them is rejected before</span>
+<span class="sd">    the costly fit rather than silently yielding ``None`` standard errors afterwards.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Sandwich.validate">
+<a class="viewcode-back" href="../../../api_reference.html#econox.methods.variance.Sandwich.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Require per-observation scores. The sandwich &quot;meat&quot;</span>
+<span class="sd">        :math:`B = \\sum_i g_i g_i^\\top` is the outer product of per-observation score</span>
+<span class="sd">        contributions, so the method must decompose its objective additively over</span>
+<span class="sd">        observations via</span>
+<span class="sd">        :meth:`~econox.methods.base.EstimationMethod.compute_loss_per_obs`. Reject up-front</span>
+<span class="sd">        rather than let the user pay for a fit and only then discover the robust standard</span>
+<span class="sd">        errors could not be computed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">method</span><span class="o">.</span><span class="n">_supports_per_obs_loss</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> does not provide a per-observation loss &quot;</span>
+                <span class="s2">&quot;(`compute_loss_per_obs` is not overridden), which Sandwich (robust) &quot;</span>
+                <span class="s2">&quot;variance requires for the score / meat term. Use `variance=Hessian()` &quot;</span>
+                <span class="s2">&quot;or `variance=None`, or implement `compute_loss_per_obs`.&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Sandwich.compute">
+<a class="viewcode-back" href="../../../api_reference.html#econox.methods.variance.Sandwich.compute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">InferenceInputs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">PyTree</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Float</span><span class="p">[</span><span class="n">Array</span><span class="p">,</span> <span class="s2">&quot;n_params n_params&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates robust standard errors and covariance via the sandwich formula.</span>
+
+<span class="sd">        Reads only ``per_obs_loss_fn``, ``params`` and ``weights`` from ``inputs``:</span>
+<span class="sd">        both bread and meat come from the same un-weighted per-observation scores, so</span>
+<span class="sd">        the estimate is independent of how the aggregate objective was scaled.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: ``(std_errors, vcov)``; ``(None, None)`` if no per-observation loss</span>
+<span class="sd">            is available or the computation fails numerically.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># :meth:`validate` already rejects methods without per-observation scores before</span>
+        <span class="c1"># the fit, so a missing `per_obs_loss_fn` here means `compute` was called directly</span>
+        <span class="c1"># (bypassing the estimation loop). Keep a defensive guard rather than crash.</span>
+        <span class="k">if</span> <span class="n">inputs</span><span class="o">.</span><span class="n">per_obs_loss_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Sandwich (robust) variance requires a per-observation loss, but the &quot;</span>
+                <span class="s2">&quot;estimation method does not provide one. Returning None.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="c1"># Both bread and meat are built from `per_obs_loss_fn`, NOT from</span>
+        <span class="c1"># `total_loss_fn`. At a finite point `jax.hessian(total_loss_fn)` equals the</span>
+        <span class="c1"># weighted bread below, but Sandwich must also work when the method declares no</span>
+        <span class="c1"># loss scale (`_loss_scale` -&gt; None, so `total_loss_fn` is None): deriving</span>
+        <span class="c1"># everything from the raw per-obs scores keeps it independent of that</span>
+        <span class="c1"># normalization, and avoids the LOSS_PENALTY clamp `total_loss_fn` carries.</span>
+        <span class="c1"># Do not &quot;simplify&quot; by reusing `total_loss_fn` for the bread.</span>
+        <span class="c1">#</span>
+        <span class="c1"># Scores: un-weighted per-observation gradients. jacfwd is cheaper when</span>
+        <span class="c1"># n_params &lt;&lt; n_obs. G has shape (n_obs, n_params); row i is g_i = d l_i/d p.</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jacfwd</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">per_obs_loss_fn</span><span class="p">)(</span><span class="n">inputs</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inputs</span><span class="o">.</span><span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Bread: H = sum_i d^2 l_i / d params^2. Meat: B = sum_i g_i g_i^T.</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">hessian</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">per_obs_loss_fn</span><span class="p">(</span><span class="n">p</span><span class="p">)))(</span><span class="n">inputs</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">B</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">G</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+            <span class="c1"># Bread: H = sum_i w_i d^2 l_i / d params^2 (Hessian of the weighted sum).</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">hessian</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">inputs</span><span class="o">.</span><span class="n">per_obs_loss_fn</span><span class="p">(</span><span class="n">p</span><span class="p">)))(</span><span class="n">inputs</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+            <span class="c1"># Meat: B = sum_i w_i g_i g_i^T  (linear in the frequency weights).</span>
+            <span class="n">B</span> <span class="o">=</span> <span class="p">(</span><span class="n">G</span> <span class="o">*</span> <span class="n">w</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">G</span>
+
+        <span class="c1"># Sandwich: V = H^{-1} B H^{-1}. The 1/N scaling emerges from the magnitudes</span>
+        <span class="c1"># of H (~N) and B (~N); pinv guards against singular matrices.</span>
+        <span class="n">H_inv</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
+        <span class="n">vcov</span> <span class="o">=</span> <span class="n">H_inv</span> <span class="o">@</span> <span class="n">B</span> <span class="o">@</span> <span class="n">H_inv</span>
+
+        <span class="c1"># pinv never raises on a singular/ill-conditioned bread; a degenerate or</span>
+        <span class="c1"># non-finite H (or scores) instead propagates as NaN/inf through the sandwich.</span>
+        <span class="c1"># Detect that explicitly and signal failure with (None, None) rather than</span>
+        <span class="c1"># returning a silently-invalid covariance.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">vcov</span><span class="p">))):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Sandwich variance produced non-finite values; returning None.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="c1"># Standard Errors: sqrt of diagonal, clamped for numerical noise.</span>
+        <span class="n">std_errors_flat</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">vcov</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">std_errors_flat</span><span class="p">,</span> <span class="n">vcov</span></div>
 </div>
 
 </pre></div>
@@ -434,7 +583,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b0eccb15"></script>
+</div><script src="../../../_static/documentation_options.js?v=8714417f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

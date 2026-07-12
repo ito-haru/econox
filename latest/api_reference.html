@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="Welcome to Econox’s documentation!" href="index.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>API Reference - Econox 0.1.4.post1.dev1 documentation</title>
+        <title>API Reference - Econox 0.1.4.post1.dev2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -159,7 +159,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.4.post1.dev1)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.4.post1.dev2)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -171,7 +171,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">Econox 0.1.4.post1.dev1 documentation</div></a>
+      <a href="index.html"><div class="brand">Econox 0.1.4.post1.dev2 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev1 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev2 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -3255,6 +3255,37 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="econox.methods.base.EstimationMethod.compute_loss_per_obs">
+<span class="sig-name descname"><span class="pre">compute_loss_per_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/base.html#EstimationMethod.compute_loss_per_obs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.base.EstimationMethod.compute_loss_per_obs" title="Link to this definition">¶</a></dt>
+<dd><p>The <strong>un-weighted</strong> per-observation loss contributions (a vector), the source
+of the scores used by robust / sandwich covariance estimators.</p>
+<p>Must be consistent with <a class="reference internal" href="#econox.methods.base.EstimationMethod.compute_loss" title="econox.methods.base.EstimationMethod.compute_loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute_loss()</span></code></a>: weighting these entries and summing
+reproduces the numerator <code class="docutils literal notranslate"><span class="pre">compute_loss</span></code> divides by <code class="xref py py-meth docutils literal notranslate"><span class="pre">_loss_scale()</span></code>.
+Weighting is left to the <em>callers</em>, never applied here, so the raw scores stay
+available for the sandwich meat (which must scale linearly, not quadratically,
+in the weights).</p>
+<p>Only implementable by methods whose objective decomposes additively over
+observations (e.g. MLE); others leave it unimplemented and robust strategies
+then warn and return <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – The output from the Solver (e.g., <cite>SolverResult</cite>), or None.</p></li>
+<li><p><strong>observations</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Observed data to fit the model against.</p></li>
+<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyTree</span></code></span>) – Current model parameters.</p></li>
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructuralModel</span></code></a></span>) – The structural model environment.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 1D JAX array of shape <code class="docutils literal notranslate"><span class="pre">(n_obs,)</span></code> with per-observation loss contributions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="econox.methods.base.EstimationMethod.solve">
 <span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_space</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/base.html#EstimationMethod.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.base.EstimationMethod.solve" title="Link to this definition">¶</a></dt>
 <dd><p>Computes the analytical solution for the parameters, if available.</p>
@@ -3925,7 +3956,8 @@ state of each observation.</p></li>
 <code class="docutils literal notranslate"><span class="pre">state_indices</span></code>) indexing the chosen action of each observation.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">weights</span></code> (<em>optional</em>): 1-D float array of per-observation <strong>frequency
 weights</strong> (replication counts), same length as <code class="docutils literal notranslate"><span class="pre">state_indices</span></code>; omitted means
-equal weighting. Estimates and standard errors behave as if each observation
+equal weighting. Estimates and standard errors (including
+<a class="reference internal" href="#econox.methods.variance.Sandwich" title="econox.methods.variance.Sandwich"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sandwich</span></code></a>) behave as if each observation
 appeared <code class="docutils literal notranslate"><span class="pre">weight</span></code> times, and <code class="docutils literal notranslate"><span class="pre">sum(weights)</span></code> is the effective sample size.
 Sampling / probability weights are not supported. Must be 1-D or omitted (see
 <code class="xref py py-meth docutils literal notranslate"><span class="pre">_get_validated_weights()</span></code>).</p></li>
@@ -3969,6 +4001,30 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A scalar JAX array representing the loss (e.g., Negative Log-Likelihood).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.methods.numerical.MaximumLikelihood.compute_loss_per_obs">
+<span class="sig-name descname"><span class="pre">compute_loss_per_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/numerical.html#MaximumLikelihood.compute_loss_per_obs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.numerical.MaximumLikelihood.compute_loss_per_obs" title="Link to this definition">¶</a></dt>
+<dd><p>Un-weighted per-observation NLL contributions, the source of the scores used by
+robust / sandwich variance.</p>
+<p>Returns the vector <span class="math notranslate nohighlight">\(\ell_i = -\log P_i\)</span>, <strong>un-weighted</strong>: weighting is
+left to the callers so the sandwich meat scales <em>linearly</em> (not quadratically) in
+the weights. Kept raw (no <code class="docutils literal notranslate"><span class="pre">LOSS_PENALTY</span></code> clamp, no division by N) so the scores
+are exact.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>result</strong> (<em>Any</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>observations</strong> (<em>Any</em>)</p></li>
+<li><p><strong>params</strong> (<em>PyTree</em>)</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#econox.protocols.StructuralModel" title="econox.protocols.StructuralModel"><em>StructuralModel</em></a>)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -4106,7 +4162,7 @@ If an analytical solution is being evaluated, this may be None.</p></li>
 Handles the computation of standard errors and covariance matrices.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="econox.methods.variance.InferenceInputs">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.variance.</span></span><span class="sig-name descname"><span class="pre">InferenceInputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_loss_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/variance.html#InferenceInputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.variance.InferenceInputs" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.variance.</span></span><span class="sig-name descname"><span class="pre">InferenceInputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_loss_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_obs_loss_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/variance.html#InferenceInputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.variance.InferenceInputs" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Everything a <a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variance</span></code></a> strategy may need, bundled into one object.</p>
 <p>The estimation loop builds a single <code class="docutils literal notranslate"><span class="pre">InferenceInputs</span></code> and hands it to
@@ -4125,6 +4181,12 @@ in, so Hessian-based estimators need no separate normalization constant.
 <code class="docutils literal notranslate"><span class="pre">None</span></code> when the method declares no loss scale
 (<code class="xref py py-meth docutils literal notranslate"><span class="pre">_loss_scale()</span></code>); a strategy that
 needs it (e.g. <a class="reference internal" href="#econox.methods.variance.Hessian" title="econox.methods.variance.Hessian"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hessian</span></code></a>) rejects that in <a class="reference internal" href="#econox.methods.variance.Variance.validate" title="econox.methods.variance.Variance.validate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Variance.validate()</span></code></a>.</p></li>
+<li><p><strong>per_obs_loss_fn</strong> – The <strong>un-weighted</strong> per-observation loss contributions as a
+function of <code class="docutils literal notranslate"><span class="pre">params</span></code> (shape <code class="docutils literal notranslate"><span class="pre">(n_obs,)</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code> when the method
+cannot decompose its objective. Required by robust estimators
+(<a class="reference internal" href="#econox.methods.variance.Sandwich" title="econox.methods.variance.Sandwich"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sandwich</span></code></a>) for the “meat” term.</p></li>
+<li><p><strong>weights</strong> – Optional 1-D <strong>frequency weights</strong> (replication counts) aligned with
+<code class="docutils literal notranslate"><span class="pre">per_obs_loss_fn</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code> means unweighted.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
@@ -4132,6 +4194,8 @@ needs it (e.g. <a class="reference internal" href="#econox.methods.variance.Hess
 <li><p><strong>params</strong> (<em>Array</em>)</p></li>
 <li><p><strong>observations</strong> (<em>Any</em>)</p></li>
 <li><p><strong>total_loss_fn</strong> (<em>Callable</em><em>[</em><em>[</em><em>Array</em><em>]</em><em>, </em><em>Shaped</em><em>[</em><em>jaxlib._jax.Array</em><em>, </em><em>''</em><em>]</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>per_obs_loss_fn</strong> (<em>Callable</em><em>[</em><em>[</em><em>Array</em><em>]</em><em>, </em><em>Array</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>weights</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -4148,6 +4212,16 @@ needs it (e.g. <a class="reference internal" href="#econox.methods.variance.Hess
 <dl class="py attribute">
 <dt class="sig sig-object py" id="econox.methods.variance.InferenceInputs.total_loss_fn">
 <span class="sig-name descname"><span class="pre">total_loss_fn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Shaped</span><span class="p"><span class="pre">[</span></span><span class="pre">jaxlib._jax.Array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">''</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.methods.variance.InferenceInputs.total_loss_fn" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.methods.variance.InferenceInputs.per_obs_loss_fn">
+<span class="sig-name descname"><span class="pre">per_obs_loss_fn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.methods.variance.InferenceInputs.per_obs_loss_fn" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.methods.variance.InferenceInputs.weights">
+<span class="sig-name descname"><span class="pre">weights</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#econox.methods.variance.InferenceInputs.weights" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -4168,10 +4242,10 @@ method cannot supply what the strategy needs).</p>
 <dd><p>Check that <code class="docutils literal notranslate"><span class="pre">method</span></code> can supply this strategy’s prerequisites, and raise a
 clear error if not. Called once, <em>before</em> optimization, so a misconfiguration
 is caught up-front rather than after a costly fit.</p>
-<p>The default is a no-op: a strategy that degrades gracefully at compute time need
-not override it. Keeping the check inside the strategy, rather than having the
-estimation loop special-case concrete types, lets new strategies declare their own
-needs without touching the caller.</p>
+<p>The default is a no-op: a strategy with no prerequisites need not override it.
+Keeping the check inside the strategy, rather than having the estimation loop
+special-case concrete types, lets new strategies declare their own needs without
+touching the caller.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -4273,6 +4347,104 @@ or its inversion fails.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="econox.methods.variance.Hessian.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.variance.Hessian.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="econox.methods.variance.Sandwich">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.methods.variance.</span></span><span class="sig-name descname"><span class="pre">Sandwich</span></span><a class="reference internal" href="_modules/econox/methods/variance.html#Sandwich"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.variance.Sandwich" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#econox.methods.variance.Variance" title="econox.methods.variance.Variance"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variance</span></code></a></p>
+<p>Robust (Huber-White / QMLE) “sandwich” variance estimator.</p>
+<p>Combines the inverse Hessian (“bread”) with the outer product of per-observation
+scores (“meat”) to obtain standard errors that are consistent even under
+distributional misspecification or heteroskedasticity. Also known as the robust
+Hessian estimator.</p>
+<p><span class="math notranslate nohighlight">\(V = H^{-1} B H^{-1}\)</span></p>
+<p>where <span class="math notranslate nohighlight">\(H = \sum_i \partial^2 \ell_i\)</span> is the Hessian of the <em>summed</em> loss
+(bread) and <span class="math notranslate nohighlight">\(B = \sum_i g_i g_i^\top\)</span> is the outer product of the
+per-observation scores <span class="math notranslate nohighlight">\(g_i = \partial \ell_i\)</span> (meat).</p>
+<p>Working in this un-normalized (sum) form means no explicit sample-size or
+normalization constant is needed: the <span class="math notranslate nohighlight">\(1/N\)</span> scaling emerges naturally from
+the magnitudes of the bread and meat. Both are derived from the <em>same</em> un-weighted
+per-observation scores, so they are mutually consistent by construction.</p>
+<p>Under correct specification the information matrix equality gives <span class="math notranslate nohighlight">\(H \approx B\)</span>,
+so <span class="math notranslate nohighlight">\(V \approx H^{-1}\)</span>, matching the observed-information (<a class="reference internal" href="#econox.methods.variance.Hessian" title="econox.methods.variance.Hessian"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hessian</span></code></a>)
+estimator.</p>
+<p><strong>Weights are treated as frequency weights</strong> (replication counts). Both the bread
+and the meat scale <em>linearly</em> in the weights,</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[H = \sum_i w_i \partial^2 \ell_i, \qquad B = \sum_i w_i\, g_i g_i^\top,\]</div>
+</div>
+<p>so a weight of <span class="math notranslate nohighlight">\(w_i\)</span> behaves exactly like <span class="math notranslate nohighlight">\(w_i\)</span> identical copies of
+observation <span class="math notranslate nohighlight">\(i\)</span>, consistent with the frequency-weight semantics used
+throughout the library.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Sampling / probability weights (Horvitz–Thompson, <span class="math notranslate nohighlight">\(w_i = 1/\pi_i\)</span>) are
+<strong>not</strong> supported: they would need a <em>quadratic</em> meat
+<span class="math notranslate nohighlight">\(B = \sum_i w_i^2 g_i g_i^\top\)</span>, deliberately left disabled so the
+frequency-weight contract stays unambiguous.</p>
+</div>
+<p>Requires the method to supply per-observation scores
+(<a class="reference internal" href="#econox.methods.base.EstimationMethod.compute_loss_per_obs" title="econox.methods.base.EstimationMethod.compute_loss_per_obs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute_loss_per_obs()</span></code></a>). This is checked
+up-front in <a class="reference internal" href="#econox.methods.variance.Sandwich.validate" title="econox.methods.variance.Sandwich.validate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validate()</span></code></a>, so a method that cannot provide them is rejected before
+the costly fit rather than silently yielding <code class="docutils literal notranslate"><span class="pre">None</span></code> standard errors afterwards.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.methods.variance.Sandwich.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/variance.html#Sandwich.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.variance.Sandwich.validate" title="Link to this definition">¶</a></dt>
+<dd><p>Require per-observation scores. The sandwich “meat”
+<span class="math notranslate nohighlight">\(B = \sum_i g_i g_i^\top\)</span> is the outer product of per-observation score
+contributions, so the method must decompose its objective additively over
+observations via
+<a class="reference internal" href="#econox.methods.base.EstimationMethod.compute_loss_per_obs" title="econox.methods.base.EstimationMethod.compute_loss_per_obs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute_loss_per_obs()</span></code></a>. Reject up-front
+rather than let the user pay for a fit and only then discover the robust standard
+errors could not be computed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>method</strong> (<em>Any</em>)</p></li>
+<li><p><strong>observations</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.methods.variance.Sandwich.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/methods/variance.html#Sandwich.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.methods.variance.Sandwich.compute" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates robust standard errors and covariance via the sandwich formula.</p>
+<p>Reads only <code class="docutils literal notranslate"><span class="pre">per_obs_loss_fn</span></code>, <code class="docutils literal notranslate"><span class="pre">params</span></code> and <code class="docutils literal notranslate"><span class="pre">weights</span></code> from <code class="docutils literal notranslate"><span class="pre">inputs</span></code>:
+both bread and meat come from the same un-weighted per-observation scores, so
+the estimate is independent of how the aggregate objective was scaled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">(std_errors,</span> <span class="pre">vcov)</span></code>; <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> if no per-observation loss
+is available or the computation fails numerically.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>inputs</strong> (<a class="reference internal" href="#econox.methods.variance.InferenceInputs" title="econox.methods.variance.InferenceInputs"><em>InferenceInputs</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="econox.methods.variance.Sandwich.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#econox.methods.variance.Sandwich.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
@@ -4752,6 +4924,7 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod.variance"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.variance</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod.fit"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.fit()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod.compute_loss"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.compute_loss()</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.base.EstimationMethod.compute_loss_per_obs"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.compute_loss_per_obs()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod.solve"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.solve()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.base.EstimationMethod.__init__"><code class="docutils literal notranslate"><span class="pre">EstimationMethod.__init__()</span></code></a></li>
 </ul>
@@ -4815,6 +4988,7 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.methods.numerical.MaximumLikelihood"><code class="docutils literal notranslate"><span class="pre">MaximumLikelihood</span></code></a><ul>
 <li><a class="reference internal" href="#econox.methods.numerical.MaximumLikelihood.choice_probs_key"><code class="docutils literal notranslate"><span class="pre">MaximumLikelihood.choice_probs_key</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.numerical.MaximumLikelihood.compute_loss"><code class="docutils literal notranslate"><span class="pre">MaximumLikelihood.compute_loss()</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.numerical.MaximumLikelihood.compute_loss_per_obs"><code class="docutils literal notranslate"><span class="pre">MaximumLikelihood.compute_loss_per_obs()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.numerical.MaximumLikelihood.__init__"><code class="docutils literal notranslate"><span class="pre">MaximumLikelihood.__init__()</span></code></a></li>
 </ul>
 </li>
@@ -4835,6 +5009,8 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.methods.variance.InferenceInputs.params"><code class="docutils literal notranslate"><span class="pre">InferenceInputs.params</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.variance.InferenceInputs.observations"><code class="docutils literal notranslate"><span class="pre">InferenceInputs.observations</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.variance.InferenceInputs.total_loss_fn"><code class="docutils literal notranslate"><span class="pre">InferenceInputs.total_loss_fn</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.variance.InferenceInputs.per_obs_loss_fn"><code class="docutils literal notranslate"><span class="pre">InferenceInputs.per_obs_loss_fn</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.variance.InferenceInputs.weights"><code class="docutils literal notranslate"><span class="pre">InferenceInputs.weights</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#econox.methods.variance.Variance"><code class="docutils literal notranslate"><span class="pre">Variance</span></code></a><ul>
@@ -4847,6 +5023,12 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.methods.variance.Hessian.validate"><code class="docutils literal notranslate"><span class="pre">Hessian.validate()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.variance.Hessian.compute"><code class="docutils literal notranslate"><span class="pre">Hessian.compute()</span></code></a></li>
 <li><a class="reference internal" href="#econox.methods.variance.Hessian.__init__"><code class="docutils literal notranslate"><span class="pre">Hessian.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#econox.methods.variance.Sandwich"><code class="docutils literal notranslate"><span class="pre">Sandwich</span></code></a><ul>
+<li><a class="reference internal" href="#econox.methods.variance.Sandwich.validate"><code class="docutils literal notranslate"><span class="pre">Sandwich.validate()</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.variance.Sandwich.compute"><code class="docutils literal notranslate"><span class="pre">Sandwich.compute()</span></code></a></li>
+<li><a class="reference internal" href="#econox.methods.variance.Sandwich.__init__"><code class="docutils literal notranslate"><span class="pre">Sandwich.__init__()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -4877,7 +5059,7 @@ and attribute-style (.key) access.</p>
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=b0eccb15"></script>
+</div><script src="_static/documentation_options.js?v=8714417f"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>

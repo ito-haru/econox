@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.methods.base - Econox 0.1.4.post1.dev1 documentation</title>
+        <title>econox.methods.base - Econox 0.1.4.post1.dev2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.4.post1.dev1)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.4.post1.dev2)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.4.post1.dev1 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.4.post1.dev2 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev1 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev2 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -450,14 +450,34 @@
                         <span class="n">raw_pytree</span> <span class="o">=</span> <span class="n">unravel_raw_fn</span><span class="p">(</span><span class="n">free_params_vec</span><span class="p">)</span>
                         <span class="k">return</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">raw_pytree</span><span class="p">,</span> <span class="n">observations</span><span class="p">)</span> <span class="o">*</span> <span class="n">loss_scale</span>
 
-                <span class="c1"># D. Compute variance in the free raw space. Everything a strategy might</span>
+                <span class="c1"># D. Per-observation loss wrapper for robust/sandwich variance. Only</span>
+                <span class="c1"># methods overriding `compute_loss_per_obs` support it; else stays None</span>
+                <span class="c1"># and robust strategies warn/return None. Returns *un-weighted* scores;</span>
+                <span class="c1"># weights are passed separately so the sandwich meat scales linearly.</span>
+                <span class="n">per_obs_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Array</span><span class="p">],</span> <span class="n">Array</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supports_per_obs_loss</span><span class="p">():</span>
+                    <span class="k">def</span><span class="w"> </span><span class="nf">per_obs_loss_fn_for_inference</span><span class="p">(</span><span class="n">free_params_vec</span><span class="p">:</span> <span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+                        <span class="n">raw_pytree</span> <span class="o">=</span> <span class="n">unravel_raw_fn</span><span class="p">(</span><span class="n">free_params_vec</span><span class="p">)</span>
+                        <span class="n">params</span> <span class="o">=</span> <span class="n">param_space</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">raw_pytree</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">result</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss_per_obs</span><span class="p">(</span>
+                            <span class="n">result</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span>
+                        <span class="p">)</span>
+                    <span class="n">per_obs_fn</span> <span class="o">=</span> <span class="n">per_obs_loss_fn_for_inference</span>
+
+                <span class="c1"># E. Compute variance in the free raw space. Everything a strategy might</span>
                 <span class="c1"># need is bundled into `InferenceInputs`; each strategy reads only what it</span>
-                <span class="c1"># uses (Hessian: total_loss_fn).</span>
+                <span class="c1"># uses (Hessian: total_loss_fn; Sandwich: per_obs_loss_fn + weights).</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">vcov_free</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variance</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span>
                     <span class="n">InferenceInputs</span><span class="p">(</span>
                         <span class="n">params</span><span class="o">=</span><span class="n">flat_raw_params_free</span><span class="p">,</span>
                         <span class="n">observations</span><span class="o">=</span><span class="n">observations</span><span class="p">,</span>
                         <span class="n">total_loss_fn</span><span class="o">=</span><span class="n">total_loss_fn</span><span class="p">,</span>
+                        <span class="n">per_obs_loss_fn</span><span class="o">=</span><span class="n">per_obs_fn</span><span class="p">,</span>
+                        <span class="n">weights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_validated_weights</span><span class="p">(</span><span class="n">observations</span><span class="p">),</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
 
@@ -563,6 +583,51 @@
             <span class="s2">&quot;compute_loss is not implemented for this EstimationMethod.&quot;</span>
         <span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="EstimationMethod.compute_loss_per_obs">
+<a class="viewcode-back" href="../../../api_reference.html#econox.methods.base.EstimationMethod.compute_loss_per_obs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_loss_per_obs</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">result</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The **un-weighted** per-observation loss contributions (a vector), the source</span>
+<span class="sd">        of the scores used by robust / sandwich covariance estimators.</span>
+
+<span class="sd">        Must be consistent with :meth:`compute_loss`: weighting these entries and summing</span>
+<span class="sd">        reproduces the numerator ``compute_loss`` divides by :meth:`_loss_scale`.</span>
+<span class="sd">        Weighting is left to the *callers*, never applied here, so the raw scores stay</span>
+<span class="sd">        available for the sandwich meat (which must scale linearly, not quadratically,</span>
+<span class="sd">        in the weights).</span>
+
+<span class="sd">        Only implementable by methods whose objective decomposes additively over</span>
+<span class="sd">        observations (e.g. MLE); others leave it unimplemented and robust strategies</span>
+<span class="sd">        then warn and return ``None``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            result: The output from the Solver (e.g., `SolverResult`), or None.</span>
+<span class="sd">            observations: Observed data to fit the model against.</span>
+<span class="sd">            params: Current model parameters.</span>
+<span class="sd">            model: The structural model environment.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A 1D JAX array of shape ``(n_obs,)`` with per-observation loss contributions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;compute_loss_per_obs is not implemented for this EstimationMethod. &quot;</span>
+            <span class="s2">&quot;Robust/sandwich variance is unavailable for this method.&quot;</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_supports_per_obs_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Whether this method overrides :meth:`compute_loss_per_obs` (i.e. supports</span>
+<span class="sd">        per-observation scores for robust/sandwich variance).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">compute_loss_per_obs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">EstimationMethod</span><span class="o">.</span><span class="n">compute_loss_per_obs</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_loss_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -709,7 +774,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b0eccb15"></script>
+</div><script src="../../../_static/documentation_options.js?v=8714417f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

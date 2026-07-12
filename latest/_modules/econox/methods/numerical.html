@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.methods.numerical - Econox 0.1.4.post1.dev1 documentation</title>
+        <title>econox.methods.numerical - Econox 0.1.4.post1.dev2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.4.post1.dev1)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.4.post1.dev2)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.4.post1.dev1 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.4.post1.dev2 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev1 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev2 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -247,14 +247,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">equinox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">eqx</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">Scalar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">Scalar</span><span class="p">,</span> <span class="n">Array</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_from_pytree</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOSS_PENALTY</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.methods.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">EstimationMethod</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">econox.methods.variance</span><span class="w"> </span><span class="kn">import</span> <span class="n">Variance</span><span class="p">,</span> <span class="n">Hessian</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">econox.methods.variance</span><span class="w"> </span><span class="kn">import</span> <span class="n">Variance</span><span class="p">,</span> <span class="n">Hessian</span><span class="p">,</span> <span class="n">Sandwich</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -394,7 +394,8 @@
 <span class="sd">          ``state_indices``) indexing the chosen action of each observation.</span>
 <span class="sd">        * ``weights`` (*optional*): 1-D float array of per-observation **frequency</span>
 <span class="sd">          weights** (replication counts), same length as ``state_indices``; omitted means</span>
-<span class="sd">          equal weighting. Estimates and standard errors behave as if each observation</span>
+<span class="sd">          equal weighting. Estimates and standard errors (including</span>
+<span class="sd">          :class:`~econox.methods.variance.Sandwich`) behave as if each observation</span>
 <span class="sd">          appeared ``weight`` times, and ``sum(weights)`` is the effective sample size.</span>
 <span class="sd">          Sampling / probability weights are not supported. Must be 1-D or omitted (see</span>
 <span class="sd">          :meth:`~econox.methods.base.EstimationMethod._get_validated_weights`).</span>
@@ -405,9 +406,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">choice_probs_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;profile&quot;</span>  <span class="c1"># Field name in SolverResult containing P(a|s)</span>
 
-    <span class="n">variance</span><span class="p">:</span> <span class="n">Variance</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Hessian</span><span class="p">,</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">variance</span><span class="p">:</span> <span class="n">Variance</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Sandwich</span><span class="p">,</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Variance calculation strategy for standard errors (default: Hessian).</span>
+<span class="sd">    Variance calculation strategy for standard errors (default: Sandwich / robust Hessian).</span>
+
+<span class="sd">    Pass ``variance=Hessian()`` explicitly to use the non-robust inverse-Hessian estimator.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MaximumLikelihood.compute_loss">
@@ -419,6 +422,55 @@
         <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span><span class="p">:</span>
+        <span class="c1"># Aggregate NLL is just the weighted, normalized sum of the per-obs scores.</span>
+        <span class="c1"># Reusing them as the single source of truth keeps this loss consistent with the</span>
+        <span class="c1"># sandwich bread/meat, which are built from the same scores.</span>
+        <span class="n">per_obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss_per_obs</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+
+        <span class="c1"># Weight here, not in compute_loss_per_obs: the scores must stay un-weighted so</span>
+        <span class="c1"># the sandwich meat scales linearly in the weights.</span>
+        <span class="n">obs_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_validated_weights</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span>
+        <span class="n">numerator</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">per_obs</span> <span class="k">if</span> <span class="n">obs_weights</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">obs_weights</span> <span class="o">*</span> <span class="n">per_obs</span><span class="p">)</span>
+
+        <span class="c1"># Mean NLL = sum_i (w_i * -log P_i) / (sum of weights).</span>
+        <span class="n">nll</span> <span class="o">=</span> <span class="n">numerator</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scale</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span>
+
+        <span class="c1"># Return huge penalty if NLL is NaN/Inf.</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">nll</span><span class="p">),</span> <span class="n">nll</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">LOSS_PENALTY</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_loss_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Divisor used by :meth:`compute_loss`: the sum of (frequency) weights, or the</span>
+<span class="sd">        observation count when weights are absent. Shared by the loss and the variance</span>
+<span class="sd">        estimators, so dividing the summed per-obs loss by exactly this recovers the</span>
+<span class="sd">        un-normalized objective. Under frequency weights this equals the effective</span>
+<span class="sd">        sample size. See :meth:`EstimationMethod._loss_scale`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_validated_weights</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">obs_weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">obs_weights</span><span class="p">)</span>
+        <span class="n">obs_states</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="s2">&quot;state_indices&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obs_states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<div class="viewcode-block" id="MaximumLikelihood.compute_loss_per_obs">
+<a class="viewcode-back" href="../../../api_reference.html#econox.methods.numerical.MaximumLikelihood.compute_loss_per_obs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_loss_per_obs</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">result</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">StructuralModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Un-weighted per-observation NLL contributions, the source of the scores used by</span>
+<span class="sd">        robust / sandwich variance.</span>
+
+<span class="sd">        Returns the vector :math:`\\ell_i = -\\log P_i`, **un-weighted**: weighting is</span>
+<span class="sd">        left to the callers so the sandwich meat scales *linearly* (not quadratically) in</span>
+<span class="sd">        the weights. Kept raw (no ``LOSS_PENALTY`` clamp, no division by N) so the scores</span>
+<span class="sd">        are exact.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;MaximumLikelihood requires a SolverResult (numerical solution), but got None.&quot;</span><span class="p">)</span>
 
@@ -430,46 +482,16 @@
                 <span class="s2">&quot;MaximumLikelihood requires choice probabilities (e.g. &#39;profile&#39;).&quot;</span>
             <span class="p">)</span>
 
-        <span class="c1"># Retrieve Observed Data</span>
         <span class="n">obs_states</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="s2">&quot;state_indices&quot;</span><span class="p">)</span>
         <span class="n">obs_choices</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="s2">&quot;choice_indices&quot;</span><span class="p">)</span>
-        <span class="n">obs_weights</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 
-        <span class="c1"># Indexing: Get probability of the chosen action in the current state</span>
-        <span class="c1"># P[s_i, a_i]</span>
         <span class="n">p_selected</span> <span class="o">=</span> <span class="n">choice_probs</span><span class="p">[</span><span class="n">obs_states</span><span class="p">,</span> <span class="n">obs_choices</span><span class="p">]</span>
-
-        <span class="c1"># Clip for numerical stability to avoid log(0)</span>
         <span class="n">p_selected</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">p_selected</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 
-        <span class="c1"># Calculate weighted log-likelihood</span>
-        <span class="c1"># Sum of weights (N)</span>
-        <span class="n">sum_weights</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">obs_weights</span><span class="p">)</span> <span class="k">if</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">obs_weights</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">obs_states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="c1"># LL = sum( w_i * log(P_i) )</span>
-        <span class="n">ll_choice</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p_selected</span><span class="p">)</span> <span class="o">*</span> <span class="n">obs_weights</span><span class="p">)</span>
-
-        <span class="c1"># NLL = - LL / N (Mean Negative Log Likelihood)</span>
-        <span class="n">nll</span> <span class="o">=</span> <span class="o">-</span> <span class="p">(</span><span class="n">ll_choice</span> <span class="o">/</span> <span class="n">sum_weights</span><span class="p">)</span>
-
-        <span class="c1"># Robustness check: Return huge penalty if NLL is NaN/Inf</span>
-        <span class="n">robust_nll</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">nll</span><span class="p">),</span> <span class="n">nll</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">LOSS_PENALTY</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="n">robust_nll</span></div>
-
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_loss_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scalar</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Divisor used by :meth:`compute_loss`: the sum of (frequency) weights, or the</span>
-<span class="sd">        observation count when weights are absent. Variance estimators divide by this to</span>
-<span class="sd">        recover the un-normalized objective. Under frequency weights this equals the</span>
-<span class="sd">        effective sample size. See :meth:`EstimationMethod._loss_scale`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">obs_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_validated_weights</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">obs_weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">obs_weights</span><span class="p">)</span>
-        <span class="n">obs_states</span> <span class="o">=</span> <span class="n">get_from_pytree</span><span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="s2">&quot;state_indices&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">obs_states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+        <span class="c1"># Un-weighted per-observation NLL. Weighting is intentionally deferred to the</span>
+        <span class="c1"># callers (see docstring) so the raw scores g_i stay available for the meat.</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p_selected</span><span class="p">)</span></div>
+</div>
 
 
 
@@ -575,7 +597,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b0eccb15"></script>
+</div><script src="../../../_static/documentation_options.js?v=8714417f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

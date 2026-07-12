@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>econox.methods.analytical - Econox 0.1.4.post1.dev2 documentation</title>
+        <title>econox.methods.analytical - Econox 0.1.4.post1.dev3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.4.post1.dev2)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.4.post1.dev3)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -170,7 +170,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">Econox 0.1.4.post1.dev2 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Econox 0.1.4.post1.dev3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -191,7 +191,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev2 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -268,7 +268,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.protocols</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuralModel</span><span class="p">,</span> <span class="n">Solver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_from_pytree</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">econox.structures</span><span class="w"> </span><span class="kn">import</span> <span class="n">EstimationResult</span><span class="p">,</span> <span class="n">ParameterSpace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">econox.structures</span><span class="w"> </span><span class="kn">import</span> <span class="n">EstimationResult</span><span class="p">,</span> <span class="n">ParameterSpace</span><span class="p">,</span> <span class="n">ConstraintKind</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.methods.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">EstimationMethod</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.methods.variance</span><span class="w"> </span><span class="kn">import</span> <span class="n">Hessian</span><span class="p">,</span> <span class="n">Variance</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">econox.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Minimizer</span>
@@ -313,12 +313,12 @@
         <span class="n">fixed_vals</span> <span class="o">=</span> <span class="p">[]</span>
         
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">param_names</span><span class="p">:</span>
-            <span class="n">kind</span> <span class="o">=</span> <span class="n">constraints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;free&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;fixed&quot;</span><span class="p">:</span>
+            <span class="n">kind</span> <span class="o">=</span> <span class="n">constraints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ConstraintKind</span><span class="o">.</span><span class="n">FREE</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="n">ConstraintKind</span><span class="o">.</span><span class="n">FIXED</span><span class="p">:</span>
                 <span class="n">is_fixed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">initials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)))</span>
                 <span class="n">fixed_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;free&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="n">ConstraintKind</span><span class="o">.</span><span class="n">FREE</span><span class="p">:</span>
                 <span class="n">is_fixed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">fixed_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -771,7 +771,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=8714417f"></script>
+</div><script src="../../../_static/documentation_options.js?v=236cc566"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

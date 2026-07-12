@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="Welcome to Econox’s documentation!" href="index.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
-        <title>API Reference - Econox 0.1.4.post1.dev2 documentation</title>
+        <title>API Reference - Econox 0.1.4.post1.dev3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -159,7 +159,7 @@
       <a href="/econox/stable/" class="version-tab">Stable</a>
       <a href="/econox/latest/" class="version-tab selected">Latest (dev)</a>
     </div>
-    <em>Development version (0.1.4.post1.dev2)</em> - For stable release, see tagged versions. 
+    <em>Development version (0.1.4.post1.dev3)</em> - For stable release, see tagged versions. 
   </aside>
 </div>
 
@@ -171,7 +171,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">Econox 0.1.4.post1.dev2 documentation</div></a>
+      <a href="index.html"><div class="brand">Econox 0.1.4.post1.dev3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev2 documentation</span>
+  <span class="sidebar-brand-text">Econox 0.1.4.post1.dev3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1064,23 +1064,62 @@ without mutating the original baseline model.</p>
 </section>
 <section id="module-econox.structures.params">
 <span id="parameter-management"></span><h3>Parameter Management<a class="headerlink" href="#module-econox.structures.params" title="Link to this heading">¶</a></h3>
-<dl class="py data">
+<dl class="py class">
 <dt class="sig sig-object py" id="econox.structures.params.ConstraintKind">
-<span class="sig-prename descclassname"><span class="pre">econox.structures.params.</span></span><span class="sig-name descname"><span class="pre">ConstraintKind</span></span><a class="headerlink" href="#econox.structures.params.ConstraintKind" title="Link to this definition">¶</a></dt>
-<dd><p>Specifies the type of constraint applied to a parameter.</p>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">econox.structures.params.</span></span><span class="sig-name descname"><span class="pre">ConstraintKind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/params.html#ConstraintKind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.params.ConstraintKind" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">StrEnum</span></code></p>
+<p>Specifies the type of constraint applied to a parameter.</p>
+<p>Being a <code class="xref py py-class docutils literal notranslate"><span class="pre">StrEnum</span></code>, each member compares equal to its string
+value (<code class="docutils literal notranslate"><span class="pre">ConstraintKind.FIXED</span> <span class="pre">==</span> <span class="pre">&quot;fixed&quot;</span></code>), so the plain-string spelling
+keeps working at runtime while <code class="docutils literal notranslate"><span class="pre">ecx.ConstraintKind.FIXED</span></code> is the
+type-checked form.</p>
 <dl class="simple">
 <dt>Options:</dt><dd><ul class="simple">
-<li><p><strong>free</strong>: No constraints (-inf, +inf).</p></li>
-<li><p><strong>positive</strong>: Must be positive (0, +inf). Used for variances, etc.</p></li>
-<li><p><strong>negative</strong>: Must be negative (-inf, 0).</p></li>
-<li><p><strong>probability</strong>: Constrained to (0, 1).</p></li>
-<li><p><strong>unit_interval</strong>: Alias for “probability”.</p></li>
-<li><p><strong>fixed</strong>: Parameter is fixed to its initial value and not optimized.</p></li>
-<li><p><strong>bounded</strong>: Constrained to a specific range [lower, upper].</p></li>
+<li><p><strong>FREE</strong>: No constraints (-inf, +inf).</p></li>
+<li><p><strong>POSITIVE</strong>: Must be positive (0, +inf). Used for variances, etc.</p></li>
+<li><p><strong>NEGATIVE</strong>: Must be negative (-inf, 0).</p></li>
+<li><p><strong>PROBABILITY</strong>: Constrained to (0, 1).</p></li>
+<li><p><strong>UNIT_INTERVAL</strong>: Alias for PROBABILITY.</p></li>
+<li><p><strong>FIXED</strong>: Parameter is fixed to its initial value and not optimized.</p></li>
+<li><p><strong>BOUNDED</strong>: Constrained to a specific range [lower, upper].</p></li>
 </ul>
 </dd>
 </dl>
-<p>alias of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code>[‘free’, ‘positive’, ‘negative’, ‘probability’, ‘unit_interval’, ‘fixed’, ‘bounded’]</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.params.ConstraintKind.FREE">
+<span class="sig-name descname"><span class="pre">FREE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'free'</span></span><a class="headerlink" href="#econox.structures.params.ConstraintKind.FREE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.params.ConstraintKind.POSITIVE">
+<span class="sig-name descname"><span class="pre">POSITIVE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'positive'</span></span><a class="headerlink" href="#econox.structures.params.ConstraintKind.POSITIVE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.params.ConstraintKind.NEGATIVE">
+<span class="sig-name descname"><span class="pre">NEGATIVE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'negative'</span></span><a class="headerlink" href="#econox.structures.params.ConstraintKind.NEGATIVE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.params.ConstraintKind.PROBABILITY">
+<span class="sig-name descname"><span class="pre">PROBABILITY</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'probability'</span></span><a class="headerlink" href="#econox.structures.params.ConstraintKind.PROBABILITY" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.params.ConstraintKind.UNIT_INTERVAL">
+<span class="sig-name descname"><span class="pre">UNIT_INTERVAL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'unit_interval'</span></span><a class="headerlink" href="#econox.structures.params.ConstraintKind.UNIT_INTERVAL" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.params.ConstraintKind.FIXED">
+<span class="sig-name descname"><span class="pre">FIXED</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'fixed'</span></span><a class="headerlink" href="#econox.structures.params.ConstraintKind.FIXED" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="econox.structures.params.ConstraintKind.BOUNDED">
+<span class="sig-name descname"><span class="pre">BOUNDED</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bounded'</span></span><a class="headerlink" href="#econox.structures.params.ConstraintKind.BOUNDED" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1102,12 +1141,12 @@ Compliant with the ParameterSpace protocol.</p>
 <span class="gp">... </span><span class="p">}</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define constraints</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define constraints (ConstraintKind members or their string values)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">constraints</span> <span class="o">=</span> <span class="p">{</span>
-<span class="gp">... </span>    <span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="s2">&quot;fixed&quot;</span><span class="p">,</span>          <span class="c1"># Not optimized</span>
-<span class="gp">... </span>    <span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="s2">&quot;positive&quot;</span><span class="p">,</span>      <span class="c1"># Domain: (0, inf)</span>
-<span class="gp">... </span>    <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="s2">&quot;probability&quot;</span><span class="p">,</span>   <span class="c1"># Domain: (0, 1)</span>
-<span class="gp">... </span>    <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="s2">&quot;free&quot;</span>           <span class="c1"># Domain: (-inf, inf) (Default)</span>
+<span class="gp">... </span>    <span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="n">ConstraintKind</span><span class="o">.</span><span class="n">FIXED</span><span class="p">,</span>        <span class="c1"># Not optimized</span>
+<span class="gp">... </span>    <span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="n">ConstraintKind</span><span class="o">.</span><span class="n">POSITIVE</span><span class="p">,</span>    <span class="c1"># Domain: (0, inf)</span>
+<span class="gp">... </span>    <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="n">ConstraintKind</span><span class="o">.</span><span class="n">PROBABILITY</span><span class="p">,</span> <span class="c1"># Domain: (0, 1)</span>
+<span class="gp">... </span>    <span class="s2">&quot;gamma&quot;</span><span class="p">:</span> <span class="n">ConstraintKind</span><span class="o">.</span><span class="n">FREE</span>         <span class="c1"># Domain: (-inf, inf) (Default)</span>
 <span class="gp">... </span><span class="p">}</span>
 </pre></div>
 </div>
@@ -1119,7 +1158,7 @@ Compliant with the ParameterSpace protocol.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>initial_params</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
-<li><p><strong>constraints</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Literal</em><em>[</em><em>'free'</em><em>, </em><em>'positive'</em><em>, </em><em>'negative'</em><em>, </em><em>'probability'</em><em>, </em><em>'unit_interval'</em><em>, </em><em>'fixed'</em><em>, </em><em>'bounded'</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>constraints</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#econox.structures.params.ConstraintKind" title="econox.structures.params.ConstraintKind"><em>ConstraintKind</em></a><em>]</em>)</p></li>
 <li><p><strong>bounds</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em>)</p></li>
 <li><p><strong>eps</strong> (<em>float</em>)</p></li>
 <li><p><strong>log_clip_min</strong> (<em>float</em>)</p></li>
@@ -1135,7 +1174,7 @@ Compliant with the ParameterSpace protocol.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="econox.structures.params.ParameterSpace.constraints">
-<span class="sig-name descname"><span class="pre">constraints</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'free'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'positive'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'negative'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'probability'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'unit_interval'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'fixed'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'bounded'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.structures.params.ParameterSpace.constraints" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">constraints</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#econox.structures.params.ConstraintKind" title="econox.structures.params.ConstraintKind"><span class="pre">ConstraintKind</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#econox.structures.params.ParameterSpace.constraints" title="Link to this definition">¶</a></dt>
 <dd><p>Dictionary mapping parameter names to their constraint types.</p>
 </dd></dl>
 
@@ -1164,13 +1203,32 @@ Compliant with the ParameterSpace protocol.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="econox.structures.params.ParameterSpace.create">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/params.html#ParameterSpace.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.params.ParameterSpace.create" title="Link to this definition">¶</a></dt>
+<dd><p>Factory method to initialize ParameterSpace.
+Validates keys, bounds, and fills default constraints (FREE).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_params</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – Dictionary of initial parameter values.</p></li>
+<li><p><strong>constraints</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#econox.structures.params.ConstraintKind" title="econox.structures.params.ConstraintKind"><em>ConstraintKind</em></a><em>] </em><em>| </em><em>None</em>) – Optional dictionary specifying constraints for each parameter. Values may be ConstraintKind members or their string equivalents; they are normalized to ConstraintKind. Defaults to FREE for unspecified parameters.</p></li>
+<li><p><strong>bounds</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>] </em><em>| </em><em>None</em>) – Optional dictionary specifying (lower, upper) bounds for BOUNDED parameters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.structures.params.ParameterSpace" title="econox.structures.params.ParameterSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterSpace</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="econox.structures.params.ParameterSpace.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_clip_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_clip_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#econox.structures.params.ParameterSpace.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>initial_params</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
-<li><p><strong>constraints</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Literal</em><em>[</em><em>'free'</em><em>, </em><em>'positive'</em><em>, </em><em>'negative'</em><em>, </em><em>'probability'</em><em>, </em><em>'unit_interval'</em><em>, </em><em>'fixed'</em><em>, </em><em>'bounded'</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>constraints</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#econox.structures.params.ConstraintKind" title="econox.structures.params.ConstraintKind"><em>ConstraintKind</em></a><em>]</em>)</p></li>
 <li><p><strong>bounds</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em>)</p></li>
 <li><p><strong>eps</strong> (<em>float</em>)</p></li>
 <li><p><strong>log_clip_min</strong> (<em>float</em>)</p></li>
@@ -1179,25 +1237,6 @@ Compliant with the ParameterSpace protocol.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="econox.structures.params.ParameterSpace.create">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/econox/structures/params.html#ParameterSpace.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#econox.structures.params.ParameterSpace.create" title="Link to this definition">¶</a></dt>
-<dd><p>Factory method to initialize ParameterSpace.
-Validates keys, bounds, and fills default constraints (‘free’).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>initial_params</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – Dictionary of initial parameter values.</p></li>
-<li><p><strong>constraints</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#econox.structures.params.ConstraintKind" title="econox.structures.params.ConstraintKind"><em>ConstraintKind</em></a><em>] </em><em>| </em><em>None</em>) – Optional dictionary specifying constraints for each parameter. Defaults to ‘free’ for unspecified parameters.</p></li>
-<li><p><strong>bounds</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>] </em><em>| </em><em>None</em>) – Optional dictionary specifying (lower, upper) bounds for ‘bounded’ parameters.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#econox.structures.params.ParameterSpace" title="econox.structures.params.ParameterSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterSpace</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -4693,7 +4732,16 @@ and attribute-style (.key) access.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-econox.structures.params">Parameter Management</a><ul>
-<li><a class="reference internal" href="#econox.structures.params.ConstraintKind"><code class="docutils literal notranslate"><span class="pre">ConstraintKind</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ConstraintKind"><code class="docutils literal notranslate"><span class="pre">ConstraintKind</span></code></a><ul>
+<li><a class="reference internal" href="#econox.structures.params.ConstraintKind.FREE"><code class="docutils literal notranslate"><span class="pre">ConstraintKind.FREE</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ConstraintKind.POSITIVE"><code class="docutils literal notranslate"><span class="pre">ConstraintKind.POSITIVE</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ConstraintKind.NEGATIVE"><code class="docutils literal notranslate"><span class="pre">ConstraintKind.NEGATIVE</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ConstraintKind.PROBABILITY"><code class="docutils literal notranslate"><span class="pre">ConstraintKind.PROBABILITY</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ConstraintKind.UNIT_INTERVAL"><code class="docutils literal notranslate"><span class="pre">ConstraintKind.UNIT_INTERVAL</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ConstraintKind.FIXED"><code class="docutils literal notranslate"><span class="pre">ConstraintKind.FIXED</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ConstraintKind.BOUNDED"><code class="docutils literal notranslate"><span class="pre">ConstraintKind.BOUNDED</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace"><code class="docutils literal notranslate"><span class="pre">ParameterSpace</span></code></a><ul>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.initial_params"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.initial_params</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.constraints"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.constraints</span></code></a></li>
@@ -4701,8 +4749,8 @@ and attribute-style (.key) access.</p>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.eps"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.eps</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.log_clip_min"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.log_clip_min</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.log_clip_max"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.log_clip_max</span></code></a></li>
-<li><a class="reference internal" href="#econox.structures.params.ParameterSpace.__init__"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.__init__()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.create"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.create()</span></code></a></li>
+<li><a class="reference internal" href="#econox.structures.params.ParameterSpace.__init__"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.__init__()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.transform"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.transform()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.inverse_transform"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.inverse_transform()</span></code></a></li>
 <li><a class="reference internal" href="#econox.structures.params.ParameterSpace.get_bounds"><code class="docutils literal notranslate"><span class="pre">ParameterSpace.get_bounds()</span></code></a></li>
@@ -5059,7 +5107,7 @@ and attribute-style (.key) access.</p>
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=8714417f"></script>
+</div><script src="_static/documentation_options.js?v=236cc566"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>

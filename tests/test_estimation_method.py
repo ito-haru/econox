@@ -20,11 +20,13 @@ from econox import (
     CompositeMethod,
     TwoStageLeastSquares,
     MaximumLikelihood,
+    GaussianMomentMatch,
     ValueIterationSolver,
     LinearUtility,
     GumbelDistribution,
+    method_from_loss,
 )
-from econox.methods.variance import Hessian
+from econox.methods.variance import Hessian, Sandwich, InferenceInputs
 from econox.structures.params import ConstraintKind
 
 # =============================================================================
@@ -487,14 +489,14 @@ def test_2sls_numerical_equivalence(iv_data):
 
 
 # =============================================================================
-# Loss-scale / weighting inference tests
+# Sandwich (Robust Hessian) Variance Tests
 # =============================================================================
 
 def _build_wellspecified_dcm(n_obs: int = 5000, seed: int = 42):
     """
     Build a correctly-specified 2-state, 2-action dynamic discrete choice model and
     generate observations from its true choice probabilities. Returns everything needed
-    to run an Estimator.
+    to run an Estimator. Used by the Sandwich variance tests.
     """
     num_states = 2
     num_actions = 2
@@ -539,6 +541,184 @@ def _build_wellspecified_dcm(n_obs: int = 5000, seed: int = 42):
     return model, solver, observations, n_obs
 
 
+def test_sandwich_variance_dynamic_model():
+    """
+    Sandwich (robust Hessian) variance produces valid standard errors on a
+    dynamic discrete choice model, including with a fixed parameter.
+    """
+    model, solver, observations, n_obs = _build_wellspecified_dcm()
+
+    initial_params = {"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1}
+    param_space = ParameterSpace.create(
+        initial_params=initial_params,
+        constraints={"beta_2": "fixed"}
+    )
+
+    method = MaximumLikelihood(variance=Sandwich())
+    result = Estimator(model, param_space, method, solver=solver).fit(observations)
+
+    assert result.success, "Estimation failed"
+    assert result.std_errors is not None, "Standard errors not computed"
+    assert result.vcov is not None, "Variance-covariance matrix not computed"
+    assert result.meta["inference_method"] == "Sandwich"
+
+    # Order preserved
+    assert list(result.std_errors.keys()) == list(initial_params.keys())
+
+    # Free params: finite and positive; fixed param: zero
+    assert jnp.isfinite(result.std_errors["beta_0"]) and result.std_errors["beta_0"] > 0.0
+    assert jnp.isfinite(result.std_errors["beta_1"]) and result.std_errors["beta_1"] > 0.0
+    assert result.std_errors["beta_2"] == 0.0, "Fixed parameter should have zero std error"
+
+
+def test_sandwich_matches_hessian_when_well_specified():
+    """
+    Under correct specification, the information matrix equality implies the sandwich
+    estimator collapses to the inverse-Hessian estimator, so their standard errors
+    should be close.
+    """
+    model, solver, observations, n_obs = _build_wellspecified_dcm()
+
+    initial_params = {"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1}
+    param_space = ParameterSpace.create(initial_params=initial_params)
+
+    res_h = Estimator(
+        model, param_space, MaximumLikelihood(variance=Hessian()), solver=solver
+    ).fit(observations)
+    res_s = Estimator(
+        model, param_space, MaximumLikelihood(variance=Sandwich()), solver=solver
+    ).fit(observations)
+
+    assert res_h.std_errors is not None and res_s.std_errors is not None
+    for k in initial_params:
+        se_h = float(res_h.std_errors[k])
+        se_s = float(res_s.std_errors[k])
+        assert jnp.allclose(se_s, se_h, rtol=0.25), (
+            f"Sandwich SE for {k} ({se_s:.4f}) not close to Hessian SE ({se_h:.4f})"
+        )
+
+
+def test_sandwich_default_for_maximum_likelihood():
+    """MaximumLikelihood should default to the Sandwich (robust) estimator."""
+    model, solver, observations, n_obs = _build_wellspecified_dcm(n_obs=2000)
+
+    param_space = ParameterSpace.create(
+        {"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1}
+    )
+    # No variance argument -> should use the default
+    result = Estimator(
+        model, param_space, MaximumLikelihood(), solver=solver
+    ).fit(observations)
+
+    assert result.meta["inference_method"] == "Sandwich"
+    assert result.std_errors is not None
+
+
+def test_sandwich_returns_none_without_per_obs_loss():
+    """
+    When no per-observation loss is available, Sandwich must warn and return
+    (None, None) rather than crash (the graceful fallback).
+    """
+    se, vcov = Sandwich().compute(
+        InferenceInputs(
+            params=jnp.array([1.0, 2.0]),
+            observations=None,
+            per_obs_loss_fn=None,
+        )
+    )
+    assert se is None and vcov is None
+
+
+def test_hessian_returns_none_on_non_finite_vcov():
+    """
+    ``jnp.linalg.pinv`` never raises on a singular/ill-conditioned Hessian, so a
+    non-finite bread propagates as NaN/inf through the inverse instead of throwing.
+    Hessian must detect this and signal failure with (None, None) rather than
+    returning a silently-invalid covariance (see variance.py finite check).
+    """
+    se, vcov = Hessian().compute(
+        InferenceInputs(
+            params=jnp.array([1.0, 2.0]),
+            observations=None,
+            # inf-scaled loss -> non-finite Hessian.
+            total_loss_fn=lambda p: jnp.inf * jnp.sum(p**2),
+        )
+    )
+    assert se is None and vcov is None
+
+
+def test_sandwich_returns_none_on_non_finite_vcov():
+    """
+    Sandwich shares the same failure contract: non-finite scores/bread must yield
+    (None, None) rather than a NaN-laden sandwich covariance.
+    """
+    se, vcov = Sandwich().compute(
+        InferenceInputs(
+            params=jnp.array([1.0]),
+            observations=None,
+            # inf-scaled per-observation loss -> non-finite scores and bread.
+            per_obs_loss_fn=lambda p: jnp.inf * p[0] * jnp.ones(5),
+        )
+    )
+    assert se is None and vcov is None
+
+
+def test_variance_finite_check_does_not_reject_well_posed_problems():
+    """
+    Positive control: the non-finite guard must not fire on a well-conditioned
+    problem. Both estimators return finite standard errors and covariance.
+    """
+    se_h, vcov_h = Hessian().compute(
+        InferenceInputs(
+            params=jnp.array([0.0, 0.0]),
+            observations=None,
+            total_loss_fn=lambda p: p[0] ** 2 + 2 * p[1] ** 2,
+        )
+    )
+    assert vcov_h is not None and bool(jnp.all(jnp.isfinite(vcov_h)))
+    assert se_h is not None and bool(jnp.all(jnp.isfinite(se_h)))
+
+    se_s, vcov_s = Sandwich().compute(
+        InferenceInputs(
+            params=jnp.array([0.5]),
+            observations=None,
+            per_obs_loss_fn=lambda p: (jnp.arange(1.0, 6.0) - p[0]) ** 2,
+        )
+    )
+    assert vcov_s is not None and bool(jnp.all(jnp.isfinite(vcov_s)))
+    assert se_s is not None and bool(jnp.all(jnp.isfinite(se_s)))
+
+
+def test_per_obs_loss_support_detection():
+    """
+    Only methods that override compute_loss_per_obs advertise per-observation support.
+    MaximumLikelihood does; a reduced-form method_from_loss wrapper does not.
+    """
+    assert MaximumLikelihood()._supports_per_obs_loss() is True
+
+    @method_from_loss(variance=Sandwich())
+    def mse_loss(result, observations, params, model):
+        return jnp.mean((observations["y"] - params["mu"]) ** 2)
+
+    assert mse_loss._supports_per_obs_loss() is False
+
+
+def test_sandwich_validate_rejects_method_without_per_obs_loss():
+    """
+    Sandwich.validate must fail fast (before any costly fit) when the method cannot
+    supply per-observation scores, rather than silently returning None std errors later.
+    """
+    @method_from_loss(variance=Sandwich())
+    def mse_loss(result, observations, params, model):
+        return jnp.mean((observations["y"] - params["mu"]) ** 2)
+
+    with pytest.raises(ValueError, match="per-observation loss"):
+        Sandwich().validate(mse_loss, observations=None)
+
+    # A method that does supply them passes validation.
+    Sandwich().validate(MaximumLikelihood(), observations=None)
+
+
 def test_loss_scale_recorded_in_meta():
     """
     The normalization constant used for inference is recorded in ``meta`` so the saved
@@ -567,12 +747,68 @@ def test_weighted_loss_scale_uses_sum_of_weights():
     observations = {**observations, "weights": jnp.full((n_obs,), 2.0)}
     param_space = ParameterSpace.create({"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1})
 
-    result = Estimator(model, param_space, MaximumLikelihood(), solver=solver).fit(
-        observations
-    )
+    method = MaximumLikelihood(variance=Sandwich())
+    result = Estimator(model, param_space, method, solver=solver).fit(observations)
 
     assert result.success
     # loss_scale = sum of weights (effective N); n_obs = row count. They differ here.
     assert result.meta["loss_scale"] == float(2 * n_obs)
     assert result.meta["n_obs"] == n_obs
     assert all(jnp.isfinite(result.std_errors[k]) for k in ("beta_0", "beta_1", "beta_2"))
+
+
+def test_sandwich_matches_hessian_under_frequency_weights():
+    """
+    Frequency weights must keep the sandwich and inverse-Hessian estimators consistent:
+    under correct specification the information-matrix equality makes them coincide, and
+    this must hold *with* weights, not only unweighted. Guards against the meat scaling
+    quadratically (w^2, the sampling-weight form) instead of linearly (w) in the weights,
+    which would shrink the sandwich SEs by ~sqrt(w) relative to the Hessian SEs.
+    """
+    model, solver, observations, n_obs = _build_wellspecified_dcm()
+    observations = {**observations, "weights": jnp.full((n_obs,), 3.0)}
+    param_space = ParameterSpace.create({"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1})
+
+    res_h = Estimator(
+        model, param_space, MaximumLikelihood(variance=Hessian()), solver=solver
+    ).fit(observations)
+    res_s = Estimator(
+        model, param_space, MaximumLikelihood(variance=Sandwich()), solver=solver
+    ).fit(observations)
+
+    for k in ("beta_0", "beta_1", "beta_2"):
+        se_h, se_s = float(res_h.std_errors[k]), float(res_s.std_errors[k])
+        assert jnp.allclose(se_s, se_h, rtol=0.25), (
+            f"Sandwich SE for {k} ({se_s:.4f}) not close to Hessian SE ({se_h:.4f}) "
+            "under frequency weights"
+        )
+
+
+def test_frequency_weights_equal_physical_replication():
+    """
+    The defining property of frequency weights: a weight of ``w`` on every row must give
+    the *same* estimates and standard errors as physically replicating each row ``w``
+    times. This pins the exact semantics (not merely finiteness) and would fail for both
+    the sampling-weight (w^2) meat and any mis-scaled variant.
+    """
+    model, solver, observations, n_obs = _build_wellspecified_dcm(n_obs=800)
+    w = 3
+    param_space = ParameterSpace.create({"beta_0": 0.5, "beta_1": 0.3, "beta_2": 0.1})
+
+    weighted_obs = {**observations, "weights": jnp.full((n_obs,), float(w))}
+    replicated_obs = {
+        "state_indices": jnp.tile(observations["state_indices"], w),
+        "choice_indices": jnp.tile(observations["choice_indices"], w),
+    }
+
+    method = MaximumLikelihood(variance=Sandwich())
+    res_w = Estimator(model, param_space, method, solver=solver).fit(weighted_obs)
+    res_r = Estimator(model, param_space, method, solver=solver).fit(replicated_obs)
+
+    for k in ("beta_0", "beta_1", "beta_2"):
+        assert jnp.allclose(res_w.params[k], res_r.params[k], atol=1e-4), (
+            f"Weighted vs replicated point estimate mismatch for {k}"
+        )
+        assert jnp.allclose(res_w.std_errors[k], res_r.std_errors[k], rtol=1e-3), (
+            f"Weighted vs replicated SE mismatch for {k}: frequency-weight semantics broken"
+        )

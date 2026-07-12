@@ -206,14 +206,34 @@ class EstimationMethod(eqx.Module):
                         raw_pytree = unravel_raw_fn(free_params_vec)
                         return loss_fn(raw_pytree, observations) * loss_scale
 
-                # D. Compute variance in the free raw space. Everything a strategy might
+                # D. Per-observation loss wrapper for robust/sandwich variance. Only
+                # methods overriding `compute_loss_per_obs` support it; else stays None
+                # and robust strategies warn/return None. Returns *un-weighted* scores;
+                # weights are passed separately so the sandwich meat scales linearly.
+                per_obs_fn: Callable[[Array], Array] | None = None
+                if self._supports_per_obs_loss():
+                    def per_obs_loss_fn_for_inference(free_params_vec: Array) -> Array:
+                        raw_pytree = unravel_raw_fn(free_params_vec)
+                        params = param_space.transform(raw_pytree)
+                        if solver is not None:
+                            result = solver.solve(params, model)
+                        else:
+                            result = None
+                        return self.compute_loss_per_obs(
+                            result, observations, params, model
+                        )
+                    per_obs_fn = per_obs_loss_fn_for_inference
+
+                # E. Compute variance in the free raw space. Everything a strategy might
                 # need is bundled into `InferenceInputs`; each strategy reads only what it
-                # uses (Hessian: total_loss_fn).
+                # uses (Hessian: total_loss_fn; Sandwich: per_obs_loss_fn + weights).
                 _, vcov_free = self.variance.compute(
                     InferenceInputs(
                         params=flat_raw_params_free,
                         observations=observations,
                         total_loss_fn=total_loss_fn,
+                        per_obs_loss_fn=per_obs_fn,
+                        weights=self._get_validated_weights(observations),
                     )
                 )
 
@@ -316,6 +336,48 @@ class EstimationMethod(eqx.Module):
         raise NotImplementedError(
             "compute_loss is not implemented for this EstimationMethod."
         )
+
+    def compute_loss_per_obs(
+        self,
+        result: Any | None,
+        observations: Any,
+        params: PyTree,
+        model: StructuralModel
+    ) -> Array:
+        """
+        The **un-weighted** per-observation loss contributions (a vector), the source
+        of the scores used by robust / sandwich covariance estimators.
+
+        Must be consistent with :meth:`compute_loss`: weighting these entries and summing
+        reproduces the numerator ``compute_loss`` divides by :meth:`_loss_scale`.
+        Weighting is left to the *callers*, never applied here, so the raw scores stay
+        available for the sandwich meat (which must scale linearly, not quadratically,
+        in the weights).
+
+        Only implementable by methods whose objective decomposes additively over
+        observations (e.g. MLE); others leave it unimplemented and robust strategies
+        then warn and return ``None``.
+
+        Args:
+            result: The output from the Solver (e.g., `SolverResult`), or None.
+            observations: Observed data to fit the model against.
+            params: Current model parameters.
+            model: The structural model environment.
+
+        Returns:
+            A 1D JAX array of shape ``(n_obs,)`` with per-observation loss contributions.
+        """
+        raise NotImplementedError(
+            "compute_loss_per_obs is not implemented for this EstimationMethod. "
+            "Robust/sandwich variance is unavailable for this method."
+        )
+
+    def _supports_per_obs_loss(self) -> bool:
+        """
+        Whether this method overrides :meth:`compute_loss_per_obs` (i.e. supports
+        per-observation scores for robust/sandwich variance).
+        """
+        return type(self).compute_loss_per_obs is not EstimationMethod.compute_loss_per_obs
 
     def _loss_scale(self, observations: Any) -> Scalar | None:
         """

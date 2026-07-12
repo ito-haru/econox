@@ -8,14 +8,14 @@ from __future__ import annotations
 from typing import Any, Callable
 import jax.numpy as jnp
 import equinox as eqx
-from jaxtyping import PyTree, Scalar
+from jaxtyping import PyTree, Scalar, Array
 import logging
 
 from econox.protocols import StructuralModel
 from econox.utils import get_from_pytree
 from econox.config import LOSS_PENALTY
 from econox.methods.base import EstimationMethod
-from econox.methods.variance import Variance, Hessian
+from econox.methods.variance import Variance, Hessian, Sandwich
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +144,8 @@ class MaximumLikelihood(NumericalMethod):
           ``state_indices``) indexing the chosen action of each observation.
         * ``weights`` (*optional*): 1-D float array of per-observation **frequency
           weights** (replication counts), same length as ``state_indices``; omitted means
-          equal weighting. Estimates and standard errors behave as if each observation
+          equal weighting. Estimates and standard errors (including
+          :class:`~econox.methods.variance.Sandwich`) behave as if each observation
           appeared ``weight`` times, and ``sum(weights)`` is the effective sample size.
           Sampling / probability weights are not supported. Must be 1-D or omitted (see
           :meth:`~econox.methods.base.EstimationMethod._get_validated_weights`).
@@ -155,9 +156,11 @@ class MaximumLikelihood(NumericalMethod):
     """
     choice_probs_key: str = "profile"  # Field name in SolverResult containing P(a|s)
 
-    variance: Variance | None = eqx.field(default_factory=Hessian, kw_only=True)
+    variance: Variance | None = eqx.field(default_factory=Sandwich, kw_only=True)
     """
-    Variance calculation strategy for standard errors (default: Hessian).
+    Variance calculation strategy for standard errors (default: Sandwich / robust Hessian).
+
+    Pass ``variance=Hessian()`` explicitly to use the non-robust inverse-Hessian estimator.
     """
 
     def compute_loss(
@@ -167,6 +170,52 @@ class MaximumLikelihood(NumericalMethod):
         params: PyTree,
         model: StructuralModel
     ) -> Scalar:
+        # Aggregate NLL is just the weighted, normalized sum of the per-obs scores.
+        # Reusing them as the single source of truth keeps this loss consistent with the
+        # sandwich bread/meat, which are built from the same scores.
+        per_obs = self.compute_loss_per_obs(result, observations, params, model)
+
+        # Weight here, not in compute_loss_per_obs: the scores must stay un-weighted so
+        # the sandwich meat scales linearly in the weights.
+        obs_weights = self._get_validated_weights(observations)
+        numerator = jnp.sum(per_obs if obs_weights is None else obs_weights * per_obs)
+
+        # Mean NLL = sum_i (w_i * -log P_i) / (sum of weights).
+        nll = numerator / self._loss_scale(observations)
+
+        # Return huge penalty if NLL is NaN/Inf.
+        return jnp.where(jnp.isfinite(nll), nll, jnp.array(LOSS_PENALTY))
+
+    def _loss_scale(self, observations: Any) -> Scalar:
+        """
+        Divisor used by :meth:`compute_loss`: the sum of (frequency) weights, or the
+        observation count when weights are absent. Shared by the loss and the variance
+        estimators, so dividing the summed per-obs loss by exactly this recovers the
+        un-normalized objective. Under frequency weights this equals the effective
+        sample size. See :meth:`EstimationMethod._loss_scale`.
+        """
+        obs_weights = self._get_validated_weights(observations)
+        if obs_weights is not None:
+            return jnp.sum(obs_weights)
+        obs_states = get_from_pytree(observations, "state_indices")
+        return obs_states.shape[0]
+
+    def compute_loss_per_obs(
+        self,
+        result: Any | None,
+        observations: Any,
+        params: PyTree,
+        model: StructuralModel
+    ) -> Array:
+        """
+        Un-weighted per-observation NLL contributions, the source of the scores used by
+        robust / sandwich variance.
+
+        Returns the vector :math:`\\ell_i = -\\log P_i`, **un-weighted**: weighting is
+        left to the callers so the sandwich meat scales *linearly* (not quadratically) in
+        the weights. Kept raw (no ``LOSS_PENALTY`` clamp, no division by N) so the scores
+        are exact.
+        """
         if result is None:
             raise ValueError("MaximumLikelihood requires a SolverResult (numerical solution), but got None.")
 
@@ -178,45 +227,15 @@ class MaximumLikelihood(NumericalMethod):
                 "MaximumLikelihood requires choice probabilities (e.g. 'profile')."
             )
 
-        # Retrieve Observed Data
         obs_states = get_from_pytree(observations, "state_indices")
         obs_choices = get_from_pytree(observations, "choice_indices")
-        obs_weights = get_from_pytree(observations, "weights", default=1.0)
 
-        # Indexing: Get probability of the chosen action in the current state
-        # P[s_i, a_i]
         p_selected = choice_probs[obs_states, obs_choices]
-
-        # Clip for numerical stability to avoid log(0)
         p_selected = jnp.clip(p_selected, 1e-10, 1.0)
 
-        # Calculate weighted log-likelihood
-        # Sum of weights (N)
-        sum_weights = jnp.sum(obs_weights) if jnp.ndim(obs_weights) > 0 else obs_states.shape[0]
-
-        # LL = sum( w_i * log(P_i) )
-        ll_choice = jnp.sum(jnp.log(p_selected) * obs_weights)
-
-        # NLL = - LL / N (Mean Negative Log Likelihood)
-        nll = - (ll_choice / sum_weights)
-
-        # Robustness check: Return huge penalty if NLL is NaN/Inf
-        robust_nll = jnp.where(jnp.isfinite(nll), nll, jnp.array(LOSS_PENALTY))
-
-        return robust_nll
-
-    def _loss_scale(self, observations: Any) -> Scalar:
-        """
-        Divisor used by :meth:`compute_loss`: the sum of (frequency) weights, or the
-        observation count when weights are absent. Variance estimators divide by this to
-        recover the un-normalized objective. Under frequency weights this equals the
-        effective sample size. See :meth:`EstimationMethod._loss_scale`.
-        """
-        obs_weights = self._get_validated_weights(observations)
-        if obs_weights is not None:
-            return jnp.sum(obs_weights)
-        obs_states = get_from_pytree(observations, "state_indices")
-        return obs_states.shape[0]
+        # Un-weighted per-observation NLL. Weighting is intentionally deferred to the
+        # callers (see docstring) so the raw scores g_i stay available for the meat.
+        return -jnp.log(p_selected)
 
 
 class GaussianMomentMatch(NumericalMethod):

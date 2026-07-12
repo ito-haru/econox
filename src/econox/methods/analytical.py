@@ -29,7 +29,7 @@ from jaxtyping import Array, PyTree
 
 from econox.protocols import StructuralModel, Solver
 from econox.utils import get_from_pytree
-from econox.structures import EstimationResult, ParameterSpace
+from econox.structures import EstimationResult, ParameterSpace, ConstraintKind
 from econox.methods.base import EstimationMethod
 from econox.methods.variance import Hessian, Variance
 from econox.optim import Minimizer
@@ -70,12 +70,12 @@ class AnalyticalParameterHandler(eqx.Module):
         fixed_vals = []
         
         for name in param_names:
-            kind = constraints.get(name, "free")
-            if kind == "fixed":
+            kind = constraints.get(name, ConstraintKind.FREE)
+            if kind == ConstraintKind.FIXED:
                 is_fixed.append(True)
                 val = float(jnp.asarray(initials.get(name, 0.0)))
                 fixed_vals.append(val)
-            elif kind == "free":
+            elif kind == ConstraintKind.FREE:
                 is_fixed.append(False)
                 fixed_vals.append(0.0)
             else:
